@@ -21,6 +21,7 @@ No test framework is configured yet.
 ### Routing
 
 File-based routing via Expo Router. Routes live in `app/`:
+
 - `app/_layout.tsx` — Root Stack navigator with ThemeProvider
 - `app/(tabs)/_layout.tsx` — Bottom tab navigator
 - `app/(tabs)/index.tsx` — Home tab
@@ -39,6 +40,7 @@ Route groups use parentheses `(tabs)` — they organize routes without affecting
 ### Platform-Specific Files
 
 Uses React Native's platform file extensions for branching:
+
 - `components/ui/icon-symbol.ios.tsx` — SF Symbols on iOS
 - `components/ui/icon-symbol.tsx` — MaterialCommunityIcons fallback on Android/Web
 
