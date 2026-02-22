@@ -10,9 +10,14 @@ expo run:ios            # Build and run on iOS
 expo run:android        # Build and run on Android
 expo start --web        # Start web dev server
 expo lint               # Run ESLint
+npm run format          # Run Prettier
 ```
 
 No test framework is configured yet.
+
+## Workflow
+
+- Always run `npm run format` after finishing a task (before committing).
 
 ## Architecture
 
@@ -22,36 +27,29 @@ No test framework is configured yet.
 
 File-based routing via Expo Router. Routes live in `app/`:
 
-- `app/_layout.tsx` — Root Stack navigator with ThemeProvider
-- `app/(tabs)/_layout.tsx` — Bottom tab navigator
+- `app/_layout.tsx` — Root Stack navigator
+- `app/(tabs)/_layout.tsx` — Native tab navigator (using `NativeTabs` from `expo-router/unstable-native-tabs`)
 - `app/(tabs)/index.tsx` — Home tab
-- `app/(tabs)/explore.tsx` — Explore tab
-- `app/modal.tsx` — Modal screen (presented as modal via Stack)
+- `app/(tabs)/transactions.tsx` — Transactions tab
+- `app/(tabs)/dashboard.tsx` — Dashboard tab
 
 Route groups use parentheses `(tabs)` — they organize routes without affecting URL paths.
 
-### Theme System
+### Tab Icons
 
-- `constants/theme.ts` defines `Colors` (light/dark) and `Fonts` (per-platform)
-- `hooks/use-color-scheme.ts` detects device color preference (`.web.ts` variant handles SSR hydration)
-- `hooks/use-theme-color.ts` resolves a color key to its themed value
-- `components/themed-text.tsx` and `components/themed-view.tsx` wrap native components with theme awareness
+Tab icons use `NativeTabs.Trigger` with `Icon` and `Label` children:
 
-### Platform-Specific Files
-
-Uses React Native's platform file extensions for branching:
-
-- `components/ui/icon-symbol.ios.tsx` — SF Symbols on iOS
-- `components/ui/icon-symbol.tsx` — MaterialCommunityIcons fallback on Android/Web
+- **iOS**: SF Symbols via the `sf` prop
+- **Android**: `MaterialCommunityIcons` via `VectorIcon` passed to `androidSrc`
+- **Web**: Text-only labels (built-in NativeTabs web behavior)
 
 ### Key Conventions
 
-- **Path alias**: `@/*` maps to the project root (e.g., `import { Colors } from '@/constants/theme'`)
+- **Path alias**: `@/*` maps to the project root
 - **TypeScript strict mode** is enabled
-- **Kebab-case filenames** for components and hooks (e.g., `themed-text.tsx`, `use-color-scheme.ts`)
+- **Kebab-case filenames** for components and hooks
 - **Typed routes** experiment is enabled — route params are type-checked
 - **Animations** use `react-native-reanimated` (worklet-based)
-- **Haptic feedback** via `expo-haptics` on tab presses (iOS)
 
 ### Bundle Identifiers
 
