@@ -1,6 +1,7 @@
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { Session } from '@supabase/supabase-js';
 import { create } from 'zustand';
+import { useShallow } from 'zustand/react/shallow';
 
 import { supabase } from '@/lib/supabase';
 import type { Tables } from '@/types/supabase';
@@ -50,11 +51,13 @@ export const useAuthStore = create<AuthState>((set) => ({
 }));
 
 export function useAuth() {
-  return useAuthStore((state) => ({
-    session: state.session,
-    user: state.user,
-    isLoading: state.isLoading,
-    signInWithGoogle: state.signInWithGoogle,
-    signOut: state.signOut,
-  }));
+  return useAuthStore(
+    useShallow((state) => ({
+      session: state.session,
+      user: state.user,
+      isLoading: state.isLoading,
+      signInWithGoogle: state.signInWithGoogle,
+      signOut: state.signOut,
+    })),
+  );
 }
