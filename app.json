@@ -42,7 +42,13 @@
           }
         }
       ],
-      "expo-sqlite"
+      "expo-sqlite",
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.985981017559-vuvvlmm8sgm29ts9lkmggiosrvbav0c2"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
