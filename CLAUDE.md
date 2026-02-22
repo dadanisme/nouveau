@@ -11,6 +11,7 @@ expo run:android        # Build and run on Android
 expo start --web        # Start web dev server
 expo lint               # Run ESLint
 npm run format          # Run Prettier
+npm run supabase:gen-types  # Regenerate DB types from remote schema
 ```
 
 No test framework is configured yet.
@@ -50,6 +51,13 @@ Tab icons use `NativeTabs.Trigger` with `Icon` and `Label` children:
 - **Kebab-case filenames** for components and hooks
 - **Typed routes** experiment is enabled — route params are type-checked
 - **Animations** use `react-native-reanimated` (worklet-based)
+
+### Supabase
+
+- Client initialized in `lib/supabase.ts` with typed `Database` generic
+- Types live in `types/supabase.ts` — regenerate with `npm run supabase:gen-types`
+- Auth uses `expo-sqlite/localStorage` for session persistence
+- Environment variables: `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_KEY` (in `.env.local`)
 
 ### Bundle Identifiers
 
