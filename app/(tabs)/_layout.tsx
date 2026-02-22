@@ -18,6 +18,10 @@ export default function TabLayout() {
           androidSrc={<VectorIcon family={MaterialCommunityIcons} name="swap-horizontal" />}
         />
       </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="add-transaction" role="search">
+        <Label>Add</Label>
+        <Icon sf="plus" androidSrc={<VectorIcon family={MaterialCommunityIcons} name="plus" />} />
+      </NativeTabs.Trigger>
       <NativeTabs.Trigger name="dashboard">
         <Label>Dashboard</Label>
         <Icon
