@@ -2,7 +2,7 @@ import { Stack, useRouter, useSegments } from 'expo-router';
 import { useEffect } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 
-import { AuthProvider, useAuth } from '@/context/auth-context';
+import { AuthHydrator, useAuth } from '@/store';
 
 function AuthGuard({ children }: { children: React.ReactNode }) {
   const { session, isLoading } = useAuth();
@@ -19,7 +19,7 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
     } else if (session && inAuthGroup) {
       router.replace('/(tabs)');
     }
-  }, [session, isLoading, segments]);
+  }, [session, isLoading, segments, router]);
 
   if (isLoading) {
     return (
@@ -34,13 +34,13 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
 
 export default function RootLayout() {
   return (
-    <AuthProvider>
+    <AuthHydrator>
       <AuthGuard>
         <Stack>
           <Stack.Screen name="login" options={{ headerShown: false }} />
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         </Stack>
       </AuthGuard>
-    </AuthProvider>
+    </AuthHydrator>
   );
 }

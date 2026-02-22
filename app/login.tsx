@@ -2,7 +2,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { Image } from 'expo-image';
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { useAuth } from '@/context/auth-context';
+import { useAuth } from '@/store';
 
 export default function LoginScreen() {
   const { signInWithGoogle } = useAuth();

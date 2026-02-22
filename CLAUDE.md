@@ -44,6 +44,21 @@ Tab icons use `NativeTabs.Trigger` with `Icon` and `Label` children:
 - **Android**: `MaterialCommunityIcons` via `VectorIcon` passed to `androidSrc`
 - **Web**: Text-only labels (built-in NativeTabs web behavior)
 
+### State Management
+
+Uses **Zustand** for global state. Stores live in `store/`:
+
+- `store/auth-store.ts` — Auth state (`session`, `user`, `isLoading`) and actions (`signInWithGoogle`, `signOut`)
+- `store/auth-hydrator.tsx` — Syncs Supabase auth state into the Zustand store on mount
+- `store/index.ts` — Barrel exports
+
+Conventions:
+
+- One store file per domain (e.g., `auth-store.ts`)
+- Export a raw `useXxxStore` hook and a `useXxx()` convenience wrapper
+- Hydrators are thin components that sync external state (e.g., Supabase auth) into the store
+- No Provider wrappers needed — Zustand stores are accessed directly via hooks
+
 ### Key Conventions
 
 - **Path alias**: `@/*` maps to the project root
