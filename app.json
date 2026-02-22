@@ -1,16 +1,16 @@
 {
   "expo": {
-    "name": "moneymail-app",
-    "slug": "moneymail-app",
+    "name": "nouveau",
+    "slug": "nouveau",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "moneymailapp",
+    "scheme": "nouveau",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.muhammadramdan.moneymail",
+      "bundleIdentifier": "com.muhammadramdan.nouveau",
       "appleTeamId": "C4SQMCY5WT"
     },
     "android": {
@@ -22,7 +22,7 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.muhammadramdan.moneymail"
+      "package": "com.muhammadramdan.nouveau"
     },
     "web": {
       "output": "static",
