@@ -29,21 +29,24 @@ No test framework is configured yet.
 File-based routing via Expo Router. Routes live in `app/`:
 
 - `app/_layout.tsx` — Root Stack navigator
-- `app/(tabs)/_layout.tsx` — Native tab navigator (using `NativeTabs` from `expo-router/unstable-native-tabs`)
+- `app/(tabs)/_layout.tsx` — Custom tab bar via `Tabs` + `<TabBar>` component
 - `app/(tabs)/index.tsx` — Home tab
 - `app/(tabs)/transactions.tsx` — Transactions tab
 - `app/(tabs)/dashboard.tsx` — Dashboard tab
+- `app/(tabs)/add-transaction.tsx` — Add Transaction (action tab, always expanded with label)
 - `app/settings.tsx` — Settings screen (Stack push from home)
 
 Route groups use parentheses `(tabs)` — they organize routes without affecting URL paths.
 
-### Tab Icons
+### Tab Bar
 
-Tab icons use `NativeTabs.Trigger` with `Icon` and `Label` children:
+Custom floating tab bar (`components/tab-bar.tsx`) — black rounded bar with:
 
-- **iOS**: SF Symbols via the `sf` prop
-- **Android**: `MaterialCommunityIcons` via `VectorIcon` passed to `androidSrc`
-- **Web**: Text-only labels (built-in NativeTabs web behavior)
+- Icon-only tabs for Home, Transactions, Dashboard (active = amber bg)
+- Always-expanded "Add" action tab with icon + label
+- Absolute positioning (floats over content)
+
+**Important**: The tab bar is `position: absolute`, so scrollable tab screens **must** include bottom padding using `TAB_BAR_HEIGHT` (exported from `@/components/tab-bar`) to prevent content from being hidden behind the bar. Example: `paddingBottom: TAB_BAR_HEIGHT + design.spacing.lg`
 
 ### State Management
 
