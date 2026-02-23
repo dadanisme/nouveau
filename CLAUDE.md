@@ -76,6 +76,8 @@ Centralized in `constants/colors.ts`. All UI should use these tokens instead of 
 
 Reusable components in `components/`:
 
+- `button.tsx` — `<Button variant="primary"|"outline"|"dark">` with animated press (shadow shifts on press). Always use this instead of raw `Pressable` for actions.
+- `alert.tsx` — `<Alert visible title message? actions? onDismiss?>` modal dialog with animated entry/exit. Always use this instead of `Alert.alert()` from react-native.
 - `card.tsx` — `<Card variant="default"|"primary">` with border + hard shadow
 - `avatar.tsx` — `<Avatar uri? name? size?>` with image or initials fallback
 - `overview-card.tsx` — `<OverviewCard type amount change>` for income/expense summaries
