@@ -33,7 +33,7 @@ File-based routing via Expo Router. Routes live in `app/`:
 - `app/(tabs)/index.tsx` — Home tab
 - `app/(tabs)/transactions.tsx` — Transactions tab
 - `app/(tabs)/dashboard.tsx` — Dashboard tab
-- `app/(tabs)/add-transaction.tsx` — Add Transaction (action tab, always expanded with label)
+- `app/add-transaction.tsx` — Add Transaction (Stack push from tab bar action button)
 - `app/settings.tsx` — Settings screen (Stack push from home)
 
 Route groups use parentheses `(tabs)` — they organize routes without affecting URL paths.

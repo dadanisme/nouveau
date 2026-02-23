@@ -47,6 +47,13 @@ export default function RootLayout() {
             options={{ headerShown: false, animation: 'flip', animationDuration: 300 }}
           />
           <Stack.Screen
+            name="add-transaction"
+            options={{
+              headerShown: false,
+              animationDuration: 350,
+            }}
+          />
+          <Stack.Screen
             name="settings"
             options={{
               headerShown: false,

@@ -16,7 +16,6 @@ export default function TabLayout() {
       <Tabs.Screen name="index" />
       <Tabs.Screen name="transactions" />
       <Tabs.Screen name="dashboard" />
-      <Tabs.Screen name="add-transaction" />
     </Tabs>
   );
 }

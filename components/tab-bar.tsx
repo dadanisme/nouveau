@@ -1,6 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import * as Haptics from 'expo-haptics';
+import { useRouter } from 'expo-router';
 import { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated, {
@@ -26,10 +27,7 @@ const TAB_CONFIG: Record<string, TabConfig> = {
   index: { icon: 'home-outline', activeIcon: 'home', label: 'Home' },
   transactions: { icon: 'wallet-outline', activeIcon: 'wallet', label: 'Transactions' },
   dashboard: { icon: 'grid-outline', activeIcon: 'grid', label: 'Dashboard' },
-  'add-transaction': { icon: 'add-circle-outline', activeIcon: 'add-circle', label: 'Add' },
 };
-
-const ACTION_TAB = 'add-transaction';
 const TAB_SIZE = 48;
 const ACTIVE_TAB_WIDTH = 148;
 
@@ -108,20 +106,7 @@ function AnimatedTab({ route, isFocused, config, onPress, onLongPress }: Animate
 
 export function TabBar({ state, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
-
-  type RouteEntry = { route: (typeof state.routes)[number]; index: number };
-
-  const navRoutes: RouteEntry[] = [];
-  let actionRoute: RouteEntry | null = null;
-
-  for (let i = 0; i < state.routes.length; i++) {
-    const route = state.routes[i];
-    if (route.name === ACTION_TAB) {
-      actionRoute = { route, index: i };
-    } else if (TAB_CONFIG[route.name]) {
-      navRoutes.push({ route, index: i });
-    }
-  }
+  const router = useRouter();
 
   const createHandlers = (route: (typeof state.routes)[number], index: number) => ({
     onPress: () => {
@@ -142,14 +127,12 @@ export function TabBar({ state, navigation }: BottomTabBarProps) {
     },
   });
 
-  const actionHandlers = actionRoute ? createHandlers(actionRoute.route, actionRoute.index) : null;
-
   return (
     <View style={[styles.container, { paddingBottom: Math.max(insets.bottom, design.spacing.sm) }]}>
       <View style={styles.row}>
         {/* Navigation tabs group */}
         <View style={styles.navBar}>
-          {navRoutes.map(({ route, index }) => {
+          {state.routes.map((route, index) => {
             const config = TAB_CONFIG[route.name];
             if (!config) return null;
             const handlers = createHandlers(route, index);
@@ -166,18 +149,16 @@ export function TabBar({ state, navigation }: BottomTabBarProps) {
         </View>
 
         {/* Action button */}
-        {actionRoute && actionHandlers && (
-          <Button
-            variant="outline"
-            onPress={() => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              actionHandlers.onPress();
-            }}
-            style={styles.actionButton}
-          >
-            <Ionicons name="add" size={24} color={colors.gray[900]} />
-          </Button>
-        )}
+        <Button
+          variant="outline"
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            router.push('/add-transaction');
+          }}
+          style={styles.actionButton}
+        >
+          <Ionicons name="add" size={24} color={colors.gray[900]} />
+        </Button>
       </View>
     </View>
   );
