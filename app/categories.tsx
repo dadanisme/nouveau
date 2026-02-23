@@ -115,7 +115,7 @@ function CategoryFormSheet({
                 <Ionicons name="apps-outline" size={20} color={colors.gray[400]} />
               )}
               <Text style={[styles.pickerText, !form.icon && styles.pickerTextPlaceholder]}>
-                {form.icon ?? 'Icon'}
+                Icon
               </Text>
             </Button>
 
