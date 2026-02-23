@@ -13,9 +13,16 @@ interface BottomSheetProps {
   onDismiss: () => void;
   children: React.ReactNode;
   snapPoints?: (string | number)[];
+  stackBehavior?: 'push' | 'replace';
 }
 
-export function BottomSheet({ visible, onDismiss, children, snapPoints }: BottomSheetProps) {
+export function BottomSheet({
+  visible,
+  onDismiss,
+  children,
+  snapPoints,
+  stackBehavior,
+}: BottomSheetProps) {
   const ref = useRef<BottomSheetModal>(null);
 
   useEffect(() => {
@@ -44,6 +51,7 @@ export function BottomSheet({ visible, onDismiss, children, snapPoints }: Bottom
       snapPoints={snapPoints}
       enableDynamicSizing={!snapPoints}
       onDismiss={onDismiss}
+      stackBehavior={stackBehavior ?? 'replace'}
       backdropComponent={renderBackdrop}
       backgroundStyle={styles.background}
       handleIndicatorStyle={styles.handleIndicator}

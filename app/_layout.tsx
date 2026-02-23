@@ -72,6 +72,13 @@ export default function RootLayout() {
                     animationDuration: 350,
                   }}
                 />
+                <Stack.Screen
+                  name="categories"
+                  options={{
+                    headerShown: false,
+                    animationDuration: 350,
+                  }}
+                />
               </Stack>
             </AuthGuard>
           </AuthListener>
