@@ -96,7 +96,7 @@ export default function TransactionsScreen() {
               <Text style={styles.summaryLabel}>Income</Text>
             </View>
             <Text style={[styles.summaryAmount, { color: colors.income }]}>
-              ${formatCompactAmount(totals.income)}
+              {formatCompactAmount(totals.income)}
             </Text>
           </View>
           <View style={styles.summaryDivider} />
@@ -106,7 +106,7 @@ export default function TransactionsScreen() {
               <Text style={styles.summaryLabel}>Expense</Text>
             </View>
             <Text style={[styles.summaryAmount, { color: colors.expense }]}>
-              ${formatCompactAmount(totals.expense)}
+              {formatCompactAmount(totals.expense)}
             </Text>
           </View>
         </View>
@@ -144,12 +144,12 @@ function DateGroup({ group }: { group: TransactionGroup }) {
         <View style={styles.dateHeaderTotals}>
           {group.income > 0 && (
             <Text style={[styles.dateHeaderAmount, { color: colors.income }]}>
-              +${formatCompactAmount(group.income)}
+              +{formatCompactAmount(group.income)}
             </Text>
           )}
           {group.expense > 0 && (
             <Text style={[styles.dateHeaderAmount, { color: colors.expense }]}>
-              -${formatCompactAmount(group.expense)}
+              -{formatCompactAmount(group.expense)}
             </Text>
           )}
         </View>

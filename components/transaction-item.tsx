@@ -2,6 +2,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { colors, design } from '@/constants/colors';
+import { formatCompactAmount } from '@/utils/currency';
 import { formatShortDate } from '@/utils/date';
 import { parseIcon } from '@/utils/icon';
 
@@ -53,10 +54,8 @@ export function TransactionItem({ transaction, isLast, showDate = true }: Transa
       </View>
 
       <Text style={[styles.amount, { color: amountColor }]}>
-        {amountPrefix}$
-        {transaction.amount.toLocaleString('en-US', {
-          minimumFractionDigits: 2,
-        })}
+        {amountPrefix}
+        {formatCompactAmount(transaction.amount)}
       </Text>
     </View>
   );

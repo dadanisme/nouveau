@@ -56,7 +56,7 @@ export default function HomeScreen() {
               <Text style={styles.overviewLabel}>Income</Text>
             </View>
             <Text style={styles.overviewAmount}>
-              ${formatCompactAmount(overview.income)}{' '}
+              {formatCompactAmount(overview.income)}{' '}
               <Text
                 style={{
                   fontSize: design.fontSize.xs,
@@ -81,7 +81,7 @@ export default function HomeScreen() {
               <Text style={styles.overviewLabel}>Expenses</Text>
             </View>
             <Text style={styles.overviewAmount}>
-              ${formatCompactAmount(overview.expense)}{' '}
+              {formatCompactAmount(overview.expense)}{' '}
               <Text
                 style={{
                   fontSize: design.fontSize.xs,

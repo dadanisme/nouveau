@@ -3,6 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { Card } from '@/components/card';
 import { colors, design } from '@/constants/colors';
+import { formatCurrency } from '@/utils/currency';
 
 interface OverviewCardProps {
   type: 'income' | 'expense';
@@ -24,9 +25,7 @@ export function OverviewCard({ type, amount, change }: OverviewCardProps) {
         <Ionicons name={isIncome ? 'arrow-down' : 'arrow-up'} size={18} color={accentColor} />
       </View>
       <Text style={styles.label}>{isIncome ? 'Income' : 'Expense'}</Text>
-      <Text style={styles.amount}>
-        ${amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-      </Text>
+      <Text style={styles.amount}>{formatCurrency(amount)}</Text>
       <Text style={[styles.change, { color: changeColor }]}>
         {changePrefix}
         {change}%
