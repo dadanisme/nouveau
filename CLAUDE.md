@@ -63,7 +63,7 @@ Uses **TanStack React Query** for all Supabase data operations. Hooks live in `h
 
 - `hooks/use-home-screen.ts` — `useHomeScreen()` — user data derivation, greeting, dummy data
 - `hooks/use-transaction-form.ts` — `useTransactionForm()` — all form state, validation, key press handling, submission, picker toggling
-- `hooks/use-calendar.ts` — `useCalendar(opts)` — month navigation state, grid cell computation, modal visibility
+- `hooks/use-calendar.ts` — `useCalendar(opts)` — month navigation state, grid cell computation
 
 ### Utilities
 
@@ -96,6 +96,7 @@ Centralized in `constants/colors.ts`. All UI should use these tokens instead of 
 
 Reusable components in `components/`:
 
+- `bottom-sheet.tsx` — `<BottomSheet visible onDismiss snapPoints?>` gesture-enabled bottom sheet (wraps `@gorhom/bottom-sheet`'s `BottomSheetModal`). Use `BottomSheetView` or `BottomSheetScrollView` from `@gorhom/bottom-sheet` as direct children.
 - `button.tsx` — `<Button variant="primary"|"outline"|"dark">` with animated press (shadow shifts on press). Always use this instead of raw `Pressable` for actions.
 - `alert.tsx` — `<Alert visible title message? actions? onDismiss?>` modal dialog with animated entry/exit. Always use this instead of `Alert.alert()` from react-native.
 - `card.tsx` — `<Card variant="default"|"primary">` with border + hard shadow
@@ -109,7 +110,8 @@ Reusable components in `components/`:
 - **TypeScript strict mode** is enabled
 - **Kebab-case filenames** for components and hooks
 - **Typed routes** experiment is enabled — route params are type-checked
-- **Animations** use `react-native-reanimated` (worklet-based)
+- **Animations** use `react-native-reanimated` (worklet-based). Use `scheduleOnRN` from `react-native-worklets` instead of the deprecated `runOnJS` from `react-native-reanimated` when calling JS functions from worklets.
+- **Bottom sheets** use `@gorhom/bottom-sheet` — `GestureHandlerRootView` + `BottomSheetModalProvider` wrap the app in `app/_layout.tsx`. Use the `<BottomSheet>` wrapper component (`components/bottom-sheet.tsx`) with `BottomSheetView` or `BottomSheetScrollView` as children.
 
 ### Supabase
 

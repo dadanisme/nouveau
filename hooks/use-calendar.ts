@@ -6,12 +6,9 @@ interface UseCalendarOptions {
   visible: boolean;
   value: Date;
   onSelect: (date: Date) => void;
-  onDismiss: () => void;
 }
 
-export function useCalendar({ visible, value, onSelect, onDismiss }: UseCalendarOptions) {
-  const [modalVisible, setModalVisible] = useState(visible);
-  const [contentVisible, setContentVisible] = useState(visible);
+export function useCalendar({ visible, value, onSelect }: UseCalendarOptions) {
   const [viewYear, setViewYear] = useState(value.getFullYear());
   const [viewMonth, setViewMonth] = useState(value.getMonth());
 
@@ -21,10 +18,6 @@ export function useCalendar({ visible, value, onSelect, onDismiss }: UseCalendar
     if (visible) {
       setViewYear(value.getFullYear());
       setViewMonth(value.getMonth());
-      setModalVisible(true);
-      setContentVisible(true);
-    } else {
-      setContentVisible(false);
     }
   }, [visible, value]);
 
@@ -60,9 +53,6 @@ export function useCalendar({ visible, value, onSelect, onDismiss }: UseCalendar
   while (cells.length < 42) cells.push(null);
 
   return {
-    modalVisible,
-    setModalVisible,
-    contentVisible,
     viewYear,
     viewMonth,
     today,
@@ -70,7 +60,5 @@ export function useCalendar({ visible, value, onSelect, onDismiss }: UseCalendar
     goToNextMonth,
     handleDayPress,
     cells,
-    onDismiss,
-    value,
   };
 }

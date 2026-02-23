@@ -1,7 +1,9 @@
+import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { useEffect } from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { AuthListener } from '@/components/auth-listener';
 import { useSession } from '@/hooks/use-auth';
@@ -38,36 +40,49 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
 
 export default function RootLayout() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthListener>
-        <AuthGuard>
-          <Stack>
-            <Stack.Screen
-              name="login"
-              options={{ headerShown: false, animation: 'flip', animationDuration: 300 }}
-            />
-            <Stack.Screen name="signup" options={{ headerShown: false, animationDuration: 300 }} />
-            <Stack.Screen
-              name="(tabs)"
-              options={{ headerShown: false, animation: 'flip', animationDuration: 300 }}
-            />
-            <Stack.Screen
-              name="add-transaction"
-              options={{
-                headerShown: false,
-                animationDuration: 350,
-              }}
-            />
-            <Stack.Screen
-              name="settings"
-              options={{
-                headerShown: false,
-                animationDuration: 350,
-              }}
-            />
-          </Stack>
-        </AuthGuard>
-      </AuthListener>
-    </QueryClientProvider>
+    <GestureHandlerRootView style={styles.root}>
+      <QueryClientProvider client={queryClient}>
+        <BottomSheetModalProvider>
+          <AuthListener>
+            <AuthGuard>
+              <Stack>
+                <Stack.Screen
+                  name="login"
+                  options={{ headerShown: false, animation: 'flip', animationDuration: 300 }}
+                />
+                <Stack.Screen
+                  name="signup"
+                  options={{ headerShown: false, animationDuration: 300 }}
+                />
+                <Stack.Screen
+                  name="(tabs)"
+                  options={{ headerShown: false, animation: 'flip', animationDuration: 300 }}
+                />
+                <Stack.Screen
+                  name="add-transaction"
+                  options={{
+                    headerShown: false,
+                    animationDuration: 350,
+                  }}
+                />
+                <Stack.Screen
+                  name="settings"
+                  options={{
+                    headerShown: false,
+                    animationDuration: 350,
+                  }}
+                />
+              </Stack>
+            </AuthGuard>
+          </AuthListener>
+        </BottomSheetModalProvider>
+      </QueryClientProvider>
+    </GestureHandlerRootView>
   );
 }
+
+const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
+});
