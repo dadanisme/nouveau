@@ -1,6 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { BottomSheetView } from '@gorhom/bottom-sheet';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
 import { BottomSheet } from '@/components/bottom-sheet';
 import { useCalendar } from '@/hooks/use-calendar';
@@ -31,6 +31,8 @@ interface DatePickerProps {
 }
 
 export function DatePicker({ visible, value, onSelect, onDismiss }: DatePickerProps) {
+  const { width } = useWindowDimensions();
+  const cellSize = Math.floor((width - design.spacing.lg * 2) / 7);
   const { viewYear, viewMonth, today, goToPrevMonth, goToNextMonth, handleDayPress, cells } =
     useCalendar({ visible, value, onSelect });
 
@@ -63,7 +65,7 @@ export function DatePicker({ visible, value, onSelect, onDismiss }: DatePickerPr
         <View style={styles.grid}>
           {cells.map((day, i) => {
             if (day === null) {
-              return <View key={i} style={styles.dayCell} />;
+              return <View key={i} style={[styles.dayCell, { height: cellSize }]} />;
             }
 
             const cellDate = new Date(viewYear, viewMonth, day);
@@ -75,6 +77,7 @@ export function DatePicker({ visible, value, onSelect, onDismiss }: DatePickerPr
                 key={i}
                 style={[
                   styles.dayCell,
+                  { height: cellSize },
                   isToday && !isSelected && styles.dayCellToday,
                   isSelected && styles.dayCellSelected,
                 ]}
@@ -97,8 +100,6 @@ export function DatePicker({ visible, value, onSelect, onDismiss }: DatePickerPr
     </BottomSheet>
   );
 }
-
-const CELL_SIZE = 40;
 
 const styles = StyleSheet.create({
   content: {
@@ -136,7 +137,6 @@ const styles = StyleSheet.create({
   },
   dayCell: {
     width: `${100 / 7}%`,
-    height: CELL_SIZE,
     alignItems: 'center',
     justifyContent: 'center',
   },
