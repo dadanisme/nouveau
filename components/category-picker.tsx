@@ -86,6 +86,7 @@ const styles = StyleSheet.create({
     fontSize: design.fontSize.lg,
     fontWeight: '800',
     color: colors.black,
+    textAlign: 'center',
     marginBottom: design.spacing.md,
   },
   row: {
