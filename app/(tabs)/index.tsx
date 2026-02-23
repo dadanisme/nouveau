@@ -6,7 +6,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Avatar } from '@/components/avatar';
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
-import { OverviewCard } from '@/components/overview-card';
 import { TAB_BAR_HEIGHT } from '@/components/tab-bar';
 import { TransactionItem } from '@/components/transaction-item';
 import { colors, design } from '@/constants/colors';
@@ -46,20 +45,41 @@ export default function HomeScreen() {
       </View>
 
       {/* Balance Card */}
-      <Card variant="primary" style={styles.balanceCard}>
+      <Card style={styles.balanceCard}>
         <Text style={styles.balanceLabel}>Your Balance</Text>
         <Text style={styles.balanceAmount}>
           ${balance.toLocaleString('en-US', { minimumFractionDigits: 2 })}
         </Text>
-        <Text style={styles.brand}>Nouveau</Text>
+        <View style={styles.overviewRow}>
+          <View style={styles.overviewItem}>
+            <View style={styles.overviewLabelRow}>
+              <Ionicons name="arrow-down" size={14} color={colors.income} />
+              <Text style={styles.overviewLabel}>Income</Text>
+            </View>
+            <Text style={styles.overviewAmount}>
+              ${overview.income.toLocaleString('en-US', { minimumFractionDigits: 2 })}{' '}
+              <Text style={styles.overviewChangeIncome}>
+                ({overview.incomeChange > 0 ? '+' : ''}
+                {overview.incomeChange}%)
+              </Text>
+            </Text>
+          </View>
+          <View style={styles.overviewDivider} />
+          <View style={styles.overviewItem}>
+            <View style={styles.overviewLabelRow}>
+              <Ionicons name="arrow-up" size={14} color={colors.expense} />
+              <Text style={styles.overviewLabel}>Expenses</Text>
+            </View>
+            <Text style={styles.overviewAmount}>
+              ${overview.expense.toLocaleString('en-US', { minimumFractionDigits: 2 })}{' '}
+              <Text style={styles.overviewChangeExpense}>
+                ({overview.expenseChange > 0 ? '+' : ''}
+                {overview.expenseChange}%)
+              </Text>
+            </Text>
+          </View>
+        </View>
       </Card>
-
-      {/* Overview */}
-      <Text style={styles.sectionTitle}>Overview</Text>
-      <View style={styles.overviewRow}>
-        <OverviewCard type="income" amount={overview.income} change={overview.incomeChange} />
-        <OverviewCard type="expense" amount={overview.expense} change={overview.expenseChange} />
-      </View>
 
       {/* Recent Transactions */}
       <View style={styles.transactionsHeader}>
@@ -122,6 +142,7 @@ const styles = StyleSheet.create({
     marginBottom: design.spacing.lg,
     paddingVertical: design.spacing.lg,
     paddingHorizontal: design.spacing.lg,
+    backgroundColor: colors.primary.light,
   },
   balanceLabel: {
     fontSize: design.fontSize.sm,
@@ -135,24 +156,52 @@ const styles = StyleSheet.create({
     color: colors.gray[900],
     marginTop: design.spacing.xs,
   },
-  brand: {
-    fontSize: design.fontSize.sm,
-    fontWeight: '700',
-    color: colors.gray[900],
-    opacity: 0.4,
-    textAlign: 'right',
+  overviewRow: {
+    flexDirection: 'row',
     marginTop: design.spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: colors.gray[900] + '20',
+    paddingTop: design.spacing.sm + 4,
+  },
+  overviewItem: {
+    flex: 1,
+    gap: 2,
+  },
+  overviewLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  overviewLabel: {
+    fontSize: design.fontSize.xs,
+    fontWeight: '600',
+    color: colors.gray[900],
+    opacity: 0.6,
+  },
+  overviewAmount: {
+    fontSize: design.fontSize.md,
+    fontWeight: '800',
+    color: colors.gray[900],
+  },
+  overviewChangeIncome: {
+    fontSize: design.fontSize.xs,
+    fontWeight: '700',
+    color: colors.income,
+  },
+  overviewChangeExpense: {
+    fontSize: design.fontSize.xs,
+    fontWeight: '700',
+    color: colors.expense,
+  },
+  overviewDivider: {
+    width: 1,
+    backgroundColor: colors.gray[900] + '20',
+    marginHorizontal: design.spacing.md,
   },
   sectionTitle: {
     fontSize: design.fontSize.lg,
     fontWeight: '800',
     color: colors.gray[900],
-  },
-  overviewRow: {
-    flexDirection: 'row',
-    gap: design.spacing.md,
-    marginTop: design.spacing.sm + 4,
-    marginBottom: design.spacing.lg,
   },
   transactionsHeader: {
     flexDirection: 'row',
