@@ -16,6 +16,18 @@ export function processAmountKeyPress(prev: string, key: string): string {
   return prev + key;
 }
 
+export function formatCompactAmount(value: number): string {
+  if (value >= 1_000_000) {
+    const compact = value / 1_000_000;
+    return compact % 1 === 0 ? `${compact}M` : `${parseFloat(compact.toFixed(1))}M`;
+  }
+  if (value >= 1_000) {
+    const compact = value / 1_000;
+    return compact % 1 === 0 ? `${compact}K` : `${parseFloat(compact.toFixed(1))}K`;
+  }
+  return value % 1 === 0 ? `${value}` : `${parseFloat(value.toFixed(2))}`;
+}
+
 export function formatDisplayAmount(amountString: string): string {
   if (!amountString) return '$0';
   if (amountString === '0.') return '$0.';

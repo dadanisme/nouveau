@@ -1,31 +1,54 @@
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { colors, design } from '@/constants/colors';
-import type { Transaction } from '@/data/dummy';
 import { formatShortDate } from '@/utils/date';
+import { parseIcon } from '@/utils/icon';
 
-interface TransactionItemProps {
-  transaction: Transaction;
-  isLast?: boolean;
+export interface TransactionItemData {
+  id: string;
+  description: string | null;
+  categoryName: string;
+  categoryColor: string;
+  categoryIcon: string | null;
+  date: string;
+  amount: number;
+  type: 'income' | 'expense';
 }
 
-export function TransactionItem({ transaction, isLast }: TransactionItemProps) {
+interface TransactionItemProps {
+  transaction: TransactionItemData;
+  isLast?: boolean;
+  showDate?: boolean;
+}
+
+export function TransactionItem({ transaction, isLast, showDate = true }: TransactionItemProps) {
   const isIncome = transaction.type === 'income';
   const amountColor = isIncome ? colors.income : colors.expense;
   const amountPrefix = isIncome ? '+' : '-';
+  const icon = transaction.categoryIcon ? parseIcon(transaction.categoryIcon) : null;
 
   return (
     <View style={[styles.container, !isLast && styles.border]}>
       <View style={[styles.icon, { backgroundColor: transaction.categoryColor + '20' }]}>
-        <View style={[styles.iconDot, { backgroundColor: transaction.categoryColor }]} />
+        {icon ? (
+          <Ionicons
+            name={icon.name as React.ComponentProps<typeof Ionicons>['name']}
+            size={18}
+            color={transaction.categoryColor}
+          />
+        ) : (
+          <View style={[styles.iconDot, { backgroundColor: transaction.categoryColor }]} />
+        )}
       </View>
 
       <View style={styles.info}>
         <Text style={styles.description} numberOfLines={1}>
-          {transaction.description}
+          {transaction.description ?? transaction.categoryName}
         </Text>
         <Text style={styles.meta}>
-          {transaction.category} &middot; {formatShortDate(transaction.date)}
+          {transaction.categoryName}
+          {showDate ? ` \u00B7 ${formatShortDate(transaction.date)}` : ''}
         </Text>
       </View>
 
