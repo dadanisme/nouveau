@@ -33,6 +33,7 @@ File-based routing via Expo Router. Routes live in `app/`:
 - `app/(tabs)/index.tsx` — Home tab
 - `app/(tabs)/transactions.tsx` — Transactions tab
 - `app/(tabs)/dashboard.tsx` — Dashboard tab
+- `app/settings.tsx` — Settings screen (Stack push from home)
 
 Route groups use parentheses `(tabs)` — they organize routes without affecting URL paths.
 
@@ -58,6 +59,24 @@ Conventions:
 - Export a raw `useXxxStore` hook and a `useXxx()` convenience wrapper
 - Hydrators are thin components that sync external state (e.g., Supabase auth) into the store
 - No Provider wrappers needed — Zustand stores are accessed directly via hooks
+
+### Design System
+
+Centralized in `constants/colors.ts`. All UI should use these tokens instead of hardcoded values.
+
+- **Colors**: `colors.primary` (amber `#F59E0B`), `colors.background` (warm off-white `#FFF9EB`), `colors.income` (green), `colors.expense` (red), `colors.gray` (50–900 scale)
+- **Borders**: `design.borderWidth` (2.5px) — thick cartoonish borders on all interactive/card elements
+- **Shadows**: `design.shadow` — hard offset (`{3,3}`, radius 0) for comic-book effect. Spread via `...design.shadow`
+- **Radii**: `design.radius` — sm(8), md(14), lg(20), xl(28), full(9999)
+- **Spacing**: `design.spacing` — xs(4), sm(8), md(16), lg(24), xl(32)
+- **Font sizes**: `design.fontSize` — xs(12) through 3xl(40)
+
+Reusable components in `components/`:
+
+- `card.tsx` — `<Card variant="default"|"primary">` with border + hard shadow
+- `avatar.tsx` — `<Avatar uri? name? size?>` with image or initials fallback
+- `overview-card.tsx` — `<OverviewCard type amount change>` for income/expense summaries
+- `transaction-item.tsx` — `<TransactionItem transaction isLast?>` for transaction rows
 
 ### Key Conventions
 
