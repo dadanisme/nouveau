@@ -14,6 +14,9 @@ export function OverviewCard({ type, amount, change }: OverviewCardProps) {
   const isIncome = type === 'income';
   const accentColor = isIncome ? colors.income : colors.expense;
   const changePrefix = change > 0 ? '+' : '';
+  const isPositiveChange = isIncome ? change > 0 : change < 0;
+  const changeColor =
+    change === 0 ? colors.gray[500] : isPositiveChange ? colors.income : colors.expense;
 
   return (
     <Card style={styles.card}>
@@ -24,7 +27,7 @@ export function OverviewCard({ type, amount, change }: OverviewCardProps) {
       <Text style={styles.amount}>
         ${amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
       </Text>
-      <Text style={[styles.change, { color: accentColor }]}>
+      <Text style={[styles.change, { color: changeColor }]}>
         {changePrefix}
         {change}%
       </Text>

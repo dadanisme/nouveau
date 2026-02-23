@@ -58,7 +58,18 @@ export default function HomeScreen() {
             </View>
             <Text style={styles.overviewAmount}>
               ${overview.income.toLocaleString('en-US', { minimumFractionDigits: 2 })}{' '}
-              <Text style={styles.overviewChangeIncome}>
+              <Text
+                style={{
+                  fontSize: design.fontSize.xs,
+                  fontWeight: '700',
+                  color:
+                    overview.incomeChange === 0
+                      ? colors.gray[500]
+                      : overview.incomeChange > 0
+                        ? colors.income
+                        : colors.expense,
+                }}
+              >
                 ({overview.incomeChange > 0 ? '+' : ''}
                 {overview.incomeChange}%)
               </Text>
@@ -72,7 +83,18 @@ export default function HomeScreen() {
             </View>
             <Text style={styles.overviewAmount}>
               ${overview.expense.toLocaleString('en-US', { minimumFractionDigits: 2 })}{' '}
-              <Text style={styles.overviewChangeExpense}>
+              <Text
+                style={{
+                  fontSize: design.fontSize.xs,
+                  fontWeight: '700',
+                  color:
+                    overview.expenseChange === 0
+                      ? colors.gray[500]
+                      : overview.expenseChange < 0
+                        ? colors.income
+                        : colors.expense,
+                }}
+              >
                 ({overview.expenseChange > 0 ? '+' : ''}
                 {overview.expenseChange}%)
               </Text>
@@ -182,16 +204,6 @@ const styles = StyleSheet.create({
     fontSize: design.fontSize.md,
     fontWeight: '800',
     color: colors.gray[900],
-  },
-  overviewChangeIncome: {
-    fontSize: design.fontSize.xs,
-    fontWeight: '700',
-    color: colors.income,
-  },
-  overviewChangeExpense: {
-    fontSize: design.fontSize.xs,
-    fontWeight: '700',
-    color: colors.expense,
   },
   overviewDivider: {
     width: 1,

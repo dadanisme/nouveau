@@ -7,7 +7,7 @@ export const colors = {
   background: '#FFF9EB',
   white: '#FFFFFF',
   black: '#000000',
-  income: '#22C55E',
+  income: '#16A34A',
   expense: '#EF4444',
   gray: {
     50: '#F9FAFB',
