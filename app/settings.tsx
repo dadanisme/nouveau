@@ -1,5 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
+import { useState } from 'react';
 import { Alert, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -18,7 +19,10 @@ export default function SettingsScreen() {
   const email = user?.email ?? session?.user.email ?? '';
   const profileImage = user?.profile_image ?? session?.user.user_metadata?.avatar_url;
 
+  const [isSigningOut, setIsSigningOut] = useState(false);
+
   const handleSignOut = async () => {
+    setIsSigningOut(true);
     try {
       await signOut();
     } catch (error) {
@@ -26,6 +30,7 @@ export default function SettingsScreen() {
         'Sign Out Failed',
         error instanceof Error ? error.message : 'An unexpected error occurred',
       );
+      setIsSigningOut(false);
     }
   };
 
@@ -57,9 +62,9 @@ export default function SettingsScreen() {
           </View>
         </Card>
 
-        <Button style={styles.signOutButton} onPress={handleSignOut}>
+        <Button style={styles.signOutButton} onPress={handleSignOut} disabled={isSigningOut}>
           <Ionicons name="log-out-outline" size={22} color={colors.white} />
-          <Text style={styles.signOutText}>Sign Out</Text>
+          <Text style={styles.signOutText}>{isSigningOut ? 'Please wait...' : 'Sign Out'}</Text>
         </Button>
       </View>
     </View>
