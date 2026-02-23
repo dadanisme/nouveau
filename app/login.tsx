@@ -2,6 +2,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { Image } from 'expo-image';
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { colors, design } from '@/constants/colors';
 import { useAuth } from '@/store';
 
 export default function LoginScreen() {
@@ -42,7 +43,7 @@ export default function LoginScreen() {
           </Pressable>
 
           <Pressable style={[styles.appleButton, styles.disabledButton]} disabled>
-            <Ionicons name="logo-apple" size={20} color="#fff" />
+            <Ionicons name="logo-apple" size={20} color={colors.white} />
             <Text style={styles.appleButtonText}>Sign in with Apple</Text>
           </Pressable>
         </View>
@@ -54,80 +55,87 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: colors.background,
   },
   brand: {
-    fontSize: 20,
+    fontSize: design.fontSize.lg,
     fontWeight: '700',
-    paddingHorizontal: 24,
+    paddingHorizontal: design.spacing.lg,
     paddingTop: 60,
+    color: colors.gray[900],
   },
   hero: {
     height: 280,
-    marginHorizontal: 24,
-    marginTop: 24,
-    borderRadius: 24,
+    marginHorizontal: design.spacing.lg,
+    marginTop: design.spacing.lg,
+    borderRadius: design.radius.lg,
+    borderWidth: design.borderWidth,
+    borderColor: colors.black,
     overflow: 'hidden',
+    ...design.shadow,
   },
   heroGradient: {
     flex: 1,
-    backgroundColor: '#F59E0B',
-    opacity: 0.85,
+    backgroundColor: colors.primary.DEFAULT,
   },
   content: {
     flex: 1,
-    paddingHorizontal: 24,
-    paddingTop: 32,
+    paddingHorizontal: design.spacing.lg,
+    paddingTop: design.spacing.xl,
   },
   heading: {
-    fontSize: 28,
+    fontSize: design.fontSize['2xl'],
     fontWeight: '700',
-    lineHeight: 36,
-    color: '#111',
+    lineHeight: 40,
+    color: colors.gray[900],
   },
   subtitle: {
-    fontSize: 15,
-    color: '#666',
-    marginTop: 12,
+    fontSize: design.fontSize.sm,
+    color: colors.gray[500],
+    marginTop: design.spacing.sm,
     lineHeight: 22,
   },
   buttons: {
-    marginTop: 32,
-    gap: 12,
+    marginTop: design.spacing.xl,
+    gap: design.spacing.sm + design.spacing.xs,
   },
   googleButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 14,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    backgroundColor: '#fff',
-    gap: 10,
+    paddingVertical: design.spacing.md,
+    borderRadius: design.radius.md,
+    borderWidth: design.borderWidth,
+    borderColor: colors.black,
+    backgroundColor: colors.white,
+    gap: design.spacing.sm,
+    ...design.shadow,
   },
   googleIcon: {
     width: 20,
     height: 20,
   },
   googleButtonText: {
-    fontSize: 16,
+    fontSize: design.fontSize.md,
     fontWeight: '600',
-    color: '#333',
+    color: colors.gray[800],
   },
   appleButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 14,
-    borderRadius: 12,
-    backgroundColor: '#000',
-    gap: 10,
+    paddingVertical: design.spacing.md,
+    borderRadius: design.radius.md,
+    borderWidth: design.borderWidth,
+    borderColor: colors.black,
+    backgroundColor: colors.black,
+    gap: design.spacing.sm,
+    ...design.shadow,
   },
   appleButtonText: {
-    fontSize: 16,
+    fontSize: design.fontSize.md,
     fontWeight: '600',
-    color: '#fff',
+    color: colors.white,
   },
   disabledButton: {
     opacity: 0.5,
