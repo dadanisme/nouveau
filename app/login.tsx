@@ -21,7 +21,7 @@ export default function LoginScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.brand}>nouveau</Text>
+      <Text style={styles.brand}>Nouveau</Text>
 
       <View style={styles.hero}>
         <View style={styles.heroGradient} />

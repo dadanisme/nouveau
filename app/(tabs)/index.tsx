@@ -4,9 +4,9 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Avatar } from '@/components/avatar';
-import { TAB_BAR_HEIGHT } from '@/components/tab-bar';
 import { Card } from '@/components/card';
 import { OverviewCard } from '@/components/overview-card';
+import { TAB_BAR_HEIGHT } from '@/components/tab-bar';
 import { TransactionItem } from '@/components/transaction-item';
 import { colors, design } from '@/constants/colors';
 import { balance, overview, transactions } from '@/data/dummy';
@@ -55,7 +55,7 @@ export default function HomeScreen() {
         <Text style={styles.balanceAmount}>
           ${balance.toLocaleString('en-US', { minimumFractionDigits: 2 })}
         </Text>
-        <Text style={styles.brand}>nouveau</Text>
+        <Text style={styles.brand}>Nouveau</Text>
       </Card>
 
       {/* Overview */}
