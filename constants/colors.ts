@@ -55,4 +55,9 @@ export const design = {
     '2xl': 32,
     '3xl': 40,
   },
+  animation: {
+    pressIn: { damping: 15, mass: 1, stiffness: 600 },
+    pressOut: { damping: 12, mass: 1, stiffness: 400 },
+    tabSwitch: { damping: 20, mass: 1, stiffness: 300 },
+  },
 } as const;

@@ -37,9 +37,21 @@ export default function RootLayout() {
     <AuthHydrator>
       <AuthGuard>
         <Stack>
-          <Stack.Screen name="login" options={{ headerShown: false }} />
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="settings" options={{ headerShown: false }} />
+          <Stack.Screen
+            name="login"
+            options={{ headerShown: false, animation: 'flip', animationDuration: 300 }}
+          />
+          <Stack.Screen
+            name="(tabs)"
+            options={{ headerShown: false, animation: 'flip', animationDuration: 300 }}
+          />
+          <Stack.Screen
+            name="settings"
+            options={{
+              headerShown: false,
+              animationDuration: 350,
+            }}
+          />
         </Stack>
       </AuthGuard>
     </AuthHydrator>
