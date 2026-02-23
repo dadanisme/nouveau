@@ -68,10 +68,6 @@ export default function LoginScreen() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.hero}>
-          <View style={styles.heroGradient} />
-        </View>
-
         <View style={styles.content}>
           <Text style={styles.heading}>Your financial journey starts here</Text>
           <Text style={styles.subtitle}>
