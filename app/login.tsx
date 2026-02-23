@@ -3,7 +3,6 @@ import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
-  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -14,6 +13,7 @@ import {
   View,
 } from 'react-native';
 
+import { Alert } from '@/components/alert';
 import { Button } from '@/components/button';
 import { colors, design } from '@/constants/colors';
 import { useAuth } from '@/store';
@@ -26,10 +26,11 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [alert, setAlert] = useState<{ title: string; message: string } | null>(null);
 
   const handleEmailSignIn = async () => {
     if (!email.trim() || !password.trim()) {
-      Alert.alert('Missing Fields', 'Please enter both email and password.');
+      setAlert({ title: 'Missing Fields', message: 'Please enter both email and password.' });
       return;
     }
 
@@ -37,10 +38,10 @@ export default function LoginScreen() {
     try {
       await signInWithEmail(email.trim(), password);
     } catch (error) {
-      Alert.alert(
-        'Sign-In Failed',
-        error instanceof Error ? error.message : 'An unexpected error occurred',
-      );
+      setAlert({
+        title: 'Sign-In Failed',
+        message: error instanceof Error ? error.message : 'An unexpected error occurred',
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -50,10 +51,10 @@ export default function LoginScreen() {
     try {
       await signInWithGoogle();
     } catch (error) {
-      Alert.alert(
-        'Sign-In Failed',
-        error instanceof Error ? error.message : 'An unexpected error occurred',
-      );
+      setAlert({
+        title: 'Sign-In Failed',
+        message: error instanceof Error ? error.message : 'An unexpected error occurred',
+      });
     }
   };
 
@@ -155,6 +156,12 @@ export default function LoginScreen() {
           </View>
         </View>
       </ScrollView>
+      <Alert
+        visible={!!alert}
+        title={alert?.title ?? ''}
+        message={alert?.message}
+        onDismiss={() => setAlert(null)}
+      />
     </KeyboardAvoidingView>
   );
 }

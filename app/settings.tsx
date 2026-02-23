@@ -1,9 +1,10 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Alert, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { Alert } from '@/components/alert';
 import { Avatar } from '@/components/avatar';
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
@@ -20,16 +21,17 @@ export default function SettingsScreen() {
   const profileImage = user?.profile_image ?? session?.user.user_metadata?.avatar_url;
 
   const [isSigningOut, setIsSigningOut] = useState(false);
+  const [alert, setAlert] = useState<{ title: string; message: string } | null>(null);
 
   const handleSignOut = async () => {
     setIsSigningOut(true);
     try {
       await signOut();
     } catch (error) {
-      Alert.alert(
-        'Sign Out Failed',
-        error instanceof Error ? error.message : 'An unexpected error occurred',
-      );
+      setAlert({
+        title: 'Sign Out Failed',
+        message: error instanceof Error ? error.message : 'An unexpected error occurred',
+      });
       setIsSigningOut(false);
     }
   };
@@ -67,6 +69,12 @@ export default function SettingsScreen() {
           <Text style={styles.signOutText}>{isSigningOut ? 'Please wait...' : 'Sign Out'}</Text>
         </Button>
       </View>
+      <Alert
+        visible={!!alert}
+        title={alert?.title ?? ''}
+        message={alert?.message}
+        onDismiss={() => setAlert(null)}
+      />
     </View>
   );
 }

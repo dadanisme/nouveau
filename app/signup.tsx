@@ -2,7 +2,6 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
-  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -13,6 +12,7 @@ import {
   View,
 } from 'react-native';
 
+import { Alert } from '@/components/alert';
 import { Button } from '@/components/button';
 import { colors, design } from '@/constants/colors';
 import { useAuth } from '@/store';
@@ -25,25 +25,26 @@ export default function SignUpScreen() {
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [alert, setAlert] = useState<{ title: string; message: string } | null>(null);
 
   const handleSignUp = async () => {
     if (!email.trim() || !password.trim()) {
-      Alert.alert('Missing Fields', 'Please enter both email and password.');
+      setAlert({ title: 'Missing Fields', message: 'Please enter both email and password.' });
       return;
     }
 
     setIsSubmitting(true);
     try {
       await signUpWithEmail(email.trim(), password);
-      Alert.alert(
-        'Check Your Email',
-        'We sent you a confirmation link. Please verify your email to continue.',
-      );
+      setAlert({
+        title: 'Check Your Email',
+        message: 'We sent you a confirmation link. Please verify your email to continue.',
+      });
     } catch (error) {
-      Alert.alert(
-        'Sign-Up Failed',
-        error instanceof Error ? error.message : 'An unexpected error occurred',
-      );
+      setAlert({
+        title: 'Sign-Up Failed',
+        message: error instanceof Error ? error.message : 'An unexpected error occurred',
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -122,6 +123,12 @@ export default function SignUpScreen() {
           </View>
         </View>
       </ScrollView>
+      <Alert
+        visible={!!alert}
+        title={alert?.title ?? ''}
+        message={alert?.message}
+        onDismiss={() => setAlert(null)}
+      />
     </KeyboardAvoidingView>
   );
 }
