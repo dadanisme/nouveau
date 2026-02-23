@@ -10,6 +10,7 @@ import { TAB_BAR_HEIGHT } from '@/components/tab-bar';
 import { TransactionItem } from '@/components/transaction-item';
 import { colors, design } from '@/constants/colors';
 import { useHomeScreen } from '@/hooks/use-home-screen';
+import { formatCompactAmount, formatCurrency } from '@/utils/currency';
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
@@ -47,9 +48,7 @@ export default function HomeScreen() {
       {/* Balance Card */}
       <Card style={styles.balanceCard}>
         <Text style={styles.balanceLabel}>Your Balance</Text>
-        <Text style={styles.balanceAmount}>
-          ${balance.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-        </Text>
+        <Text style={styles.balanceAmount}>{formatCurrency(balance)}</Text>
         <View style={styles.overviewRow}>
           <View style={styles.overviewItem}>
             <View style={styles.overviewLabelRow}>
@@ -57,7 +56,7 @@ export default function HomeScreen() {
               <Text style={styles.overviewLabel}>Income</Text>
             </View>
             <Text style={styles.overviewAmount}>
-              ${overview.income.toLocaleString('en-US', { minimumFractionDigits: 2 })}{' '}
+              ${formatCompactAmount(overview.income)}{' '}
               <Text
                 style={{
                   fontSize: design.fontSize.xs,
@@ -82,7 +81,7 @@ export default function HomeScreen() {
               <Text style={styles.overviewLabel}>Expenses</Text>
             </View>
             <Text style={styles.overviewAmount}>
-              ${overview.expense.toLocaleString('en-US', { minimumFractionDigits: 2 })}{' '}
+              ${formatCompactAmount(overview.expense)}{' '}
               <Text
                 style={{
                   fontSize: design.fontSize.xs,
@@ -111,13 +110,17 @@ export default function HomeScreen() {
         </Pressable>
       </View>
       <Card style={styles.transactionsCard}>
-        {transactions.map((tx, index) => (
-          <TransactionItem
-            key={tx.id}
-            transaction={tx}
-            isLast={index === transactions.length - 1}
-          />
-        ))}
+        {transactions.length > 0 ? (
+          transactions.map((tx, index) => (
+            <TransactionItem
+              key={tx.id}
+              transaction={tx}
+              isLast={index === transactions.length - 1}
+            />
+          ))
+        ) : (
+          <Text style={styles.emptyText}>No transactions yet</Text>
+        )}
       </Card>
     </ScrollView>
   );
@@ -173,7 +176,7 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   balanceAmount: {
-    fontSize: design.fontSize['3xl'],
+    fontSize: design.fontSize['2xl'],
     fontWeight: '900',
     color: colors.gray[900],
     marginTop: design.spacing.xs,
@@ -228,5 +231,12 @@ const styles = StyleSheet.create({
   },
   transactionsCard: {
     paddingVertical: design.spacing.xs,
+  },
+  emptyText: {
+    fontSize: design.fontSize.sm,
+    fontWeight: '600',
+    color: colors.gray[400],
+    textAlign: 'center',
+    paddingVertical: design.spacing.lg,
   },
 });

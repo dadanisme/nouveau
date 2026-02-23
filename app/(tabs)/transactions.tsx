@@ -96,7 +96,7 @@ export default function TransactionsScreen() {
               <Text style={styles.summaryLabel}>Income</Text>
             </View>
             <Text style={[styles.summaryAmount, { color: colors.income }]}>
-              ${totals.income.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+              ${formatCompactAmount(totals.income)}
             </Text>
           </View>
           <View style={styles.summaryDivider} />
@@ -106,7 +106,7 @@ export default function TransactionsScreen() {
               <Text style={styles.summaryLabel}>Expense</Text>
             </View>
             <Text style={[styles.summaryAmount, { color: colors.expense }]}>
-              ${totals.expense.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+              ${formatCompactAmount(totals.expense)}
             </Text>
           </View>
         </View>

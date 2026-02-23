@@ -28,6 +28,10 @@ export function formatCompactAmount(value: number): string {
   return value % 1 === 0 ? `${value}` : `${parseFloat(value.toFixed(2))}`;
 }
 
+export function formatCurrency(value: number): string {
+  return `$${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
 export function formatDisplayAmount(amountString: string): string {
   if (!amountString) return '$0';
   if (amountString === '0.') return '$0.';
