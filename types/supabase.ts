@@ -53,6 +53,7 @@ export type Database = {
         Row: {
           color: string;
           created_at: string | null;
+          icon: string | null;
           id: string;
           is_default: boolean | null;
           name: string;
@@ -63,6 +64,7 @@ export type Database = {
         Insert: {
           color: string;
           created_at?: string | null;
+          icon?: string | null;
           id?: string;
           is_default?: boolean | null;
           name: string;
@@ -73,6 +75,7 @@ export type Database = {
         Update: {
           color?: string;
           created_at?: string | null;
+          icon?: string | null;
           id?: string;
           is_default?: boolean | null;
           name?: string;
@@ -83,6 +86,41 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: 'categories_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      email_classifications: {
+        Row: {
+          created_at: string;
+          email_subject: string;
+          id: string;
+          is_transaction: boolean;
+          model: string;
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          email_subject: string;
+          id?: string;
+          is_transaction: boolean;
+          model: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          email_subject?: string;
+          id?: string;
+          is_transaction?: boolean;
+          model?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'email_classifications_user_id_fkey';
             columns: ['user_id'];
             isOneToOne: false;
             referencedRelation: 'users';
