@@ -1,5 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { Keyboard, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Keyboard, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Alert } from '@/components/alert';
@@ -134,7 +134,11 @@ export default function AddTransactionScreen() {
               onPress={() => handleSubmit('add-more')}
               disabled={isSubmitDisabled}
             >
-              <Text style={styles.addMoreText}>{isPending ? 'Saving...' : 'Add More'}</Text>
+              {isPending ? (
+                <ActivityIndicator size="small" color={colors.gray[700]} />
+              ) : (
+                <Text style={styles.addMoreText}>Add More</Text>
+              )}
             </Button>
             <Button
               variant="primary"
@@ -142,7 +146,11 @@ export default function AddTransactionScreen() {
               onPress={() => handleSubmit('save')}
               disabled={isSubmitDisabled}
             >
-              <Text style={styles.submitText}>{isPending ? 'Saving...' : 'Save'}</Text>
+              {isPending ? (
+                <ActivityIndicator size="small" color={colors.black} />
+              ) : (
+                <Text style={styles.submitText}>Save</Text>
+              )}
             </Button>
           </View>
         </View>
