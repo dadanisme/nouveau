@@ -1,107 +1,205 @@
 // Curated Ionicons names for category icon selection
-// Grouped by theme for easy browsing
+// Structured by group for sectioned browsing
 
-export const CATEGORY_ICONS = [
-  // Food & Drink
-  'restaurant',
-  'fast-food',
-  'cafe',
-  'beer',
-  'wine',
-  'pizza',
-  'ice-cream',
-  'nutrition',
+export interface IconGroup {
+  label: string;
+  icons: readonly string[];
+}
 
-  // Shopping
-  'cart',
-  'bag',
-  'pricetag',
-  'gift',
-  'shirt',
-  'storefront',
+export const CATEGORY_ICON_GROUPS: IconGroup[] = [
+  {
+    label: 'Food & Drink',
+    icons: [
+      'restaurant',
+      'fast-food',
+      'cafe',
+      'beer',
+      'wine',
+      'pizza',
+      'ice-cream',
+      'nutrition',
+      'fish',
+    ],
+  },
+  {
+    label: 'Shopping',
+    icons: [
+      'cart',
+      'bag',
+      'pricetag',
+      'pricetags',
+      'gift',
+      'shirt',
+      'storefront',
+      'basket',
+      'barcode',
+      'receipt',
+    ],
+  },
+  {
+    label: 'Transport',
+    icons: [
+      'car',
+      'car-sport',
+      'bus',
+      'train',
+      'airplane',
+      'bicycle',
+      'boat',
+      'rocket',
+      'subway',
+      'navigate',
+    ],
+  },
+  {
+    label: 'Home',
+    icons: [
+      'home',
+      'bed',
+      'bulb',
+      'water',
+      'flame',
+      'construct',
+      'hammer',
+      'trash',
+      'snow',
+      'thermometer',
+      'sunny',
+    ],
+  },
+  {
+    label: 'Health & Fitness',
+    icons: [
+      'heart',
+      'medkit',
+      'fitness',
+      'bandage',
+      'pulse',
+      'body',
+      'medical',
+      'eye',
+      'ear',
+      'hand-left',
+      'accessibility',
+    ],
+  },
+  {
+    label: 'Entertainment',
+    icons: [
+      'game-controller',
+      'musical-notes',
+      'musical-note',
+      'film',
+      'tv',
+      'headset',
+      'ticket',
+      'football',
+      'trophy',
+      'dice',
+      'bowling-ball',
+      'golf',
+      'tennisball',
+      'basketball',
+    ],
+  },
+  {
+    label: 'Education & Work',
+    icons: [
+      'school',
+      'book',
+      'library',
+      'briefcase',
+      'laptop',
+      'desktop',
+      'document-text',
+      'pencil',
+      'newspaper',
+      'calculator',
+      'code-slash',
+      'bulb',
+    ],
+  },
+  {
+    label: 'Finance',
+    icons: [
+      'wallet',
+      'cash',
+      'card',
+      'trending-up',
+      'trending-down',
+      'stats-chart',
+      'pie-chart',
+      'bar-chart',
+      'logo-usd',
+      'logo-bitcoin',
+      'diamond',
+    ],
+  },
+  {
+    label: 'People & Social',
+    icons: [
+      'people',
+      'person',
+      'person-add',
+      'happy',
+      'sad',
+      'chatbubble',
+      'chatbubbles',
+      'call',
+      'mail',
+      'at',
+      'notifications',
+      'megaphone',
+    ],
+  },
+  {
+    label: 'Nature & Travel',
+    icons: [
+      'leaf',
+      'flower',
+      'earth',
+      'globe',
+      'map',
+      'compass',
+      'trail-sign',
+      'bonfire',
+      'cloudy',
+      'rainy',
+      'moon',
+      'paw',
+      'bug',
+    ],
+  },
+  {
+    label: 'Misc',
+    icons: [
+      'star',
+      'sparkles',
+      'flash',
+      'camera',
+      'color-palette',
+      'brush',
+      'cut',
+      'key',
+      'shield',
+      'flag',
+      'bookmark',
+      'time',
+      'alarm',
+      'hourglass',
+      'lock-closed',
+      'settings',
+      'link',
+      'cloud',
+      'download',
+      'share',
+      'qr-code',
+      'ellipsis-horizontal',
+    ],
+  },
+];
 
-  // Transport
-  'car',
-  'bus',
-  'train',
-  'airplane',
-  'bicycle',
-  'boat',
-  'rocket',
+// Flat list for validation and type inference
+export const CATEGORY_ICONS = CATEGORY_ICON_GROUPS.flatMap((g) => g.icons);
 
-  // Home
-  'home',
-  'bed',
-  'bulb',
-  'water',
-  'flame',
-  'construct',
-  'hammer',
-
-  // Health & Fitness
-  'heart',
-  'medkit',
-  'fitness',
-  'bandage',
-  'pulse',
-  'body',
-
-  // Entertainment
-  'game-controller',
-  'musical-notes',
-  'film',
-  'tv',
-  'headset',
-  'ticket',
-  'football',
-  'trophy',
-
-  // Education & Work
-  'school',
-  'book',
-  'library',
-  'briefcase',
-  'laptop',
-  'desktop',
-  'document-text',
-
-  // Finance
-  'wallet',
-  'cash',
-  'card',
-  'trending-up',
-  'trending-down',
-  'stats-chart',
-  'pie-chart',
-
-  // People & Social
-  'people',
-  'person',
-  'happy',
-  'chatbubble',
-  'call',
-  'mail',
-
-  // Nature & Travel
-  'leaf',
-  'flower',
-  'earth',
-  'globe',
-  'map',
-  'compass',
-  'trail-sign',
-
-  // Misc
-  'star',
-  'sparkles',
-  'flash',
-  'camera',
-  'color-palette',
-  'brush',
-  'cut',
-  'key',
-  'shield',
-  'flag',
-] as const;
-
-export type CategoryIconName = (typeof CATEGORY_ICONS)[number];
+export type CategoryIconName = string;
