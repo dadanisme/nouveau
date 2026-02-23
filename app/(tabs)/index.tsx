@@ -4,6 +4,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Avatar } from '@/components/avatar';
+import { Button } from '@/components/button';
 import { Card } from '@/components/card';
 import { OverviewCard } from '@/components/overview-card';
 import { TAB_BAR_HEIGHT } from '@/components/tab-bar';
@@ -44,9 +45,13 @@ export default function HomeScreen() {
             <Text style={styles.name}>{firstName}</Text>
           </View>
         </View>
-        <Pressable style={styles.settingsButton} onPress={() => router.push('/settings')}>
+        <Button
+          variant="outline"
+          onPress={() => router.push('/settings')}
+          style={styles.settingsButton}
+        >
           <Ionicons name="settings-outline" size={22} color={colors.gray[900]} />
-        </Pressable>
+        </Button>
       </View>
 
       {/* Balance Card */}
@@ -118,13 +123,9 @@ const styles = StyleSheet.create({
   settingsButton: {
     width: 44,
     height: 44,
+    paddingVertical: 0,
+    paddingHorizontal: 0,
     borderRadius: design.radius.sm,
-    borderWidth: design.borderWidth,
-    borderColor: colors.black,
-    backgroundColor: colors.white,
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...design.shadow,
   },
   balanceCard: {
     marginBottom: design.spacing.lg,

@@ -1,9 +1,10 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Avatar } from '@/components/avatar';
+import { Button } from '@/components/button';
 import { Card } from '@/components/card';
 import { colors, design } from '@/constants/colors';
 import { useAuth } from '@/store';
@@ -27,9 +28,9 @@ export default function SettingsScreen() {
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.header}>
-        <Pressable style={styles.backButton} onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color={colors.gray[900]} />
-        </Pressable>
+        <Button variant="outline" onPress={() => router.back()} style={styles.backButton}>
+          <Ionicons name="arrow-back" size={22} color={colors.gray[900]} />
+        </Button>
         <Text style={styles.headerTitle}>Settings</Text>
         <View style={styles.headerSpacer} />
       </View>
@@ -43,10 +44,10 @@ export default function SettingsScreen() {
           </View>
         </Card>
 
-        <Pressable style={styles.signOutButton} onPress={handleSignOut}>
+        <Button style={styles.signOutButton} onPress={handleSignOut}>
           <Ionicons name="log-out-outline" size={22} color={colors.white} />
           <Text style={styles.signOutText}>Sign Out</Text>
-        </Pressable>
+        </Button>
       </View>
     </View>
   );
@@ -66,13 +67,9 @@ const styles = StyleSheet.create({
   backButton: {
     width: 40,
     height: 40,
+    paddingVertical: 0,
+    paddingHorizontal: 0,
     borderRadius: design.radius.sm,
-    borderWidth: design.borderWidth,
-    borderColor: colors.black,
-    backgroundColor: colors.white,
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...design.shadow,
   },
   headerTitle: {
     flex: 1,
@@ -110,16 +107,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   signOutButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: design.spacing.sm,
-    paddingVertical: design.spacing.md,
-    borderRadius: design.radius.md,
-    borderWidth: design.borderWidth,
-    borderColor: colors.black,
     backgroundColor: colors.expense,
-    ...design.shadow,
   },
   signOutText: {
     fontSize: design.fontSize.md,
