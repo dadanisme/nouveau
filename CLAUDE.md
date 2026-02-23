@@ -52,14 +52,33 @@ Custom floating tab bar (`components/tab-bar.tsx`) — black rounded bar with:
 
 Uses **TanStack React Query** for all Supabase data operations. Hooks live in `hooks/`.
 
+**Data hooks** (React Query wrappers):
+
 - `hooks/use-auth.ts` — `useSession()`, `useUserProfile(userId)`, `useSignInWithEmail()`, `useSignUpWithEmail()`, `useSignInWithGoogle()`, `useSignOut()`
 - `hooks/use-categories.ts` — `useCategories(userId)` query hook
 - `hooks/use-add-transaction.ts` — `useAddTransaction()` mutation hook
-- `components/auth-listener.tsx` — Subscribes to Supabase `onAuthStateChange` and syncs into the React Query cache
+- `hooks/use-auth-listener.ts` — `useAuthListener()` — Supabase `onAuthStateChange` subscription + React Query cache sync
+
+**Screen/component hooks** (encapsulate business logic so components only render):
+
+- `hooks/use-home-screen.ts` — `useHomeScreen()` — user data derivation, greeting, dummy data
+- `hooks/use-transaction-form.ts` — `useTransactionForm()` — all form state, validation, key press handling, submission, picker toggling
+- `hooks/use-calendar.ts` — `useCalendar(opts)` — month navigation state, grid cell computation, modal visibility
+
+### Utilities
+
+Pure functions live in `utils/`. No React or side-effect dependencies.
+
+- `utils/date.ts` — `isSameDay`, `getDaysInMonth`, `getFirstDayOfWeek`, `formatShortDate`
+- `utils/string.ts` — `getInitials`
+- `utils/greeting.ts` — `getGreeting`
+- `utils/currency.ts` — `processAmountKeyPress`, `formatDisplayAmount`
 
 Conventions:
 
+- **Component-Hook-Service pattern**: Components only handle rendering. Business logic lives in hooks. Pure utility functions live in `utils/`.
 - **Never call Supabase directly from screens/components** — all Supabase calls must go through React Query hooks (`useQuery` for reads, `useMutation` for writes)
+- **Never define business logic or utility functions inline in components** — extract to hooks or `utils/`
 - Use TanStack `useQuery` for declarative data fetching — no `useEffect` + fetch patterns
 - Use TanStack `useMutation` for data mutations (inserts, updates, deletes, auth actions)
 - `QueryClientProvider` wraps the app in `app/_layout.tsx`

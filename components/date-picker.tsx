@@ -1,10 +1,11 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useEffect, useMemo, useState } from 'react';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeOut, SlideInDown, SlideOutDown } from 'react-native-reanimated';
-
-import { colors, design } from '@/constants/colors';
 import { scheduleOnRN } from 'react-native-worklets';
+
+import { useCalendar } from '@/hooks/use-calendar';
+import { colors, design } from '@/constants/colors';
+import { isSameDay } from '@/utils/date';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -31,71 +32,21 @@ interface DatePickerProps {
   onDismiss: () => void;
 }
 
-function isSameDay(a: Date, b: Date): boolean {
-  return (
-    a.getFullYear() === b.getFullYear() &&
-    a.getMonth() === b.getMonth() &&
-    a.getDate() === b.getDate()
-  );
-}
-
-function getDaysInMonth(year: number, month: number): number {
-  return new Date(year, month + 1, 0).getDate();
-}
-
-function getFirstDayOfWeek(year: number, month: number): number {
-  return new Date(year, month, 1).getDay();
-}
-
-export function DatePicker({ visible, value, onSelect, onDismiss }: DatePickerProps) {
-  const [modalVisible, setModalVisible] = useState(visible);
-  const [contentVisible, setContentVisible] = useState(visible);
-  const [viewYear, setViewYear] = useState(value.getFullYear());
-  const [viewMonth, setViewMonth] = useState(value.getMonth());
-
-  const today = useMemo(() => new Date(), []);
-
-  useEffect(() => {
-    if (visible) {
-      setViewYear(value.getFullYear());
-      setViewMonth(value.getMonth());
-      setModalVisible(true);
-      setContentVisible(true);
-    } else {
-      setContentVisible(false);
-    }
-  }, [visible, value]);
-
-  function goToPrevMonth() {
-    if (viewMonth === 0) {
-      setViewMonth(11);
-      setViewYear((y) => y - 1);
-    } else {
-      setViewMonth((m) => m - 1);
-    }
-  }
-
-  function goToNextMonth() {
-    if (viewMonth === 11) {
-      setViewMonth(0);
-      setViewYear((y) => y + 1);
-    } else {
-      setViewMonth((m) => m + 1);
-    }
-  }
-
-  function handleDayPress(day: number) {
-    onSelect(new Date(viewYear, viewMonth, day));
-  }
-
-  const daysInMonth = getDaysInMonth(viewYear, viewMonth);
-  const firstDay = getFirstDayOfWeek(viewYear, viewMonth);
-
-  // Build 6-row grid (42 cells)
-  const cells: (number | null)[] = [];
-  for (let i = 0; i < firstDay; i++) cells.push(null);
-  for (let d = 1; d <= daysInMonth; d++) cells.push(d);
-  while (cells.length < 42) cells.push(null);
+export function DatePicker(props: DatePickerProps) {
+  const {
+    modalVisible,
+    setModalVisible,
+    contentVisible,
+    viewYear,
+    viewMonth,
+    today,
+    goToPrevMonth,
+    goToNextMonth,
+    handleDayPress,
+    cells,
+    onDismiss,
+    value,
+  } = useCalendar(props);
 
   return (
     <Modal visible={modalVisible} transparent animationType="none" onRequestClose={onDismiss}>

@@ -2,15 +2,11 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { colors, design } from '@/constants/colors';
 import type { Transaction } from '@/data/dummy';
+import { formatShortDate } from '@/utils/date';
 
 interface TransactionItemProps {
   transaction: Transaction;
   isLast?: boolean;
-}
-
-function formatDate(dateStr: string): string {
-  const date = new Date(dateStr);
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
 export function TransactionItem({ transaction, isLast }: TransactionItemProps) {
@@ -29,7 +25,7 @@ export function TransactionItem({ transaction, isLast }: TransactionItemProps) {
           {transaction.description}
         </Text>
         <Text style={styles.meta}>
-          {transaction.category} &middot; {formatDate(transaction.date)}
+          {transaction.category} &middot; {formatShortDate(transaction.date)}
         </Text>
       </View>
 

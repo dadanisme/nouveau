@@ -2,20 +2,12 @@ import { Image } from 'expo-image';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { colors, design } from '@/constants/colors';
+import { getInitials } from '@/utils/string';
 
 interface AvatarProps {
   uri?: string | null;
   name?: string;
   size?: number;
-}
-
-function getInitials(name: string): string {
-  return name
-    .split(' ')
-    .slice(0, 2)
-    .map((part) => part[0])
-    .join('')
-    .toUpperCase();
 }
 
 export function Avatar({ uri, name = '', size = 48 }: AvatarProps) {

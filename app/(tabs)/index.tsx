@@ -10,25 +10,13 @@ import { OverviewCard } from '@/components/overview-card';
 import { TAB_BAR_HEIGHT } from '@/components/tab-bar';
 import { TransactionItem } from '@/components/transaction-item';
 import { colors, design } from '@/constants/colors';
-import { balance, overview, transactions } from '@/data/dummy';
-import { useSession, useUserProfile } from '@/hooks/use-auth';
-
-function getGreeting(): string {
-  const hour = new Date().getHours();
-  if (hour < 12) return 'Good morning';
-  if (hour < 17) return 'Good afternoon';
-  return 'Good evening';
-}
+import { useHomeScreen } from '@/hooks/use-home-screen';
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { session } = useSession();
-  const { data: user } = useUserProfile(session?.user.id);
-
-  const displayName = user?.display_name ?? session?.user.user_metadata?.full_name ?? '';
-  const firstName = displayName.split(' ')[0] || 'there';
-  const profileImage = user?.profile_image ?? session?.user.user_metadata?.avatar_url;
+  const { greeting, firstName, displayName, profileImage, balance, overview, transactions } =
+    useHomeScreen();
 
   return (
     <ScrollView
@@ -44,7 +32,7 @@ export default function HomeScreen() {
         <View style={styles.headerLeft}>
           <Avatar uri={profileImage} name={displayName} size={48} />
           <View>
-            <Text style={styles.greeting}>{getGreeting()},</Text>
+            <Text style={styles.greeting}>{greeting},</Text>
             <Text style={styles.name}>{firstName}</Text>
           </View>
         </View>

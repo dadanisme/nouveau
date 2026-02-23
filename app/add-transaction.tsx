@@ -1,7 +1,4 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import * as Haptics from 'expo-haptics';
-import { useRouter } from 'expo-router';
-import { useState } from 'react';
 import { Keyboard, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -11,112 +8,42 @@ import { CategoryPicker } from '@/components/category-picker';
 import { DatePicker } from '@/components/date-picker';
 import { NumberPad } from '@/components/number-pad';
 import { colors, design } from '@/constants/colors';
-import { useAddTransaction } from '@/hooks/use-add-transaction';
-import { useSession } from '@/hooks/use-auth';
-import { useCategories } from '@/hooks/use-categories';
-import type { Tables } from '@/types/supabase';
+import { useTransactionForm } from '@/hooks/use-transaction-form';
 
 export default function AddTransactionScreen() {
   const insets = useSafeAreaInsets();
-  const router = useRouter();
-  const { session } = useSession();
-
-  const { data: categories = [] } = useCategories(session?.user.id);
-  const addTransaction = useAddTransaction();
-
-  const [type, setType] = useState<'income' | 'expense'>('expense');
-  const [amountString, setAmountString] = useState('');
-  const [description, setDescription] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<Tables<'categories'> | null>(null);
-  const [date, setDate] = useState(new Date());
-  const [showCategoryPicker, setShowCategoryPicker] = useState(false);
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [alertState, setAlertState] = useState<{ title: string; message: string } | null>(null);
-
-  function handleTypeChange(newType: 'income' | 'expense') {
-    setType(newType);
-    setSelectedCategory((prev) => (prev && prev.type !== newType ? null : prev));
-  }
-
-  const filteredCategories = categories.filter((c) => c.type === type);
-
-  function handleKeyPress(key: string) {
-    Keyboard.dismiss();
-    if (key === 'backspace') {
-      setAmountString((prev) => prev.slice(0, -1));
-      return;
-    }
-    setAmountString((prev) => {
-      if (key === '.') {
-        if (prev.includes('.')) return prev;
-        return prev === '' ? '0.' : prev + '.';
-      }
-      // Max 2 decimal places
-      const dotIndex = prev.indexOf('.');
-      if (dotIndex !== -1 && prev.length - dotIndex >= 3) return prev;
-      // No leading zeros
-      if (prev === '0' && key !== '.') return key;
-      // Limit length
-      if (prev.replace('.', '').length >= 10) return prev;
-      return prev + key;
-    });
-  }
-
-  function formatDisplayAmount(): string {
-    if (!amountString) return '$0';
-    if (amountString === '0.') return '$0.';
-    const parts = amountString.split('.');
-    const intPart = parseInt(parts[0] || '0', 10).toLocaleString('en-US');
-    if (parts.length === 2) {
-      return `$${intPart}.${parts[1]}`;
-    }
-    return `$${intPart}`;
-  }
-
-  async function handleSubmit() {
-    const amount = parseFloat(amountString);
-    if (!amount || amount <= 0) {
-      setAlertState({ title: 'Invalid Amount', message: 'Please enter a valid amount.' });
-      return;
-    }
-    if (!selectedCategory) {
-      setAlertState({ title: 'No Category', message: 'Please select a category.' });
-      return;
-    }
-
-    const userId = session?.user.id;
-    if (!userId) return;
-
-    addTransaction.mutate(
-      {
-        amount,
-        category_id: selectedCategory.id,
-        date: date.toISOString().split('T')[0],
-        description: description.trim() || null,
-        type,
-        user_id: userId,
-      },
-      {
-        onSuccess: () => {
-          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-          router.back();
-        },
-        onError: (error) => {
-          setAlertState({
-            title: 'Failed to Save',
-            message: error instanceof Error ? error.message : 'An unexpected error occurred.',
-          });
-        },
-      },
-    );
-  }
+  const {
+    type,
+    description,
+    selectedCategory,
+    date,
+    showCategoryPicker,
+    showDatePicker,
+    alertState,
+    filteredCategories,
+    isPending,
+    isSubmitDisabled,
+    handleTypeChange,
+    handleKeyPress,
+    getDisplayAmount,
+    handleSubmit,
+    setDescription,
+    openCategoryPicker,
+    closeCategoryPicker,
+    selectCategory,
+    openDatePicker,
+    closeDatePicker,
+    selectDate,
+    dismissAlert,
+    goBack,
+  } = useTransactionForm();
 
   const amountColor = type === 'income' ? colors.income : colors.expense;
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.header}>
-        <Button variant="outline" onPress={() => router.back()} style={styles.backButton}>
+        <Button variant="outline" onPress={goBack} style={styles.backButton}>
           <Ionicons name="arrow-back" size={22} color={colors.gray[900]} />
         </Button>
         <Text style={styles.headerTitle}>Add Transaction</Text>
@@ -156,9 +83,7 @@ export default function AddTransactionScreen() {
           <View style={styles.amountSectionContainer}>
             <View style={styles.amountSection}>
               <Text style={styles.amountLabel}>Amount</Text>
-              <Text style={[styles.amountText, { color: amountColor }]}>
-                {formatDisplayAmount()}
-              </Text>
+              <Text style={[styles.amountText, { color: amountColor }]}>{getDisplayAmount()}</Text>
             </View>
 
             <TextInput
@@ -173,14 +98,7 @@ export default function AddTransactionScreen() {
             />
           </View>
           <View style={styles.selectorRow}>
-            <Button
-              variant="outline"
-              style={styles.pill}
-              onPress={() => {
-                Keyboard.dismiss();
-                setShowCategoryPicker(true);
-              }}
-            >
+            <Button variant="outline" style={styles.pill} onPress={openCategoryPicker}>
               {selectedCategory ? (
                 <View style={[styles.categoryDot, { backgroundColor: selectedCategory.color }]} />
               ) : (
@@ -192,14 +110,7 @@ export default function AddTransactionScreen() {
               <Ionicons name="chevron-down" size={14} color={colors.gray[400]} />
             </Button>
 
-            <Button
-              variant="outline"
-              style={styles.pill}
-              onPress={() => {
-                Keyboard.dismiss();
-                setShowDatePicker(true);
-              }}
-            >
+            <Button variant="outline" style={styles.pill} onPress={openDatePicker}>
               <Ionicons name="calendar-outline" size={16} color={colors.gray[600]} />
               <Text style={styles.pillText}>
                 {date.toLocaleDateString('en-US', {
@@ -220,11 +131,9 @@ export default function AddTransactionScreen() {
             variant="primary"
             style={styles.submitButton}
             onPress={handleSubmit}
-            disabled={addTransaction.isPending || !amountString || amountString === '0'}
+            disabled={isSubmitDisabled}
           >
-            <Text style={styles.submitText}>
-              {addTransaction.isPending ? 'Saving...' : 'Add Transaction'}
-            </Text>
+            <Text style={styles.submitText}>{isPending ? 'Saving...' : 'Add Transaction'}</Text>
           </Button>
         </View>
       </View>
@@ -233,28 +142,22 @@ export default function AddTransactionScreen() {
         visible={showCategoryPicker}
         categories={filteredCategories}
         selectedCategoryId={selectedCategory?.id ?? null}
-        onSelect={(category) => {
-          setSelectedCategory(category);
-          setShowCategoryPicker(false);
-        }}
-        onDismiss={() => setShowCategoryPicker(false)}
+        onSelect={selectCategory}
+        onDismiss={closeCategoryPicker}
       />
 
       <DatePicker
         visible={showDatePicker}
         value={date}
-        onSelect={(selectedDate) => {
-          setDate(selectedDate);
-          setShowDatePicker(false);
-        }}
-        onDismiss={() => setShowDatePicker(false)}
+        onSelect={selectDate}
+        onDismiss={closeDatePicker}
       />
 
       <Alert
         visible={!!alertState}
         title={alertState?.title ?? ''}
         message={alertState?.message}
-        onDismiss={() => setAlertState(null)}
+        onDismiss={dismissAlert}
       />
     </View>
   );
