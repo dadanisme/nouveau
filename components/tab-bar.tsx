@@ -2,7 +2,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import * as Haptics from 'expo-haptics';
 import { useEffect } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import Animated, {
   interpolateColor,
   useAnimatedStyle,
@@ -11,6 +11,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { Button } from '@/components/button';
 import { colors, design } from '@/constants/colors';
 
 type IconName = React.ComponentProps<typeof Ionicons>['name'];
@@ -30,14 +31,11 @@ const TAB_CONFIG: Record<string, TabConfig> = {
 
 const ACTION_TAB = 'add-transaction';
 const TAB_SIZE = 48;
-const TAB_WIDTH = 64;
-const ACTION_TAB_SIZE = 128;
+const ACTIVE_TAB_WIDTH = 148;
 
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 const AnimatedIonicons = Animated.createAnimatedComponent(Ionicons);
 
 // Height estimate for screens to use as bottom padding
-// paddingTop(sm) + bar padding(sm*2) + tab height + extra breathing room
 export const TAB_BAR_HEIGHT =
   design.spacing.sm + design.spacing.sm * 2 + TAB_SIZE + design.spacing.md;
 
@@ -45,20 +43,11 @@ interface AnimatedTabProps {
   route: BottomTabBarProps['state']['routes'][number];
   isFocused: boolean;
   config: TabConfig;
-  isAction: boolean;
   onPress: () => void;
   onLongPress: () => void;
 }
 
-function AnimatedTab({
-  route,
-  isFocused,
-  config,
-  isAction,
-  onPress,
-  onLongPress,
-}: AnimatedTabProps) {
-  const scale = useSharedValue(1);
+function AnimatedTab({ route, isFocused, config, onPress, onLongPress }: AnimatedTabProps) {
   const active = useSharedValue(isFocused ? 1 : 0);
 
   useEffect(() => {
@@ -66,7 +55,7 @@ function AnimatedTab({
   }, [isFocused, active]);
 
   const containerStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
+    width: TAB_SIZE + active.value * (ACTIVE_TAB_WIDTH - TAB_SIZE),
     backgroundColor: interpolateColor(active.value, [0, 1], [colors.white, colors.primary.DEFAULT]),
   }));
 
@@ -78,30 +67,23 @@ function AnimatedTab({
     opacity: active.value,
   }));
 
-  const handlePressIn = () => {
-    scale.value = withSpring(0.9, design.animation.pressIn);
-  };
-
-  const handlePressOut = () => {
-    scale.value = withSpring(1, design.animation.pressOut);
-  };
-
-  const handlePress = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    onPress();
-  };
+  const labelStyle = useAnimatedStyle(() => ({
+    opacity: active.value,
+    maxWidth: active.value * 100,
+    marginLeft: active.value * design.spacing.xs,
+  }));
 
   return (
-    <AnimatedPressable
+    <Animated.View
       key={route.key}
       accessibilityRole="button"
       accessibilityState={isFocused ? { selected: true } : {}}
       accessibilityLabel={config.label}
-      onPress={handlePress}
-      onLongPress={onLongPress}
-      onPressIn={handlePressIn}
-      onPressOut={handlePressOut}
-      style={[styles.tab, isAction && styles.actionTab, containerStyle]}
+      onTouchEnd={() => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        onPress();
+      }}
+      style={[styles.tab, containerStyle]}
     >
       <View style={styles.iconContainer}>
         <AnimatedIonicons
@@ -114,58 +96,85 @@ function AnimatedTab({
           name={config.activeIcon}
           size={22}
           color={colors.gray[900]}
-          style={[styles.iconBase, styles.iconOverlay, activeIconStyle]}
+          style={[styles.iconBase, activeIconStyle]}
         />
       </View>
-      {isAction && <Text style={styles.label}>{config.label}</Text>}
-    </AnimatedPressable>
+      <Animated.Text style={[styles.label, labelStyle]} numberOfLines={1}>
+        {config.label}
+      </Animated.Text>
+    </Animated.View>
   );
 }
 
 export function TabBar({ state, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
 
+  const navRoutes: { route: (typeof state.routes)[number]; index: number }[] = [];
+  let actionRoute: { route: (typeof state.routes)[number]; index: number } | null = null;
+
+  state.routes.forEach((route, index) => {
+    if (route.name === ACTION_TAB) {
+      actionRoute = { route, index };
+    } else if (TAB_CONFIG[route.name]) {
+      navRoutes.push({ route, index });
+    }
+  });
+
+  const createHandlers = (route: (typeof state.routes)[number], index: number) => ({
+    onPress: () => {
+      const event = navigation.emit({
+        type: 'tabPress',
+        target: route.key,
+        canPreventDefault: true,
+      });
+      if (state.index !== index && !event.defaultPrevented) {
+        navigation.navigate(route.name, route.params);
+      }
+    },
+    onLongPress: () => {
+      navigation.emit({
+        type: 'tabLongPress',
+        target: route.key,
+      });
+    },
+  });
+
+  const actionHandlers = actionRoute ? createHandlers(actionRoute.route, actionRoute.index) : null;
+
   return (
     <View style={[styles.container, { paddingBottom: Math.max(insets.bottom, design.spacing.sm) }]}>
-      <View style={styles.bar}>
-        {state.routes.map((route, index) => {
-          const config = TAB_CONFIG[route.name];
-          if (!config) return null;
+      <View style={styles.row}>
+        {/* Navigation tabs group */}
+        <View style={styles.navBar}>
+          {navRoutes.map(({ route, index }) => {
+            const config = TAB_CONFIG[route.name];
+            if (!config) return null;
+            const handlers = createHandlers(route, index);
+            return (
+              <AnimatedTab
+                key={route.key}
+                route={route}
+                isFocused={state.index === index}
+                config={config}
+                {...handlers}
+              />
+            );
+          })}
+        </View>
 
-          const isFocused = state.index === index;
-          const isAction = route.name === ACTION_TAB;
-
-          const onPress = () => {
-            const event = navigation.emit({
-              type: 'tabPress',
-              target: route.key,
-              canPreventDefault: true,
-            });
-
-            if (!isFocused && !event.defaultPrevented) {
-              navigation.navigate(route.name, route.params);
-            }
-          };
-
-          const onLongPress = () => {
-            navigation.emit({
-              type: 'tabLongPress',
-              target: route.key,
-            });
-          };
-
-          return (
-            <AnimatedTab
-              key={route.key}
-              route={route}
-              isFocused={isFocused}
-              config={config}
-              isAction={isAction}
-              onPress={onPress}
-              onLongPress={onLongPress}
-            />
-          );
-        })}
+        {/* Action button */}
+        {actionRoute && actionHandlers && (
+          <Button
+            variant="outline"
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              actionHandlers.onPress();
+            }}
+            style={styles.actionButton}
+          >
+            <Ionicons name="add" size={24} color={colors.gray[900]} />
+          </Button>
+        )}
       </View>
     </View>
   );
@@ -180,35 +189,39 @@ const styles = StyleSheet.create({
     paddingHorizontal: design.spacing.md,
     paddingTop: design.spacing.sm,
   },
-  bar: {
+  row: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-evenly',
+    justifyContent: 'space-between',
+  },
+  navBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: colors.black,
     borderRadius: design.radius.lg,
     padding: design.spacing.sm,
     gap: design.spacing.sm,
   },
   tab: {
-    width: TAB_WIDTH,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: design.radius.md,
     height: TAB_SIZE,
+    overflow: 'visible',
   },
-  actionTab: {
-    flexDirection: 'row',
-    width: ACTION_TAB_SIZE,
-    gap: design.spacing.sm,
+  actionButton: {
+    width: TAB_SIZE + design.spacing.sm * 2,
+    height: TAB_SIZE + design.spacing.sm * 2,
+    paddingHorizontal: 0,
+    paddingVertical: 0,
+    borderRadius: design.radius.lg,
   },
   iconContainer: {
     width: 22,
     height: 22,
   },
   iconBase: {
-    position: 'absolute',
-  },
-  iconOverlay: {
     position: 'absolute',
   },
   label: {
