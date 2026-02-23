@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
-import Animated, { FadeIn, FadeOut, runOnJS, ZoomIn, ZoomOut } from 'react-native-reanimated';
+import Animated, { FadeIn, FadeOut, ZoomIn, ZoomOut } from 'react-native-reanimated';
+import { scheduleOnRN } from 'react-native-worklets';
 
-import { colors, design } from '@/constants/colors';
 import { Button } from '@/components/button';
+import { colors, design } from '@/constants/colors';
 
 interface AlertAction {
   label: string;
@@ -51,7 +52,7 @@ export function Alert({ visible, title, message, actions, onDismiss }: AlertProp
             exiting={ZoomOut.duration(100).withCallback((finished) => {
               'worklet';
               if (finished) {
-                runOnJS(setModalVisible)(false);
+                scheduleOnRN(setModalVisible, false);
               }
             })}
             style={[styles.container, design.shadow]}

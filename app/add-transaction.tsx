@@ -1,28 +1,19 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import {
-  Keyboard,
-  Modal,
-  Platform,
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { Keyboard, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Alert } from '@/components/alert';
 import { Button } from '@/components/button';
 import { CategoryPicker } from '@/components/category-picker';
+import { DatePicker } from '@/components/date-picker';
 import { NumberPad } from '@/components/number-pad';
 import { colors, design } from '@/constants/colors';
 import { useAddTransaction } from '@/hooks/use-add-transaction';
-import { useCategories } from '@/hooks/use-categories';
 import { useSession } from '@/hooks/use-auth';
+import { useCategories } from '@/hooks/use-categories';
 import type { Tables } from '@/types/supabase';
 
 export default function AddTransactionScreen() {
@@ -246,48 +237,15 @@ export default function AddTransactionScreen() {
         onDismiss={() => setShowCategoryPicker(false)}
       />
 
-      {showDatePicker && Platform.OS === 'android' && (
-        <DateTimePicker
-          value={date}
-          mode="date"
-          onChange={(_, selectedDate) => {
-            setShowDatePicker(false);
-            if (selectedDate) setDate(selectedDate);
-          }}
-        />
-      )}
-
-      {showDatePicker && Platform.OS === 'ios' && (
-        <Modal
-          visible
-          transparent
-          animationType="none"
-          onRequestClose={() => setShowDatePicker(false)}
-        >
-          <Pressable style={styles.dateOverlay} onPress={() => setShowDatePicker(false)}>
-            <Pressable style={styles.dateSheet}>
-              <View style={styles.dateHeader}>
-                <Text style={styles.dateTitle}>Select Date</Text>
-                <Button
-                  variant="primary"
-                  style={styles.dateDone}
-                  onPress={() => setShowDatePicker(false)}
-                >
-                  <Text style={styles.dateDoneText}>Done</Text>
-                </Button>
-              </View>
-              <DateTimePicker
-                value={date}
-                mode="date"
-                display="spinner"
-                onChange={(_, selectedDate) => {
-                  if (selectedDate) setDate(selectedDate);
-                }}
-              />
-            </Pressable>
-          </Pressable>
-        </Modal>
-      )}
+      <DatePicker
+        visible={showDatePicker}
+        value={date}
+        onSelect={(selectedDate) => {
+          setDate(selectedDate);
+          setShowDatePicker(false);
+        }}
+        onDismiss={() => setShowDatePicker(false)}
+      />
 
       <Alert
         visible={!!alertState}
@@ -380,7 +338,7 @@ const styles = StyleSheet.create({
   },
   pill: {
     flex: 1,
-    borderRadius: design.radius.full,
+    borderRadius: design.radius.md,
     paddingVertical: design.spacing.md - 2,
     paddingHorizontal: design.spacing.md,
   },
@@ -408,42 +366,6 @@ const styles = StyleSheet.create({
   submitText: {
     fontSize: design.fontSize.md,
     fontWeight: '800',
-    color: colors.black,
-  },
-  dateOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    justifyContent: 'flex-end',
-  },
-  dateSheet: {
-    backgroundColor: colors.white,
-    borderTopLeftRadius: design.radius.xl,
-    borderTopRightRadius: design.radius.xl,
-    borderWidth: design.borderWidth,
-    borderBottomWidth: 0,
-    borderColor: colors.black,
-    paddingBottom: design.spacing.lg,
-  },
-  dateHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: design.spacing.lg,
-    paddingTop: design.spacing.md,
-    paddingBottom: design.spacing.sm,
-  },
-  dateTitle: {
-    fontSize: design.fontSize.lg,
-    fontWeight: '800',
-    color: colors.black,
-  },
-  dateDone: {
-    paddingVertical: design.spacing.sm,
-    paddingHorizontal: design.spacing.md,
-  },
-  dateDoneText: {
-    fontSize: design.fontSize.sm,
-    fontWeight: '700',
     color: colors.black,
   },
 });

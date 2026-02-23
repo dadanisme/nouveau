@@ -1,16 +1,11 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useEffect, useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import Animated, {
-  FadeIn,
-  FadeOut,
-  SlideInDown,
-  SlideOutDown,
-  runOnJS,
-} from 'react-native-reanimated';
+import Animated, { FadeIn, FadeOut, SlideInDown, SlideOutDown } from 'react-native-reanimated';
 
 import { colors, design } from '@/constants/colors';
 import type { Tables } from '@/types/supabase';
+import { scheduleOnRN } from 'react-native-worklets';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -55,7 +50,7 @@ export function CategoryPicker({
             exiting={SlideOutDown.duration(200).withCallback((finished) => {
               'worklet';
               if (finished) {
-                runOnJS(setModalVisible)(false);
+                scheduleOnRN(setModalVisible, false);
               }
             })}
             style={styles.sheet}
