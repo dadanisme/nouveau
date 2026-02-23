@@ -153,22 +153,25 @@ export default function AddTransactionScreen() {
             </Button>
           </View>
 
-          <View style={styles.amountSection}>
-            <Text style={styles.amountLabel}>Amount</Text>
-            <Text style={[styles.amountText, { color: amountColor }]}>{formatDisplayAmount()}</Text>
+          <View style={styles.amountSectionContainer}>
+            <View style={styles.amountSection}>
+              <Text style={styles.amountLabel}>Amount</Text>
+              <Text style={[styles.amountText, { color: amountColor }]}>
+                {formatDisplayAmount()}
+              </Text>
+            </View>
+
+            <TextInput
+              style={styles.descriptionInput}
+              placeholder="Add a note (optional)"
+              placeholderTextColor={colors.gray[400]}
+              value={description}
+              onChangeText={setDescription}
+              maxLength={100}
+              returnKeyType="done"
+              onSubmitEditing={Keyboard.dismiss}
+            />
           </View>
-
-          <TextInput
-            style={styles.descriptionInput}
-            placeholder="Add a note (optional)"
-            placeholderTextColor={colors.gray[400]}
-            value={description}
-            onChangeText={setDescription}
-            maxLength={100}
-            returnKeyType="done"
-            onSubmitEditing={Keyboard.dismiss}
-          />
-
           <View style={styles.selectorRow}>
             <Button
               variant="outline"
@@ -289,9 +292,11 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'space-between',
     paddingHorizontal: design.spacing.lg,
+    gap: design.spacing.lg,
   },
   topSection: {
     gap: design.spacing.md,
+    flex: 1,
   },
   toggleRow: {
     flexDirection: 'row',
@@ -310,8 +315,13 @@ const styles = StyleSheet.create({
     color: colors.white,
     fontWeight: '800',
   },
+  amountSectionContainer: {
+    flex: 1,
+  },
   amountSection: {
+    flex: 1,
     alignItems: 'center',
+    justifyContent: 'center',
     paddingVertical: design.spacing.md,
   },
   amountLabel: {
