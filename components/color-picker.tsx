@@ -15,7 +15,7 @@ interface ColorPickerProps {
 
 export function ColorPicker({ visible, selectedColor, onSelect, onDismiss }: ColorPickerProps) {
   return (
-    <BottomSheet visible={visible} onDismiss={onDismiss} snapPoints={['35%']} stackBehavior="push">
+    <BottomSheet visible={visible} onDismiss={onDismiss} snapPoints={['60%']} stackBehavior="push">
       <BottomSheetView style={styles.content}>
         <Text style={styles.title}>Choose Color</Text>
         <View style={styles.grid}>
