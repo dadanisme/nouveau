@@ -45,7 +45,13 @@ export function useTransactionForm() {
     return formatDisplayAmount(amountString);
   }
 
-  async function handleSubmit() {
+  function resetForm() {
+    setAmountString('');
+    setDescription('');
+    setSelectedCategory(null);
+  }
+
+  async function handleSubmit(mode: 'save' | 'add-more' = 'save') {
     const amount = parseFloat(amountString);
     if (!amount || amount <= 0) {
       setAlertState({ title: 'Invalid Amount', message: 'Please enter a valid amount.' });
@@ -71,7 +77,11 @@ export function useTransactionForm() {
       {
         onSuccess: () => {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-          router.back();
+          if (mode === 'add-more') {
+            resetForm();
+          } else {
+            router.back();
+          }
         },
         onError: (error) => {
           setAlertState({

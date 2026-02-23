@@ -127,14 +127,24 @@ export default function AddTransactionScreen() {
         {/* Bottom section */}
         <View style={[styles.bottomSection, { paddingBottom: insets.bottom + design.spacing.sm }]}>
           <NumberPad onKeyPress={handleKeyPress} />
-          <Button
-            variant="primary"
-            style={styles.submitButton}
-            onPress={handleSubmit}
-            disabled={isSubmitDisabled}
-          >
-            <Text style={styles.submitText}>{isPending ? 'Saving...' : 'Add Transaction'}</Text>
-          </Button>
+          <View style={styles.submitRow}>
+            <Button
+              variant="outline"
+              style={styles.addMoreButton}
+              onPress={() => handleSubmit('add-more')}
+              disabled={isSubmitDisabled}
+            >
+              <Text style={styles.addMoreText}>{isPending ? 'Saving...' : 'Add More'}</Text>
+            </Button>
+            <Button
+              variant="primary"
+              style={styles.saveButton}
+              onPress={() => handleSubmit('save')}
+              disabled={isSubmitDisabled}
+            >
+              <Text style={styles.submitText}>{isPending ? 'Saving...' : 'Save'}</Text>
+            </Button>
+          </View>
         </View>
       </View>
 
@@ -273,8 +283,20 @@ const styles = StyleSheet.create({
   bottomSection: {
     gap: design.spacing.lg,
   },
-  submitButton: {
-    width: '100%',
+  submitRow: {
+    flexDirection: 'row',
+    gap: design.spacing.sm,
+  },
+  addMoreButton: {
+    flex: 2,
+  },
+  saveButton: {
+    flex: 3,
+  },
+  addMoreText: {
+    fontSize: design.fontSize.md,
+    fontWeight: '800',
+    color: colors.gray[700],
   },
   submitText: {
     fontSize: design.fontSize.md,
