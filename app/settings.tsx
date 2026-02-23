@@ -12,7 +12,11 @@ import { useAuth } from '@/store';
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { user, signOut } = useAuth();
+  const { user, userError, session, signOut } = useAuth();
+
+  const displayName = user?.display_name ?? session?.user.user_metadata?.full_name ?? '';
+  const email = user?.email ?? session?.user.email ?? '';
+  const profileImage = user?.profile_image ?? session?.user.user_metadata?.avatar_url;
 
   const handleSignOut = async () => {
     try {
@@ -36,11 +40,20 @@ export default function SettingsScreen() {
       </View>
 
       <View style={styles.content}>
+        {userError && (
+          <Card style={styles.errorCard}>
+            <Ionicons name="warning-outline" size={20} color={colors.expense} />
+            <Text style={styles.errorText}>
+              Failed to load profile data. Some information may be incomplete.
+            </Text>
+          </Card>
+        )}
+
         <Card style={styles.profileCard}>
-          <Avatar uri={user?.profile_image} name={user?.display_name ?? ''} size={64} />
+          <Avatar uri={profileImage} name={displayName} size={64} />
           <View style={styles.profileInfo}>
-            <Text style={styles.profileName}>{user?.display_name}</Text>
-            <Text style={styles.profileEmail}>{user?.email}</Text>
+            <Text style={styles.profileName}>{displayName || 'Unknown'}</Text>
+            <Text style={styles.profileEmail}>{email || 'No email'}</Text>
           </View>
         </Card>
 
@@ -86,6 +99,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: design.spacing.lg,
     paddingTop: design.spacing.lg,
     gap: design.spacing.lg,
+  },
+  errorCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: design.spacing.sm,
+    backgroundColor: '#FEF2F2',
+  },
+  errorText: {
+    flex: 1,
+    fontSize: design.fontSize.sm,
+    fontWeight: '600',
+    color: colors.expense,
   },
   profileCard: {
     flexDirection: 'row',

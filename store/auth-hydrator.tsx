@@ -11,20 +11,28 @@ async function fetchUserProfile(userId: string): Promise<User | null> {
 
   if (error) {
     console.error('Failed to fetch user profile:', error.message);
-    return null;
+    throw new Error(error.message);
   }
 
   return data;
 }
 
 export function AuthHydrator({ children }: { children: React.ReactNode }) {
-  const { setSession, setUser, setIsLoading } = useAuthStore();
+  const { setSession, setUser, setUserError, setIsLoading } = useAuthStore();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       if (session) {
-        fetchUserProfile(session.user.id).then(setUser);
+        fetchUserProfile(session.user.id)
+          .then((user) => {
+            setUser(user);
+            setUserError(null);
+          })
+          .catch((err: Error) => {
+            setUser(null);
+            setUserError(err.message);
+          });
       }
       setIsLoading(false);
     });
@@ -34,14 +42,23 @@ export function AuthHydrator({ children }: { children: React.ReactNode }) {
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       if (session) {
-        fetchUserProfile(session.user.id).then(setUser);
+        fetchUserProfile(session.user.id)
+          .then((user) => {
+            setUser(user);
+            setUserError(null);
+          })
+          .catch((err: Error) => {
+            setUser(null);
+            setUserError(err.message);
+          });
       } else {
         setUser(null);
+        setUserError(null);
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [setSession, setUser, setIsLoading]);
+  }, [setSession, setUser, setUserError, setIsLoading]);
 
   return children;
 }

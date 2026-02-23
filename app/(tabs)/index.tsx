@@ -23,9 +23,11 @@ function getGreeting(): string {
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, session } = useAuth();
 
-  const firstName = user?.display_name?.split(' ')[0] ?? 'there';
+  const displayName = user?.display_name ?? session?.user.user_metadata?.full_name ?? '';
+  const firstName = displayName.split(' ')[0] || 'there';
+  const profileImage = user?.profile_image ?? session?.user.user_metadata?.avatar_url;
 
   return (
     <ScrollView
@@ -39,7 +41,7 @@ export default function HomeScreen() {
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <Avatar uri={user?.profile_image} name={user?.display_name ?? ''} size={48} />
+          <Avatar uri={profileImage} name={displayName} size={48} />
           <View>
             <Text style={styles.greeting}>{getGreeting()},</Text>
             <Text style={styles.name}>{firstName}</Text>
