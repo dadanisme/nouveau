@@ -1,34 +1,21 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import { Icon, Label, NativeTabs, VectorIcon } from 'expo-router/unstable-native-tabs';
+import { Tabs } from 'expo-router';
+
+import { TabBar } from '@/components/tab-bar';
+import { colors } from '@/constants/colors';
 
 export default function TabLayout() {
   return (
-    <NativeTabs>
-      <NativeTabs.Trigger name="index">
-        <Label>Home</Label>
-        <Icon
-          sf={{ default: 'house', selected: 'house.fill' }}
-          androidSrc={<VectorIcon family={MaterialCommunityIcons} name="home" />}
-        />
-      </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="transactions">
-        <Label>Transactions</Label>
-        <Icon
-          sf="arrow.left.arrow.right"
-          androidSrc={<VectorIcon family={MaterialCommunityIcons} name="swap-horizontal" />}
-        />
-      </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="add-transaction" role="search">
-        <Label>Add</Label>
-        <Icon sf="plus" androidSrc={<VectorIcon family={MaterialCommunityIcons} name="plus" />} />
-      </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="dashboard">
-        <Label>Dashboard</Label>
-        <Icon
-          sf={{ default: 'square.grid.2x2', selected: 'square.grid.2x2.fill' }}
-          androidSrc={<VectorIcon family={MaterialCommunityIcons} name="view-dashboard" />}
-        />
-      </NativeTabs.Trigger>
-    </NativeTabs>
+    <Tabs
+      tabBar={(props) => <TabBar {...props} />}
+      screenOptions={{
+        headerShown: false,
+        sceneStyle: { backgroundColor: colors.background },
+      }}
+    >
+      <Tabs.Screen name="index" />
+      <Tabs.Screen name="transactions" />
+      <Tabs.Screen name="dashboard" />
+      <Tabs.Screen name="add-transaction" />
+    </Tabs>
   );
 }

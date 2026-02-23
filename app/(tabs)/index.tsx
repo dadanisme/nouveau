@@ -4,6 +4,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Avatar } from '@/components/avatar';
+import { TAB_BAR_HEIGHT } from '@/components/tab-bar';
 import { Card } from '@/components/card';
 import { OverviewCard } from '@/components/overview-card';
 import { TransactionItem } from '@/components/transaction-item';
@@ -91,7 +92,7 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     paddingHorizontal: design.spacing.lg,
-    paddingBottom: design.spacing.xl,
+    paddingBottom: TAB_BAR_HEIGHT + design.spacing.lg,
   },
   header: {
     flexDirection: 'row',
