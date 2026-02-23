@@ -1,5 +1,4 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
@@ -18,8 +17,8 @@ import { Button } from '@/components/button';
 import { colors, design } from '@/constants/colors';
 import { useAuth } from '@/store';
 
-export default function LoginScreen() {
-  const { signInWithGoogle, signInWithEmail } = useAuth();
+export default function SignUpScreen() {
+  const { signUpWithEmail } = useAuth();
   const router = useRouter();
 
   const [email, setEmail] = useState('');
@@ -27,7 +26,7 @@ export default function LoginScreen() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleEmailSignIn = async () => {
+  const handleSignUp = async () => {
     if (!email.trim() || !password.trim()) {
       Alert.alert('Missing Fields', 'Please enter both email and password.');
       return;
@@ -35,25 +34,18 @@ export default function LoginScreen() {
 
     setIsSubmitting(true);
     try {
-      await signInWithEmail(email.trim(), password);
+      await signUpWithEmail(email.trim(), password);
+      Alert.alert(
+        'Check Your Email',
+        'We sent you a confirmation link. Please verify your email to continue.',
+      );
     } catch (error) {
       Alert.alert(
-        'Sign-In Failed',
+        'Sign-Up Failed',
         error instanceof Error ? error.message : 'An unexpected error occurred',
       );
     } finally {
       setIsSubmitting(false);
-    }
-  };
-
-  const handleGoogleSignIn = async () => {
-    try {
-      await signInWithGoogle();
-    } catch (error) {
-      Alert.alert(
-        'Sign-In Failed',
-        error instanceof Error ? error.message : 'An unexpected error occurred',
-      );
     }
   };
 
@@ -67,15 +59,13 @@ export default function LoginScreen() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.hero}>
-          <View style={styles.heroGradient} />
-        </View>
-
         <View style={styles.content}>
-          <Text style={styles.heading}>Your financial journey starts here</Text>
-          <Text style={styles.subtitle}>
-            Manage your money, transactions, and finances seamlessly.
-          </Text>
+          <Button variant="outline" onPress={() => router.back()} style={styles.backButton}>
+            <Ionicons name="arrow-back" size={20} color={colors.gray[900]} />
+          </Button>
+
+          <Text style={styles.heading}>Create your account</Text>
+          <Text style={styles.subtitle}>Sign up to start managing your finances with Nouveau.</Text>
 
           <View style={styles.form}>
             <View style={styles.inputWrapper}>
@@ -101,7 +91,7 @@ export default function LoginScreen() {
                 onChangeText={setPassword}
                 secureTextEntry={!showPassword}
                 autoCapitalize="none"
-                autoComplete="current-password"
+                autoComplete="new-password"
                 editable={!isSubmitting}
               />
               <Pressable
@@ -117,41 +107,18 @@ export default function LoginScreen() {
               </Pressable>
             </View>
 
-            <Button onPress={handleEmailSignIn} disabled={isSubmitting}>
+            <Button onPress={handleSignUp} disabled={isSubmitting}>
               <Text style={styles.primaryButtonText}>
-                {isSubmitting ? 'Please wait...' : 'Sign In'}
+                {isSubmitting ? 'Please wait...' : 'Sign Up'}
               </Text>
             </Button>
 
-            <Pressable onPress={() => router.push('/signup')} disabled={isSubmitting}>
+            <Pressable onPress={() => router.back()} disabled={isSubmitting}>
               <Text style={styles.toggleText}>
-                {"Don't have an account? "}
-                <Text style={styles.toggleTextBold}>Sign Up</Text>
+                {'Already have an account? '}
+                <Text style={styles.toggleTextBold}>Sign In</Text>
               </Text>
             </Pressable>
-          </View>
-
-          <View style={styles.divider}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>or continue with</Text>
-            <View style={styles.dividerLine} />
-          </View>
-
-          <View style={styles.buttons}>
-            <Button variant="outline" onPress={handleGoogleSignIn}>
-              <Image
-                source={{
-                  uri: 'https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg',
-                }}
-                style={styles.googleIcon}
-              />
-              <Text style={styles.oauthButtonText}>Sign in with Google</Text>
-            </Button>
-
-            <Button variant="dark" disabled>
-              <Ionicons name="logo-apple" size={20} color={colors.white} />
-              <Text style={styles.appleButtonText}>Sign in with Apple</Text>
-            </Button>
           </View>
         </View>
       </ScrollView>
@@ -169,23 +136,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingBottom: design.spacing.xl,
   },
-  hero: {
-    height: 180,
-    marginHorizontal: design.spacing.lg,
-    marginTop: design.spacing.lg,
-    borderRadius: design.radius.lg,
-    borderWidth: design.borderWidth,
-    borderColor: colors.black,
-    overflow: 'hidden',
-    ...design.shadow,
-  },
-  heroGradient: {
-    flex: 1,
-    backgroundColor: colors.primary.DEFAULT,
-  },
   content: {
     paddingHorizontal: design.spacing.lg,
-    paddingTop: design.spacing.lg,
+  },
+  backButton: {
+    alignSelf: 'flex-start',
+    paddingVertical: design.spacing.sm,
+    paddingHorizontal: design.spacing.sm,
+    marginBottom: design.spacing.lg,
   },
   heading: {
     fontSize: design.fontSize['2xl'],
@@ -239,37 +197,5 @@ const styles = StyleSheet.create({
   toggleTextBold: {
     fontWeight: '700',
     color: colors.gray[800],
-  },
-  divider: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: design.spacing.lg,
-    gap: design.spacing.sm,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: colors.gray[300],
-  },
-  dividerText: {
-    fontSize: design.fontSize.xs,
-    color: colors.gray[400],
-  },
-  buttons: {
-    gap: design.spacing.sm + design.spacing.xs,
-  },
-  googleIcon: {
-    width: 20,
-    height: 20,
-  },
-  oauthButtonText: {
-    fontSize: design.fontSize.md,
-    fontWeight: '600',
-    color: colors.gray[800],
-  },
-  appleButtonText: {
-    fontSize: design.fontSize.md,
-    fontWeight: '600',
-    color: colors.white,
   },
 });

@@ -15,6 +15,8 @@ interface AuthState {
   setSession: (session: Session | null) => void;
   setUser: (user: User | null) => void;
   setIsLoading: (isLoading: boolean) => void;
+  signInWithEmail: (email: string, password: string) => Promise<void>;
+  signUpWithEmail: (email: string, password: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
 }
@@ -27,6 +29,16 @@ export const useAuthStore = create<AuthState>((set) => ({
   setSession: (session) => set({ session }),
   setUser: (user) => set({ user }),
   setIsLoading: (isLoading) => set({ isLoading }),
+
+  signInWithEmail: async (email, password) => {
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+  },
+
+  signUpWithEmail: async (email, password) => {
+    const { error } = await supabase.auth.signUp({ email, password });
+    if (error) throw error;
+  },
 
   signInWithGoogle: async () => {
     await GoogleSignin.hasPlayServices();
@@ -56,6 +68,8 @@ export function useAuth() {
       session: state.session,
       user: state.user,
       isLoading: state.isLoading,
+      signInWithEmail: state.signInWithEmail,
+      signUpWithEmail: state.signUpWithEmail,
       signInWithGoogle: state.signInWithGoogle,
       signOut: state.signOut,
     })),

@@ -12,7 +12,7 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (isLoading) return;
 
-    const inAuthGroup = segments[0] === 'login';
+    const inAuthGroup = segments[0] === 'login' || segments[0] === 'signup';
 
     if (!session && !inAuthGroup) {
       router.replace('/login');
@@ -41,6 +41,7 @@ export default function RootLayout() {
             name="login"
             options={{ headerShown: false, animation: 'flip', animationDuration: 300 }}
           />
+          <Stack.Screen name="signup" options={{ headerShown: false, animationDuration: 300 }} />
           <Stack.Screen
             name="(tabs)"
             options={{ headerShown: false, animation: 'flip', animationDuration: 300 }}
