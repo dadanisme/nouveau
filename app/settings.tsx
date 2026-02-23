@@ -9,31 +9,30 @@ import { Avatar } from '@/components/avatar';
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
 import { colors, design } from '@/constants/colors';
-import { useAuth } from '@/store';
+import { useSession, useSignOut, useUserProfile } from '@/hooks/use-auth';
 
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { user, userError, session, signOut } = useAuth();
+  const { session } = useSession();
+  const { data: user, error: userError } = useUserProfile(session?.user.id);
+  const signOut = useSignOut();
 
   const displayName = user?.display_name ?? session?.user.user_metadata?.full_name ?? '';
   const email = user?.email ?? session?.user.email ?? '';
   const profileImage = user?.profile_image ?? session?.user.user_metadata?.avatar_url;
 
-  const [isSigningOut, setIsSigningOut] = useState(false);
   const [alert, setAlert] = useState<{ title: string; message: string } | null>(null);
 
-  const handleSignOut = async () => {
-    setIsSigningOut(true);
-    try {
-      await signOut();
-    } catch (error) {
-      setAlert({
-        title: 'Sign Out Failed',
-        message: error instanceof Error ? error.message : 'An unexpected error occurred',
-      });
-      setIsSigningOut(false);
-    }
+  const handleSignOut = () => {
+    signOut.mutate(undefined, {
+      onError: (error) => {
+        setAlert({
+          title: 'Sign Out Failed',
+          message: error instanceof Error ? error.message : 'An unexpected error occurred',
+        });
+      },
+    });
   };
 
   return (
@@ -64,9 +63,11 @@ export default function SettingsScreen() {
           </View>
         </Card>
 
-        <Button style={styles.signOutButton} onPress={handleSignOut} disabled={isSigningOut}>
+        <Button style={styles.signOutButton} onPress={handleSignOut} disabled={signOut.isPending}>
           <Ionicons name="log-out-outline" size={22} color={colors.white} />
-          <Text style={styles.signOutText}>{isSigningOut ? 'Please wait...' : 'Sign Out'}</Text>
+          <Text style={styles.signOutText}>
+            {signOut.isPending ? 'Please wait...' : 'Sign Out'}
+          </Text>
         </Button>
       </View>
       <Alert

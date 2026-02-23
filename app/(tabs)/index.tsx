@@ -11,7 +11,7 @@ import { TAB_BAR_HEIGHT } from '@/components/tab-bar';
 import { TransactionItem } from '@/components/transaction-item';
 import { colors, design } from '@/constants/colors';
 import { balance, overview, transactions } from '@/data/dummy';
-import { useAuth } from '@/store';
+import { useSession, useUserProfile } from '@/hooks/use-auth';
 
 function getGreeting(): string {
   const hour = new Date().getHours();
@@ -23,7 +23,8 @@ function getGreeting(): string {
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { user, session } = useAuth();
+  const { session } = useSession();
+  const { data: user } = useUserProfile(session?.user.id);
 
   const displayName = user?.display_name ?? session?.user.user_metadata?.full_name ?? '';
   const firstName = displayName.split(' ')[0] || 'there';

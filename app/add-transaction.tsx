@@ -2,7 +2,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import {
   Keyboard,
   Modal,
@@ -20,33 +20,27 @@ import { Button } from '@/components/button';
 import { CategoryPicker } from '@/components/category-picker';
 import { NumberPad } from '@/components/number-pad';
 import { colors, design } from '@/constants/colors';
-import { supabase } from '@/lib/supabase';
-import { useAuth } from '@/store';
+import { useAddTransaction } from '@/hooks/use-add-transaction';
+import { useCategories } from '@/hooks/use-categories';
+import { useSession } from '@/hooks/use-auth';
 import type { Tables } from '@/types/supabase';
 
 export default function AddTransactionScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { session } = useAuth();
+  const { session } = useSession();
+
+  const { data: categories = [] } = useCategories(session?.user.id);
+  const addTransaction = useAddTransaction();
 
   const [type, setType] = useState<'income' | 'expense'>('expense');
   const [amountString, setAmountString] = useState('');
   const [description, setDescription] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<Tables<'categories'> | null>(null);
   const [date, setDate] = useState(new Date());
-  const [categories, setCategories] = useState<Tables<'categories'>[]>([]);
   const [showCategoryPicker, setShowCategoryPicker] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [alertState, setAlertState] = useState<{ title: string; message: string } | null>(null);
-
-  useEffect(() => {
-    async function loadCategories() {
-      const { data } = await supabase.from('categories').select('*').order('name');
-      if (data) setCategories(data);
-    }
-    loadCategories();
-  }, []);
 
   function handleTypeChange(newType: 'income' | 'expense') {
     setType(newType);
@@ -102,29 +96,28 @@ export default function AddTransactionScreen() {
     const userId = session?.user.id;
     if (!userId) return;
 
-    setIsSubmitting(true);
-    try {
-      const { error } = await supabase.from('transactions').insert({
+    addTransaction.mutate(
+      {
         amount,
         category_id: selectedCategory.id,
         date: date.toISOString().split('T')[0],
         description: description.trim() || null,
         type,
         user_id: userId,
-      });
-
-      if (error) throw error;
-
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      router.back();
-    } catch (error) {
-      setAlertState({
-        title: 'Failed to Save',
-        message: error instanceof Error ? error.message : 'An unexpected error occurred.',
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
+      },
+      {
+        onSuccess: () => {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+          router.back();
+        },
+        onError: (error) => {
+          setAlertState({
+            title: 'Failed to Save',
+            message: error instanceof Error ? error.message : 'An unexpected error occurred.',
+          });
+        },
+      },
+    );
   }
 
   const amountColor = type === 'income' ? colors.income : colors.expense;
@@ -233,9 +226,11 @@ export default function AddTransactionScreen() {
             variant="primary"
             style={styles.submitButton}
             onPress={handleSubmit}
-            disabled={isSubmitting || !amountString || amountString === '0'}
+            disabled={addTransaction.isPending || !amountString || amountString === '0'}
           >
-            <Text style={styles.submitText}>{isSubmitting ? 'Saving...' : 'Add Transaction'}</Text>
+            <Text style={styles.submitText}>
+              {addTransaction.isPending ? 'Saving...' : 'Add Transaction'}
+            </Text>
           </Button>
         </View>
       </View>

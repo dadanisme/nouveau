@@ -15,39 +15,42 @@ import {
 import { Alert } from '@/components/alert';
 import { Button } from '@/components/button';
 import { colors, design } from '@/constants/colors';
-import { useAuth } from '@/store';
+import { useSignUpWithEmail } from '@/hooks/use-auth';
 
 export default function SignUpScreen() {
-  const { signUpWithEmail } = useAuth();
+  const signUpWithEmail = useSignUpWithEmail();
   const router = useRouter();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [alert, setAlert] = useState<{ title: string; message: string } | null>(null);
 
-  const handleSignUp = async () => {
+  const isSubmitting = signUpWithEmail.isPending;
+
+  const handleSignUp = () => {
     if (!email.trim() || !password.trim()) {
       setAlert({ title: 'Missing Fields', message: 'Please enter both email and password.' });
       return;
     }
 
-    setIsSubmitting(true);
-    try {
-      await signUpWithEmail(email.trim(), password);
-      setAlert({
-        title: 'Check Your Email',
-        message: 'We sent you a confirmation link. Please verify your email to continue.',
-      });
-    } catch (error) {
-      setAlert({
-        title: 'Sign-Up Failed',
-        message: error instanceof Error ? error.message : 'An unexpected error occurred',
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
+    signUpWithEmail.mutate(
+      { email: email.trim(), password },
+      {
+        onSuccess: () => {
+          setAlert({
+            title: 'Check Your Email',
+            message: 'We sent you a confirmation link. Please verify your email to continue.',
+          });
+        },
+        onError: (error) => {
+          setAlert({
+            title: 'Sign-Up Failed',
+            message: error instanceof Error ? error.message : 'An unexpected error occurred',
+          });
+        },
+      },
+    );
   };
 
   return (

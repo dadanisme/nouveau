@@ -1,11 +1,15 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { useEffect } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 
-import { AuthHydrator, useAuth } from '@/store';
+import { AuthListener } from '@/components/auth-listener';
+import { useSession } from '@/hooks/use-auth';
+
+const queryClient = new QueryClient();
 
 function AuthGuard({ children }: { children: React.ReactNode }) {
-  const { session, isLoading } = useAuth();
+  const { session, isLoading } = useSession();
   const segments = useSegments();
   const router = useRouter();
 
@@ -34,34 +38,36 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
 
 export default function RootLayout() {
   return (
-    <AuthHydrator>
-      <AuthGuard>
-        <Stack>
-          <Stack.Screen
-            name="login"
-            options={{ headerShown: false, animation: 'flip', animationDuration: 300 }}
-          />
-          <Stack.Screen name="signup" options={{ headerShown: false, animationDuration: 300 }} />
-          <Stack.Screen
-            name="(tabs)"
-            options={{ headerShown: false, animation: 'flip', animationDuration: 300 }}
-          />
-          <Stack.Screen
-            name="add-transaction"
-            options={{
-              headerShown: false,
-              animationDuration: 350,
-            }}
-          />
-          <Stack.Screen
-            name="settings"
-            options={{
-              headerShown: false,
-              animationDuration: 350,
-            }}
-          />
-        </Stack>
-      </AuthGuard>
-    </AuthHydrator>
+    <QueryClientProvider client={queryClient}>
+      <AuthListener>
+        <AuthGuard>
+          <Stack>
+            <Stack.Screen
+              name="login"
+              options={{ headerShown: false, animation: 'flip', animationDuration: 300 }}
+            />
+            <Stack.Screen name="signup" options={{ headerShown: false, animationDuration: 300 }} />
+            <Stack.Screen
+              name="(tabs)"
+              options={{ headerShown: false, animation: 'flip', animationDuration: 300 }}
+            />
+            <Stack.Screen
+              name="add-transaction"
+              options={{
+                headerShown: false,
+                animationDuration: 350,
+              }}
+            />
+            <Stack.Screen
+              name="settings"
+              options={{
+                headerShown: false,
+                animationDuration: 350,
+              }}
+            />
+          </Stack>
+        </AuthGuard>
+      </AuthListener>
+    </QueryClientProvider>
   );
 }

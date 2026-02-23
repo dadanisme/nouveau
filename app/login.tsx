@@ -16,46 +16,48 @@ import {
 import { Alert } from '@/components/alert';
 import { Button } from '@/components/button';
 import { colors, design } from '@/constants/colors';
-import { useAuth } from '@/store';
+import { useSignInWithEmail, useSignInWithGoogle } from '@/hooks/use-auth';
 
 export default function LoginScreen() {
-  const { signInWithGoogle, signInWithEmail } = useAuth();
+  const signInWithEmail = useSignInWithEmail();
+  const signInWithGoogle = useSignInWithGoogle();
   const router = useRouter();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [alert, setAlert] = useState<{ title: string; message: string } | null>(null);
 
-  const handleEmailSignIn = async () => {
+  const isSubmitting = signInWithEmail.isPending || signInWithGoogle.isPending;
+
+  const handleEmailSignIn = () => {
     if (!email.trim() || !password.trim()) {
       setAlert({ title: 'Missing Fields', message: 'Please enter both email and password.' });
       return;
     }
 
-    setIsSubmitting(true);
-    try {
-      await signInWithEmail(email.trim(), password);
-    } catch (error) {
-      setAlert({
-        title: 'Sign-In Failed',
-        message: error instanceof Error ? error.message : 'An unexpected error occurred',
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
+    signInWithEmail.mutate(
+      { email: email.trim(), password },
+      {
+        onError: (error) => {
+          setAlert({
+            title: 'Sign-In Failed',
+            message: error instanceof Error ? error.message : 'An unexpected error occurred',
+          });
+        },
+      },
+    );
   };
 
-  const handleGoogleSignIn = async () => {
-    try {
-      await signInWithGoogle();
-    } catch (error) {
-      setAlert({
-        title: 'Sign-In Failed',
-        message: error instanceof Error ? error.message : 'An unexpected error occurred',
-      });
-    }
+  const handleGoogleSignIn = () => {
+    signInWithGoogle.mutate(undefined, {
+      onError: (error) => {
+        setAlert({
+          title: 'Sign-In Failed',
+          message: error instanceof Error ? error.message : 'An unexpected error occurred',
+        });
+      },
+    });
   };
 
   return (
