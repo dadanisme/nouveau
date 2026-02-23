@@ -109,16 +109,19 @@ function AnimatedTab({ route, isFocused, config, onPress, onLongPress }: Animate
 export function TabBar({ state, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
 
-  const navRoutes: { route: (typeof state.routes)[number]; index: number }[] = [];
-  let actionRoute: { route: (typeof state.routes)[number]; index: number } | null = null;
+  type RouteEntry = { route: (typeof state.routes)[number]; index: number };
 
-  state.routes.forEach((route, index) => {
+  const navRoutes: RouteEntry[] = [];
+  let actionRoute: RouteEntry | null = null;
+
+  for (let i = 0; i < state.routes.length; i++) {
+    const route = state.routes[i];
     if (route.name === ACTION_TAB) {
-      actionRoute = { route, index };
+      actionRoute = { route, index: i };
     } else if (TAB_CONFIG[route.name]) {
-      navRoutes.push({ route, index });
+      navRoutes.push({ route, index: i });
     }
-  });
+  }
 
   const createHandlers = (route: (typeof state.routes)[number], index: number) => ({
     onPress: () => {
