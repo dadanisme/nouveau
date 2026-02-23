@@ -1,5 +1,5 @@
-import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -22,6 +22,8 @@ const TAB_CONFIG: Record<string, TabConfig> = {
 
 const ACTION_TAB = 'add-transaction';
 const TAB_SIZE = 48;
+const TAB_WIDTH = 64;
+const ACTION_TAB_SIZE = 128;
 
 // Height estimate for screens to use as bottom padding
 // paddingTop(sm) + bar padding(sm*2) + tab height + extra breathing room
@@ -96,13 +98,14 @@ const styles = StyleSheet.create({
   bar: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-evenly',
     backgroundColor: colors.black,
     borderRadius: design.radius.lg,
     padding: design.spacing.sm,
     gap: design.spacing.sm,
   },
   tab: {
-    flex: 1,
+    width: TAB_WIDTH,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: colors.white,
@@ -111,6 +114,7 @@ const styles = StyleSheet.create({
   },
   actionTab: {
     flexDirection: 'row',
+    width: ACTION_TAB_SIZE,
     gap: design.spacing.sm,
   },
   activeTab: {
