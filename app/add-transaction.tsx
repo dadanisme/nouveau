@@ -9,6 +9,7 @@ import { DatePicker } from '@/components/date-picker';
 import { NumberPad } from '@/components/number-pad';
 import { colors, design } from '@/constants/colors';
 import { useTransactionForm } from '@/hooks/use-transaction-form';
+import { parseIcon } from '@/utils/icon';
 
 export default function AddTransactionScreen() {
   const insets = useSafeAreaInsets();
@@ -100,7 +101,20 @@ export default function AddTransactionScreen() {
           <View style={styles.selectorRow}>
             <Button variant="outline" style={styles.pill} onPress={openCategoryPicker}>
               {selectedCategory ? (
-                <View style={[styles.categoryDot, { backgroundColor: selectedCategory.color }]} />
+                (() => {
+                  const parsed = selectedCategory.icon ? parseIcon(selectedCategory.icon) : null;
+                  return parsed ? (
+                    <Ionicons
+                      name={parsed.name as keyof typeof Ionicons.glyphMap}
+                      size={16}
+                      color={selectedCategory.color}
+                    />
+                  ) : (
+                    <View
+                      style={[styles.categoryDot, { backgroundColor: selectedCategory.color }]}
+                    />
+                  );
+                })()
               ) : (
                 <Ionicons name="grid-outline" size={16} color={colors.gray[500]} />
               )}

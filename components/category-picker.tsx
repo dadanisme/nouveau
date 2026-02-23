@@ -1,10 +1,12 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 import { BottomSheet } from '@/components/bottom-sheet';
+import { Button } from '@/components/button';
 import { colors, design } from '@/constants/colors';
 import type { Tables } from '@/types/supabase';
+import { parseIcon } from '@/utils/icon';
 
 interface CategoryPickerProps {
   visible: boolean;
@@ -14,6 +16,8 @@ interface CategoryPickerProps {
   onDismiss: () => void;
 }
 
+const COLUMNS = 3;
+
 export function CategoryPicker({
   visible,
   categories,
@@ -21,26 +25,54 @@ export function CategoryPicker({
   onSelect,
   onDismiss,
 }: CategoryPickerProps) {
+  const rows: Tables<'categories'>[][] = [];
+  for (let i = 0; i < categories.length; i += COLUMNS) {
+    rows.push(categories.slice(i, i + COLUMNS));
+  }
+
   return (
     <BottomSheet visible={visible} onDismiss={onDismiss} snapPoints={['60%']}>
       <BottomSheetScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <Text style={styles.title}>Select Category</Text>
-        {categories.map((category) => {
-          const isSelected = category.id === selectedCategoryId;
-          return (
-            <Pressable
-              key={category.id}
-              style={[styles.row, isSelected && styles.rowSelected]}
-              onPress={() => onSelect(category)}
-            >
-              <View style={[styles.dot, { backgroundColor: category.color }]} />
-              <Text style={[styles.rowText, isSelected && styles.rowTextSelected]}>
-                {category.name}
-              </Text>
-              {isSelected && <Ionicons name="checkmark" size={20} color={colors.black} />}
-            </Pressable>
-          );
-        })}
+        {rows.map((row, rowIndex) => (
+          <View key={rowIndex} style={styles.row}>
+            {row.map((category) => {
+              const isSelected = category.id === selectedCategoryId;
+              const parsed = category.icon ? parseIcon(category.icon) : null;
+              return (
+                <Button
+                  key={category.id}
+                  variant={isSelected ? 'primary' : 'outline'}
+                  style={StyleSheet.flatten([styles.cell])}
+                  onPress={() => onSelect(category)}
+                >
+                  <View style={styles.cellContent}>
+                    {parsed ? (
+                      <Ionicons
+                        name={parsed.name as keyof typeof Ionicons.glyphMap}
+                        size={32}
+                        color={isSelected ? colors.black : category.color}
+                      />
+                    ) : (
+                      <View style={[styles.dot, { backgroundColor: category.color }]} />
+                    )}
+                    <Text
+                      style={[styles.cellText, isSelected && styles.cellTextSelected]}
+                      numberOfLines={1}
+                    >
+                      {category.name}
+                    </Text>
+                  </View>
+                </Button>
+              );
+            })}
+            {/* Fill empty cells to maintain grid alignment */}
+            {row.length < COLUMNS &&
+              Array.from({ length: COLUMNS - row.length }).map((_, i) => (
+                <View key={`empty-${i}`} style={styles.cellSpacer} />
+              ))}
+          </View>
+        ))}
       </BottomSheetScrollView>
     </BottomSheet>
   );
@@ -58,29 +90,33 @@ const styles = StyleSheet.create({
   },
   row: {
     flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: design.spacing.md,
-    paddingHorizontal: design.spacing.sm,
-    borderRadius: design.radius.sm,
     gap: design.spacing.sm,
+    marginBottom: design.spacing.sm,
   },
-  rowSelected: {
-    backgroundColor: colors.primary.light,
+  cell: {
+    flex: 1,
+    paddingVertical: design.spacing.md,
+    paddingHorizontal: design.spacing.xs,
+  },
+  cellContent: {
+    alignItems: 'center',
+    gap: design.spacing.xs + 2,
+  },
+  cellSpacer: {
+    flex: 1,
   },
   dot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    borderWidth: 1.5,
-    borderColor: colors.black,
+    width: 20,
+    height: 20,
+    borderRadius: '50%',
   },
-  rowText: {
-    flex: 1,
-    fontSize: design.fontSize.md,
+  cellText: {
+    fontSize: design.fontSize.xs,
     fontWeight: '600',
     color: colors.gray[700],
+    textAlign: 'center',
   },
-  rowTextSelected: {
+  cellTextSelected: {
     color: colors.black,
     fontWeight: '800',
   },
