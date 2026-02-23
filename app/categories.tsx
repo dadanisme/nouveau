@@ -371,13 +371,15 @@ const styles = StyleSheet.create({
   },
   // Form styles
   formContent: {
-    padding: design.spacing.lg,
+    paddingHorizontal: design.spacing.lg,
+    paddingBottom: design.spacing.lg,
     gap: design.spacing.md,
   },
   formTitle: {
     fontSize: design.fontSize.lg,
     fontWeight: '800',
-    color: colors.gray[900],
+    color: colors.black,
+    textAlign: 'center',
   },
   nameInput: {
     fontSize: design.fontSize.md,

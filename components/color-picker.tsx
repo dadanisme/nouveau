@@ -43,12 +43,13 @@ export function ColorPicker({ visible, selectedColor, onSelect, onDismiss }: Col
 
 const styles = StyleSheet.create({
   content: {
-    padding: design.spacing.lg,
+    paddingHorizontal: design.spacing.lg,
   },
   title: {
     fontSize: design.fontSize.lg,
     fontWeight: '800',
-    color: colors.gray[900],
+    color: colors.black,
+    textAlign: 'center',
     marginBottom: design.spacing.md,
   },
   grid: {

@@ -65,13 +65,14 @@ export function IconPicker({
 
 const styles = StyleSheet.create({
   content: {
-    padding: design.spacing.lg,
+    paddingHorizontal: design.spacing.lg,
     paddingBottom: design.spacing.xl * 2,
   },
   title: {
     fontSize: design.fontSize.lg,
     fontWeight: '800',
-    color: colors.gray[900],
+    color: colors.black,
+    textAlign: 'center',
     marginBottom: design.spacing.md,
   },
   grid: {
