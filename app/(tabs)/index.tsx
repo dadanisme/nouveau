@@ -116,6 +116,7 @@ export default function HomeScreen() {
               key={tx.id}
               transaction={tx}
               isLast={index === transactions.length - 1}
+              onPress={() => router.push({ pathname: '/add-transaction', params: { id: tx.id } })}
             />
           ))
         ) : (

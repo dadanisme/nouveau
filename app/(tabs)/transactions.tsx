@@ -1,4 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { useRouter } from 'expo-router';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '@/components/button';
@@ -37,6 +38,7 @@ function toItemData(tx: TransactionWithCategory): TransactionItemData {
 
 export default function TransactionsScreen() {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const {
     monthLabel,
     activeFilter,
@@ -47,6 +49,10 @@ export default function TransactionsScreen() {
     goToNextMonth,
     isLoading,
   } = useTransactionsScreen();
+
+  function handleTransactionPress(id: string) {
+    router.push({ pathname: '/add-transaction', params: { id } });
+  }
 
   return (
     <ScrollView
@@ -121,7 +127,13 @@ export default function TransactionsScreen() {
 
       {/* Transaction Groups */}
       {!isLoading &&
-        groupedTransactions.map((group) => <DateGroup key={group.dateKey} group={group} />)}
+        groupedTransactions.map((group) => (
+          <DateGroup
+            key={group.dateKey}
+            group={group}
+            onTransactionPress={handleTransactionPress}
+          />
+        ))}
 
       {/* Empty State */}
       {!isLoading && groupedTransactions.length === 0 && (
@@ -134,7 +146,13 @@ export default function TransactionsScreen() {
   );
 }
 
-function DateGroup({ group }: { group: TransactionGroup }) {
+function DateGroup({
+  group,
+  onTransactionPress,
+}: {
+  group: TransactionGroup;
+  onTransactionPress: (id: string) => void;
+}) {
   return (
     <View style={styles.dateGroup}>
       {/* Date Header */}
@@ -163,6 +181,7 @@ function DateGroup({ group }: { group: TransactionGroup }) {
             transaction={toItemData(tx)}
             isLast={index === group.transactions.length - 1}
             showDate={false}
+            onPress={() => onTransactionPress(tx.id)}
           />
         ))}
       </Card>

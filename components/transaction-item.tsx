@@ -1,5 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { colors, design } from '@/constants/colors';
 import { formatCompactAmount } from '@/utils/currency';
@@ -21,16 +21,25 @@ interface TransactionItemProps {
   transaction: TransactionItemData;
   isLast?: boolean;
   showDate?: boolean;
+  onPress?: () => void;
 }
 
-export function TransactionItem({ transaction, isLast, showDate = true }: TransactionItemProps) {
+export function TransactionItem({
+  transaction,
+  isLast,
+  showDate = true,
+  onPress,
+}: TransactionItemProps) {
   const isIncome = transaction.type === 'income';
   const amountColor = isIncome ? colors.income : colors.expense;
   const amountPrefix = isIncome ? '+' : '-';
   const icon = transaction.categoryIcon ? parseIcon(transaction.categoryIcon) : null;
 
+  const Wrapper = onPress ? Pressable : View;
+  const wrapperProps = onPress ? { onPress } : {};
+
   return (
-    <View style={[styles.container, !isLast && styles.border]}>
+    <Wrapper {...wrapperProps} style={[styles.container, !isLast && styles.border]}>
       <View style={[styles.icon, { backgroundColor: transaction.categoryColor + '20' }]}>
         {icon ? (
           <Ionicons
@@ -57,7 +66,7 @@ export function TransactionItem({ transaction, isLast, showDate = true }: Transa
         {amountPrefix}
         {formatCompactAmount(transaction.amount)}
       </Text>
-    </View>
+    </Wrapper>
   );
 }
 

@@ -1,4 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { useLocalSearchParams } from 'expo-router';
 import { ActivityIndicator, Keyboard, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -12,6 +13,7 @@ import { useTransactionForm } from '@/hooks/use-transaction-form';
 import { parseIcon } from '@/utils/icon';
 
 export default function AddTransactionScreen() {
+  const { id } = useLocalSearchParams<{ id?: string }>();
   const insets = useSafeAreaInsets();
   const {
     type,
@@ -24,10 +26,16 @@ export default function AddTransactionScreen() {
     filteredCategories,
     isPending,
     isSubmitDisabled,
+    isEditMode,
+    isDeleting,
+    isLoadingTransaction,
+    showDeleteConfirm,
+    setShowDeleteConfirm,
     handleTypeChange,
     handleKeyPress,
     getDisplayAmount,
     handleSubmit,
+    handleDelete,
     setDescription,
     openCategoryPicker,
     closeCategoryPicker,
@@ -37,9 +45,26 @@ export default function AddTransactionScreen() {
     selectDate,
     dismissAlert,
     goBack,
-  } = useTransactionForm();
+  } = useTransactionForm(id);
 
   const amountColor = type === 'income' ? colors.income : colors.expense;
+
+  if (isEditMode && isLoadingTransaction) {
+    return (
+      <View style={[styles.container, { paddingTop: insets.top }]}>
+        <View style={styles.header}>
+          <Button variant="outline" onPress={goBack} style={styles.backButton}>
+            <Ionicons name="arrow-back" size={22} color={colors.gray[900]} />
+          </Button>
+          <Text style={styles.headerTitle}>Edit Transaction</Text>
+          <View style={styles.headerSpacer} />
+        </View>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.primary.DEFAULT} />
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -47,7 +72,9 @@ export default function AddTransactionScreen() {
         <Button variant="outline" onPress={goBack} style={styles.backButton}>
           <Ionicons name="arrow-back" size={22} color={colors.gray[900]} />
         </Button>
-        <Text style={styles.headerTitle}>Add Transaction</Text>
+        <Text style={styles.headerTitle}>
+          {isEditMode ? 'Edit Transaction' : 'Add Transaction'}
+        </Text>
         <View style={styles.headerSpacer} />
       </View>
 
@@ -141,32 +168,64 @@ export default function AddTransactionScreen() {
         {/* Bottom section */}
         <View style={[styles.bottomSection, { paddingBottom: insets.bottom + design.spacing.sm }]}>
           <NumberPad onKeyPress={handleKeyPress} />
-          <View style={styles.submitRow}>
-            <Button
-              variant="outline"
-              style={styles.addMoreButton}
-              onPress={() => handleSubmit('add-more')}
-              disabled={isSubmitDisabled}
-            >
-              {isPending ? (
-                <ActivityIndicator size="small" color={colors.gray[700]} />
-              ) : (
-                <Text style={styles.addMoreText}>Add More</Text>
-              )}
-            </Button>
-            <Button
-              variant="primary"
-              style={styles.saveButton}
-              onPress={() => handleSubmit('save')}
-              disabled={isSubmitDisabled}
-            >
-              {isPending ? (
-                <ActivityIndicator size="small" color={colors.black} />
-              ) : (
-                <Text style={styles.submitText}>Save</Text>
-              )}
-            </Button>
-          </View>
+          {isEditMode ? (
+            <View style={styles.submitRow}>
+              <Button
+                variant="outline"
+                style={styles.deleteButton}
+                onPress={() => setShowDeleteConfirm(true)}
+                disabled={isDeleting}
+              >
+                {isDeleting ? (
+                  <ActivityIndicator size="small" color={colors.expense} />
+                ) : (
+                  <>
+                    <Ionicons name="trash-outline" size={18} color={colors.expense} />
+                    <Text style={styles.deleteText}>Delete</Text>
+                  </>
+                )}
+              </Button>
+              <Button
+                variant="primary"
+                style={styles.saveButton}
+                onPress={() => handleSubmit('save')}
+                disabled={isSubmitDisabled}
+              >
+                {isPending ? (
+                  <ActivityIndicator size="small" color={colors.black} />
+                ) : (
+                  <Text style={styles.submitText}>Update</Text>
+                )}
+              </Button>
+            </View>
+          ) : (
+            <View style={styles.submitRow}>
+              <Button
+                variant="outline"
+                style={styles.addMoreButton}
+                onPress={() => handleSubmit('add-more')}
+                disabled={isSubmitDisabled}
+              >
+                {isPending ? (
+                  <ActivityIndicator size="small" color={colors.gray[700]} />
+                ) : (
+                  <Text style={styles.addMoreText}>Add More</Text>
+                )}
+              </Button>
+              <Button
+                variant="primary"
+                style={styles.saveButton}
+                onPress={() => handleSubmit('save')}
+                disabled={isSubmitDisabled}
+              >
+                {isPending ? (
+                  <ActivityIndicator size="small" color={colors.black} />
+                ) : (
+                  <Text style={styles.submitText}>Save</Text>
+                )}
+              </Button>
+            </View>
+          )}
         </View>
       </View>
 
@@ -190,6 +249,17 @@ export default function AddTransactionScreen() {
         title={alertState?.title ?? ''}
         message={alertState?.message}
         onDismiss={dismissAlert}
+      />
+
+      <Alert
+        visible={showDeleteConfirm}
+        title="Delete Transaction"
+        message="Are you sure you want to delete this transaction? This action cannot be undone."
+        actions={[
+          { label: 'Cancel', onPress: () => setShowDeleteConfirm(false) },
+          { label: 'Delete', variant: 'dark', onPress: handleDelete },
+        ]}
+        onDismiss={() => setShowDeleteConfirm(false)}
       />
     </View>
   );
@@ -222,6 +292,11 @@ const styles = StyleSheet.create({
   },
   headerSpacer: {
     width: 40,
+  },
+  loadingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   content: {
     flex: 1,
@@ -315,6 +390,15 @@ const styles = StyleSheet.create({
   },
   addMoreButton: {
     flex: 2,
+  },
+  deleteButton: {
+    flex: 2,
+    borderColor: colors.expense,
+  },
+  deleteText: {
+    fontSize: design.fontSize.md,
+    fontWeight: '800',
+    color: colors.expense,
   },
   saveButton: {
     flex: 3,
