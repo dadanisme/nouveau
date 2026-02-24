@@ -54,6 +54,10 @@ export default function TransactionsScreen() {
     router.push({ pathname: '/add-transaction', params: { id } });
   }
 
+  function handleDatePress(dateKey: string) {
+    router.push({ pathname: '/add-transaction', params: { date: dateKey } });
+  }
+
   return (
     <ScrollView
       style={styles.container}
@@ -132,6 +136,7 @@ export default function TransactionsScreen() {
             key={group.dateKey}
             group={group}
             onTransactionPress={handleTransactionPress}
+            onDatePress={handleDatePress}
           />
         ))}
 
@@ -149,15 +154,19 @@ export default function TransactionsScreen() {
 function DateGroup({
   group,
   onTransactionPress,
+  onDatePress,
 }: {
   group: TransactionGroup;
   onTransactionPress: (id: string) => void;
+  onDatePress: (dateKey: string) => void;
 }) {
   return (
     <View style={styles.dateGroup}>
       {/* Date Header */}
       <View style={styles.dateHeaderRow}>
-        <Text style={styles.dateHeaderText}>{group.dateLabel}</Text>
+        <Pressable onPress={() => onDatePress(group.dateKey)} hitSlop={8}>
+          <Text style={styles.dateHeaderText}>{group.dateLabel}</Text>
+        </Pressable>
         <View style={styles.dateHeaderLine} />
         <View style={styles.dateHeaderTotals}>
           {group.income > 0 && (

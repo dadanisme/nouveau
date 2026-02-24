@@ -13,7 +13,7 @@ import { useTransactionForm } from '@/hooks/use-transaction-form';
 import { parseIcon } from '@/utils/icon';
 
 export default function AddTransactionScreen() {
-  const { id } = useLocalSearchParams<{ id?: string }>();
+  const { id, date: dateParam } = useLocalSearchParams<{ id?: string; date?: string }>();
   const insets = useSafeAreaInsets();
   const {
     type,
@@ -45,7 +45,7 @@ export default function AddTransactionScreen() {
     selectDate,
     dismissAlert,
     goBack,
-  } = useTransactionForm(id);
+  } = useTransactionForm(id, dateParam);
 
   const amountColor = type === 'income' ? colors.income : colors.expense;
 

@@ -12,7 +12,7 @@ import { useUpdateTransaction } from '@/hooks/use-update-transaction';
 import type { Tables } from '@/types/supabase';
 import { formatDisplayAmount, processAmountKeyPress } from '@/utils/currency';
 
-export function useTransactionForm(transactionId?: string) {
+export function useTransactionForm(transactionId?: string, initialDate?: string) {
   const router = useRouter();
   const { session } = useSession();
 
@@ -29,7 +29,7 @@ export function useTransactionForm(transactionId?: string) {
   const [amountString, setAmountString] = useState('');
   const [description, setDescription] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<Tables<'categories'> | null>(null);
-  const [date, setDate] = useState(new Date());
+  const [date, setDate] = useState(initialDate ? new Date(initialDate + 'T00:00:00') : new Date());
   const [showCategoryPicker, setShowCategoryPicker] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [alertState, setAlertState] = useState<{ title: string; message: string } | null>(null);
