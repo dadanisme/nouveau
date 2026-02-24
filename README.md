@@ -1,50 +1,79 @@
-# Welcome to your Expo app 👋
+# Nouveau
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A personal finance tracker built with Expo and React Native. Track your income and expenses with a clean, cartoonish UI featuring hard shadows and thick borders.
 
-## Get started
+## Tech Stack
 
-1. Install dependencies
+- **Expo SDK 54** with New Architecture and React Compiler
+- **React Native 0.81** — iOS, Android, and Web
+- **Expo Router** — file-based routing with typed routes
+- **Supabase** — auth (email + Google Sign-In) and PostgreSQL database
+- **TanStack React Query** — server state management
+- **React Native Reanimated** — animations
+- **@gorhom/bottom-sheet** — gesture-driven bottom sheets
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js
+- [Expo CLI](https://docs.expo.dev/get-started/set-up-your-environment/)
+- iOS Simulator / Android Emulator (or a physical device with Expo Go)
+
+### Setup
+
+1. Install dependencies:
 
    ```bash
    npm install
    ```
 
-2. Start the app
+2. Create a `.env.local` file with your Supabase credentials:
+
+   ```
+   EXPO_PUBLIC_SUPABASE_URL=your_supabase_url
+   EXPO_PUBLIC_SUPABASE_KEY=your_supabase_anon_key
+   ```
+
+3. Start the dev server:
 
    ```bash
    npx expo start
    ```
 
-In the output, you'll find options to open the app in a
+   Press `i` for iOS, `a` for Android, or `w` for Web.
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## Scripts
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+| Command                      | Description                            |
+| ---------------------------- | -------------------------------------- |
+| `expo start`                 | Start the dev server                   |
+| `expo run:ios`               | Build and run on iOS                   |
+| `expo run:android`           | Build and run on Android               |
+| `expo start --web`           | Start the web dev server               |
+| `expo lint`                  | Run ESLint                             |
+| `npm run format`             | Format code with Prettier              |
+| `npm run supabase:gen-types` | Regenerate DB types from remote schema |
 
-## Get a fresh project
+## Project Structure
 
-When you're ready, run:
-
-```bash
-npm run reset-project
 ```
-
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+app/
+  _layout.tsx              # Root Stack navigator
+  login.tsx                # Login screen
+  signup.tsx               # Sign-up screen
+  add-transaction.tsx      # Add/edit transaction screen
+  categories.tsx           # Category management
+  settings.tsx             # Settings screen
+  (tabs)/
+    _layout.tsx            # Tab bar layout
+    index.tsx              # Home tab
+    transactions.tsx       # Transactions tab
+    dashboard.tsx          # Dashboard tab
+components/                # Reusable UI components
+hooks/                     # React Query hooks & screen logic
+utils/                     # Pure utility functions
+constants/                 # Design tokens & colors
+lib/                       # Supabase client
+types/                     # TypeScript types (incl. generated Supabase types)
+```
