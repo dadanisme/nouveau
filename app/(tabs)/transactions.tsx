@@ -1,12 +1,13 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '@/components/button';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Card } from '@/components/card';
 import { TAB_BAR_HEIGHT } from '@/components/tab-bar';
+import { TransactionGroupSkeleton } from '@/components/transaction-group-skeleton';
 import { TransactionItem, type TransactionItemData } from '@/components/transaction-item';
 import { colors, design } from '@/constants/colors';
 import {
@@ -124,9 +125,11 @@ export default function TransactionsScreen() {
 
       {/* Loading State */}
       {isLoading && (
-        <View style={styles.centered}>
-          <ActivityIndicator size="large" color={colors.primary.DEFAULT} />
-        </View>
+        <>
+          <TransactionGroupSkeleton itemCount={3} />
+          <TransactionGroupSkeleton itemCount={2} />
+          <TransactionGroupSkeleton itemCount={2} />
+        </>
       )}
 
       {/* Transaction Groups */}

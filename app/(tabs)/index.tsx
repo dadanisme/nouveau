@@ -8,6 +8,7 @@ import { Button } from '@/components/button';
 import { Card } from '@/components/card';
 import { TAB_BAR_HEIGHT } from '@/components/tab-bar';
 import { TransactionItem } from '@/components/transaction-item';
+import { TransactionItemSkeleton } from '@/components/transaction-item-skeleton';
 import { colors, design } from '@/constants/colors';
 import { useHomeScreen } from '@/hooks/use-home-screen';
 import { formatCompactAmount, formatCurrency } from '@/utils/currency';
@@ -15,8 +16,16 @@ import { formatCompactAmount, formatCurrency } from '@/utils/currency';
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { greeting, firstName, displayName, profileImage, balance, overview, transactions } =
-    useHomeScreen();
+  const {
+    greeting,
+    firstName,
+    displayName,
+    profileImage,
+    balance,
+    overview,
+    transactions,
+    isLoadingTransactions,
+  } = useHomeScreen();
 
   return (
     <ScrollView
@@ -110,7 +119,9 @@ export default function HomeScreen() {
         </Pressable>
       </View>
       <Card style={styles.transactionsCard}>
-        {transactions.length > 0 ? (
+        {isLoadingTransactions ? (
+          Array.from({ length: 4 }, (_, i) => <TransactionItemSkeleton key={i} isLast={i === 3} />)
+        ) : transactions.length > 0 ? (
           transactions.map((tx, index) => (
             <TransactionItem
               key={tx.id}

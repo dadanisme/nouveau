@@ -22,7 +22,7 @@ export function useHomeScreen() {
   const { data: balance } = useBalance(userId);
   const { data: currentTotals } = useMonthlyTotals(userId, currentYear, currentMonth);
   const { data: prevTotals } = useMonthlyTotals(userId, prevYear, prevMonth);
-  const { data: recentTx } = useRecentTransactions(userId);
+  const { data: recentTx, isLoading: isLoadingTransactions } = useRecentTransactions(userId);
 
   const currentIncome = currentTotals?.income ?? 0;
   const currentExpense = currentTotals?.expense ?? 0;
@@ -60,5 +60,6 @@ export function useHomeScreen() {
     balance: balance ?? 0,
     overview,
     transactions,
+    isLoadingTransactions,
   };
 }
