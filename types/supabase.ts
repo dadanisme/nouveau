@@ -96,6 +96,7 @@ export type Database = {
       email_classifications: {
         Row: {
           created_at: string;
+          email_from: string | null;
           email_subject: string;
           id: string;
           is_transaction: boolean;
@@ -104,6 +105,7 @@ export type Database = {
         };
         Insert: {
           created_at?: string;
+          email_from?: string | null;
           email_subject: string;
           id?: string;
           is_transaction: boolean;
@@ -112,6 +114,7 @@ export type Database = {
         };
         Update: {
           created_at?: string;
+          email_from?: string | null;
           email_subject?: string;
           id?: string;
           is_transaction?: boolean;
