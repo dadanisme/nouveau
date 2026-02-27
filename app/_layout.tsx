@@ -1,12 +1,16 @@
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Stack, useRouter, useSegments } from 'expo-router';
-import { useEffect } from 'react';
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import * as SplashScreen from 'expo-splash-screen';
+import { useEffect, useState } from 'react';
+import { StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { AuthListener } from '@/components/auth-listener';
+import { SplashOverlay } from '@/components/splash-overlay';
 import { useSession } from '@/hooks/use-auth';
+
+SplashScreen.preventAutoHideAsync();
 
 const queryClient = new QueryClient();
 
@@ -14,6 +18,7 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
   const { session, isLoading } = useSession();
   const segments = useSegments();
   const router = useRouter();
+  const [isNavigationReady, setIsNavigationReady] = useState(false);
 
   useEffect(() => {
     if (isLoading) return;
@@ -25,17 +30,17 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
     } else if (session && inAuthGroup) {
       router.replace('/(tabs)');
     }
+
+    const timeout = setTimeout(() => setIsNavigationReady(true), 50);
+    return () => clearTimeout(timeout);
   }, [session, isLoading, segments, router]);
 
-  if (isLoading) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" />
-      </View>
-    );
-  }
-
-  return children;
+  return (
+    <>
+      {children}
+      <SplashOverlay isReady={!isLoading && isNavigationReady} />
+    </>
+  );
 }
 
 export default function RootLayout() {
