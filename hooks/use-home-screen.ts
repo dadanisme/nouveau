@@ -19,10 +19,31 @@ export function useHomeScreen() {
   const prevMonth = currentMonth === 0 ? 11 : currentMonth - 1;
   const prevYear = currentMonth === 0 ? currentYear - 1 : currentYear;
 
-  const { data: balance } = useBalance(userId);
-  const { data: currentTotals } = useMonthlyTotals(userId, currentYear, currentMonth);
-  const { data: prevTotals } = useMonthlyTotals(userId, prevYear, prevMonth);
-  const { data: recentTx, isLoading: isLoadingTransactions } = useRecentTransactions(userId);
+  const balanceQuery = useBalance(userId);
+  const currentTotalsQuery = useMonthlyTotals(userId, currentYear, currentMonth);
+  const prevTotalsQuery = useMonthlyTotals(userId, prevYear, prevMonth);
+  const recentTxQuery = useRecentTransactions(userId);
+
+  const balance = balanceQuery.data;
+  const currentTotals = currentTotalsQuery.data;
+  const prevTotals = prevTotalsQuery.data;
+  const recentTx = recentTxQuery.data;
+  const isLoadingTransactions = recentTxQuery.isLoading;
+
+  const isRefetching =
+    balanceQuery.isRefetching ||
+    currentTotalsQuery.isRefetching ||
+    prevTotalsQuery.isRefetching ||
+    recentTxQuery.isRefetching;
+
+  const refetch = async () => {
+    await Promise.all([
+      balanceQuery.refetch(),
+      currentTotalsQuery.refetch(),
+      prevTotalsQuery.refetch(),
+      recentTxQuery.refetch(),
+    ]);
+  };
 
   const currentIncome = currentTotals?.income ?? 0;
   const currentExpense = currentTotals?.expense ?? 0;
@@ -61,5 +82,7 @@ export function useHomeScreen() {
     overview,
     transactions,
     isLoadingTransactions,
+    isRefetching,
+    refetch,
   };
 }

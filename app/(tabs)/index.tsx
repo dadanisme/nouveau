@@ -1,6 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Avatar } from '@/components/avatar';
@@ -25,6 +25,8 @@ export default function HomeScreen() {
     overview,
     transactions,
     isLoadingTransactions,
+    isRefetching,
+    refetch,
   } = useHomeScreen();
 
   return (
@@ -35,6 +37,15 @@ export default function HomeScreen() {
         { paddingTop: insets.top + design.spacing.md },
       ]}
       showsVerticalScrollIndicator={false}
+      refreshControl={
+        <RefreshControl
+          refreshing={isRefetching}
+          onRefresh={refetch}
+          tintColor={colors.primary.DEFAULT}
+          colors={[colors.primary.DEFAULT]}
+          progressViewOffset={insets.top}
+        />
+      }
     >
       {/* Header */}
       <View style={styles.header}>

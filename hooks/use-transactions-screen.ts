@@ -23,20 +23,22 @@ export function useTransactionsScreen() {
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
 
   // Unfiltered query for totals (deduplicated with filtered when activeFilter === 'all')
-  const { data: allTransactions, isLoading: isLoadingAll } = useTransactions(
-    userId,
-    viewYear,
-    viewMonth,
-  );
+  const allQuery = useTransactions(userId, viewYear, viewMonth);
 
   // Filtered query for display list
   const filterType = activeFilter === 'all' ? undefined : activeFilter;
-  const { data: filteredTransactions, isLoading: isLoadingFiltered } = useTransactions(
-    userId,
-    viewYear,
-    viewMonth,
-    filterType,
-  );
+  const filteredQuery = useTransactions(userId, viewYear, viewMonth, filterType);
+
+  const allTransactions = allQuery.data;
+  const filteredTransactions = filteredQuery.data;
+  const isLoadingAll = allQuery.isLoading;
+  const isLoadingFiltered = filteredQuery.isLoading;
+
+  const isRefetching = allQuery.isRefetching || filteredQuery.isRefetching;
+
+  const refetch = async () => {
+    await Promise.all([allQuery.refetch(), filteredQuery.refetch()]);
+  };
 
   const monthLabel = new Date(viewYear, viewMonth).toLocaleDateString('en-US', {
     month: 'long',
@@ -107,5 +109,7 @@ export function useTransactionsScreen() {
     goToPreviousMonth,
     goToNextMonth,
     isLoading: isLoadingAll || isLoadingFiltered,
+    isRefetching,
+    refetch,
   };
 }

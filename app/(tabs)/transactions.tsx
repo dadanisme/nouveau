@@ -1,6 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '@/components/button';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -49,6 +49,8 @@ export default function TransactionsScreen() {
     goToPreviousMonth,
     goToNextMonth,
     isLoading,
+    isRefetching,
+    refetch,
   } = useTransactionsScreen();
 
   function handleTransactionPress(id: string) {
@@ -67,6 +69,15 @@ export default function TransactionsScreen() {
         { paddingTop: insets.top + design.spacing.md },
       ]}
       showsVerticalScrollIndicator={false}
+      refreshControl={
+        <RefreshControl
+          refreshing={isRefetching}
+          onRefresh={refetch}
+          tintColor={colors.primary.DEFAULT}
+          colors={[colors.primary.DEFAULT]}
+          progressViewOffset={insets.top}
+        />
+      }
     >
       {/* Month Navigation Header */}
       <View style={styles.monthNav}>

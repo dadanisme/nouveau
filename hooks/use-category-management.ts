@@ -8,7 +8,7 @@ import type { Tables } from '@/types/supabase';
 export function useCategoryManagement() {
   const { session } = useSession();
   const userId = session?.user.id;
-  const { data: categories = [], isLoading } = useCategories(userId);
+  const { data: categories = [], isLoading, isRefetching, refetch } = useCategories(userId);
   const deleteCategory = useDeleteCategory();
 
   const [showForm, setShowForm] = useState(false);
@@ -77,6 +77,8 @@ export function useCategoryManagement() {
     expenseCategories,
     incomeCategories,
     isLoading,
+    isRefetching,
+    refetch,
     showForm,
     editingCategory,
     deletingCategory,

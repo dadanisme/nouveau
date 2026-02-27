@@ -1,7 +1,15 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { BottomSheetTextInput, BottomSheetView } from '@gorhom/bottom-sheet';
 import { useRouter } from 'expo-router';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Alert } from '@/components/alert';
@@ -200,6 +208,15 @@ export default function CategoriesScreen() {
             styles.scrollContent,
             { paddingBottom: insets.bottom + design.spacing.lg },
           ]}
+          refreshControl={
+            <RefreshControl
+              refreshing={mgmt.isRefetching}
+              onRefresh={mgmt.refetch}
+              tintColor={colors.primary.DEFAULT}
+              colors={[colors.primary.DEFAULT]}
+              progressViewOffset={insets.top}
+            />
+          }
         >
           {mgmt.expenseCategories.length > 0 && (
             <View style={styles.section}>
