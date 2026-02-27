@@ -16,7 +16,7 @@ A personal finance tracker built with Expo and React Native. Track your income a
 
 ### Prerequisites
 
-- Node.js
+- [Bun](https://bun.sh/)
 - [Expo CLI](https://docs.expo.dev/get-started/set-up-your-environment/)
 - iOS Simulator / Android Emulator (or a physical device with Expo Go)
 
@@ -25,7 +25,7 @@ A personal finance tracker built with Expo and React Native. Track your income a
 1. Install dependencies:
 
    ```bash
-   npm install
+   bun install
    ```
 
 2. Create a `.env.local` file with your Supabase credentials:
@@ -38,7 +38,7 @@ A personal finance tracker built with Expo and React Native. Track your income a
 3. Start the dev server:
 
    ```bash
-   npx expo start
+   bunx expo start
    ```
 
    Press `i` for iOS, `a` for Android, or `w` for Web.
@@ -47,13 +47,13 @@ A personal finance tracker built with Expo and React Native. Track your income a
 
 | Command                      | Description                            |
 | ---------------------------- | -------------------------------------- |
-| `expo start`                 | Start the dev server                   |
-| `expo run:ios`               | Build and run on iOS                   |
-| `expo run:android`           | Build and run on Android               |
-| `expo start --web`           | Start the web dev server               |
-| `expo lint`                  | Run ESLint                             |
-| `npm run format`             | Format code with Prettier              |
-| `npm run supabase:gen-types` | Regenerate DB types from remote schema |
+| `bunx expo start`            | Start the dev server                   |
+| `bunx expo run:ios`          | Build and run on iOS                   |
+| `bunx expo run:android`      | Build and run on Android               |
+| `bunx expo start --web`      | Start the web dev server               |
+| `bunx expo lint`             | Run ESLint                             |
+| `bun run format`             | Format code with Prettier              |
+| `bun run supabase:gen-types` | Regenerate DB types from remote schema |
 
 ## Project Structure
 

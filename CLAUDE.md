@@ -5,20 +5,21 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 ```bash
-expo start              # Start dev server (press i for iOS, a for Android, w for Web)
-expo run:ios            # Build and run on iOS
-expo run:android        # Build and run on Android
-expo start --web        # Start web dev server
-expo lint               # Run ESLint
-npm run format          # Run Prettier
-npm run supabase:gen-types  # Regenerate DB types from remote schema
+bunx expo start              # Start dev server (press i for iOS, a for Android, w for Web)
+bunx expo run:ios            # Build and run on iOS
+bunx expo run:android        # Build and run on Android
+bunx expo start --web        # Start web dev server
+bunx expo lint               # Run ESLint
+bun run format               # Run Prettier
+bun run supabase:gen-types   # Regenerate DB types from remote schema
+bun add <pkg>                # Install a package
 ```
 
 No test framework is configured yet.
 
 ## Workflow
 
-- Always run `npm run format` after finishing a task (before committing).
+- Always run `bun run format` after finishing a task (before committing).
 - **Always check Context7 for up-to-date documentation** before using any library API. Use the `Resolve Context7 Library ID` tool followed by `Query Documentation` to look up current APIs, usage patterns, and examples — never rely solely on training data for library-specific code.
 
 ## Architecture
@@ -117,7 +118,7 @@ Reusable components in `components/`:
 ### Supabase
 
 - Client initialized in `lib/supabase.ts` with typed `Database` generic
-- Types live in `types/supabase.ts` — regenerate with `npm run supabase:gen-types`
+- Types live in `types/supabase.ts` — regenerate with `bun run supabase:gen-types`
 - Auth uses `expo-sqlite/localStorage` for session persistence
 - Environment variables: `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_KEY` (in `.env.local`)
 
