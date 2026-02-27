@@ -48,6 +48,23 @@
         {
           "iosUrlScheme": "com.googleusercontent.apps.985981017559-vuvvlmm8sgm29ts9lkmggiosrvbav0c2"
         }
+      ],
+      [
+        "expo-share-intent",
+        {
+          "iosActivationRules": {
+            "NSExtensionActivationSupportsText": true,
+            "NSExtensionActivationSupportsWebURLWithMaxCount": 1,
+            "NSExtensionActivationSupportsWebPageWithMaxCount": 1,
+            "NSExtensionActivationSupportsImageWithMaxCount": 5,
+            "NSExtensionActivationSupportsFileWithMaxCount": 5
+          },
+          "iosShareExtensionName": "Nouveau Share Extension",
+          "androidIntentFilters": ["text/*", "image/*", "application/pdf"],
+          "androidMainActivityAttributes": {
+            "android:launchMode": "singleTask"
+          }
+        }
       ]
     ],
     "experiments": {
