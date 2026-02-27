@@ -10,7 +10,10 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.muhammadramdan.nouveau",
-      "appleTeamId": "C4SQMCY5WT"
+      "appleTeamId": "C4SQMCY5WT",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -58,10 +61,15 @@
             "NSExtensionActivationSupportsFileWithMaxCount": 5
           },
           "iosShareExtensionName": "Nouveau Share Extension",
-          "androidIntentFilters": ["text/*", "image/*", "application/pdf"],
+          "androidIntentFilters": [
+            "text/*",
+            "image/*",
+            "application/pdf"
+          ],
           "androidMainActivityAttributes": {
             "android:launchMode": "singleTask"
-          }
+          },
+          "disableExperimental": true
         }
       ],
       "expo-font",
@@ -71,6 +79,30 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "c553fd91-5451-4de0-b39d-191fde70c2b8",
+        "build": {
+          "experimental": {
+            "ios": {
+              "appExtensions": [
+                {
+                  "targetName": "NouveauShareExtension",
+                  "bundleIdentifier": "com.muhammadramdan.nouveau.share-extension",
+                  "entitlements": {
+                    "com.apple.security.application-groups": [
+                      "group.com.muhammadramdan.nouveau"
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "owner": "dadanisme"
   }
 }
