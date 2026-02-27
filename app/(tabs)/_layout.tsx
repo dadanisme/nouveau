@@ -11,6 +11,7 @@ export default function TabLayout() {
         headerShown: false,
         sceneStyle: { backgroundColor: colors.background },
         animation: 'shift',
+        lazy: false,
       }}
     >
       <Tabs.Screen name="index" />
