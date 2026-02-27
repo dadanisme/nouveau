@@ -4,8 +4,8 @@ A personal finance tracker built with Expo and React Native. Track your income a
 
 ## Tech Stack
 
-- **Expo SDK 54** with New Architecture and React Compiler
-- **React Native 0.81** — iOS, Android, and Web
+- **Expo SDK 55** with New Architecture and React Compiler
+- **React Native 0.83** — iOS, Android, and Web
 - **Expo Router** — file-based routing with typed routes
 - **Supabase** — auth (email + Google Sign-In) and PostgreSQL database
 - **TanStack React Query** — server state management
