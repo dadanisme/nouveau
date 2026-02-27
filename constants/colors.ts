@@ -23,15 +23,16 @@ export const colors = {
   },
 } as const;
 
+const SHADOW_OFFSET = 3;
+
+const shadow = {
+  boxShadow: `${SHADOW_OFFSET}px ${SHADOW_OFFSET}px 0px #000000`,
+};
+
 export const design = {
   borderWidth: 2.5,
-  shadow: {
-    shadowColor: '#000000',
-    shadowOffset: { width: 3, height: 3 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 5,
-  },
+  shadowOffset: SHADOW_OFFSET,
+  shadow,
   radius: {
     sm: 8,
     md: 14,

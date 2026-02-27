@@ -5,7 +5,7 @@ import { colors, design } from '@/constants/colors';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
-const SHADOW_OFFSET = design.shadow.shadowOffset.width;
+const SHADOW_OFFSET = design.shadowOffset;
 
 interface ButtonProps extends Omit<PressableProps, 'style'> {
   variant?: 'primary' | 'outline' | 'dark';
@@ -16,16 +16,16 @@ interface ButtonProps extends Omit<PressableProps, 'style'> {
 export function Button({ variant = 'primary', style, children, disabled, ...props }: ButtonProps) {
   const pressed = useSharedValue(0);
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      { translateX: pressed.value * SHADOW_OFFSET },
-      { translateY: pressed.value * SHADOW_OFFSET },
-    ],
-    shadowOffset: {
-      width: SHADOW_OFFSET * (1 - pressed.value),
-      height: SHADOW_OFFSET * (1 - pressed.value),
-    },
-  }));
+  const animatedStyle = useAnimatedStyle(() => {
+    const offset = SHADOW_OFFSET * (1 - pressed.value);
+    return {
+      transform: [
+        { translateX: pressed.value * SHADOW_OFFSET },
+        { translateY: pressed.value * SHADOW_OFFSET },
+      ],
+      boxShadow: `${offset}px ${offset}px 0px #000000`,
+    };
+  });
 
   return (
     <AnimatedPressable

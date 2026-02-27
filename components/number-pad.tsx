@@ -6,7 +6,7 @@ import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-na
 import { colors, design } from '@/constants/colors';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
-const SHADOW_OFFSET = design.shadow.shadowOffset.width;
+const SHADOW_OFFSET = design.shadowOffset;
 
 const KEYS = [
   ['1', '2', '3'],
@@ -22,16 +22,16 @@ interface NumberPadProps {
 function PadKey({ label, onPress }: { label: string; onPress: () => void }) {
   const pressed = useSharedValue(0);
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      { translateX: pressed.value * SHADOW_OFFSET },
-      { translateY: pressed.value * SHADOW_OFFSET },
-    ],
-    shadowOffset: {
-      width: SHADOW_OFFSET * (1 - pressed.value),
-      height: SHADOW_OFFSET * (1 - pressed.value),
-    },
-  }));
+  const animatedStyle = useAnimatedStyle(() => {
+    const offset = SHADOW_OFFSET * (1 - pressed.value);
+    return {
+      transform: [
+        { translateX: pressed.value * SHADOW_OFFSET },
+        { translateY: pressed.value * SHADOW_OFFSET },
+      ],
+      boxShadow: `${offset}px ${offset}px 0px #000000`,
+    };
+  });
 
   return (
     <AnimatedPressable

@@ -27,7 +27,7 @@ export function IconPicker({
   const { width } = useWindowDimensions();
   const padding = design.spacing.lg * 2;
   const sheetBorder = design.borderWidth * 2;
-  const shadowOffset = design.shadow.shadowOffset.width;
+  const shadowOffset = design.shadowOffset;
   const totalGap = design.spacing.sm * (COLUMNS - 1);
   const cellSize = Math.floor((width - padding - sheetBorder - shadowOffset - totalGap) / COLUMNS);
 
