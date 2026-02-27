@@ -24,7 +24,7 @@ No test framework is configured yet.
 
 ## Architecture
 
-**Expo SDK 54 + React Native 0.81 app** using file-based routing (Expo Router), New Architecture, and React Compiler.
+**Expo SDK 55 + React Native 0.83 app** using file-based routing (Expo Router), New Architecture, and React Compiler.
 
 ### Routing
 
