@@ -19,6 +19,7 @@ No test framework is configured yet.
 
 ## Workflow
 
+- **Always ask the user before making changes** — never assume intent. When instructions are ambiguous, ask clarifying questions first.
 - Always run `bun run format` after finishing a task (before committing).
 - **Always check Context7 for up-to-date documentation** before using any library API. Use the `Resolve Context7 Library ID` tool followed by `Query Documentation` to look up current APIs, usage patterns, and examples — never rely solely on training data for library-specific code.
 
