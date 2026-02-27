@@ -127,3 +127,9 @@ Reusable components in `components/`:
 - iOS: `com.muhammadramdan.nouveau`
 - Android: `com.muhammadramdan.nouveau`
 - URL scheme: `nouveau`
+
+### Active Plugins
+
+- **Context7** — Documentation lookup for libraries. Use `Resolve Context7 Library ID` + `Query Documentation` tools to fetch up-to-date API docs and examples.
+- **Expo App Design** — Skills for building native UI, Expo Router, DOM components, Swift UI/Jetpack Compose, Tailwind setup, data fetching, API routes, and dev client builds.
+- **Feature Dev** — Guided feature development with codebase understanding, architecture focus, and code review.
