@@ -11,6 +11,7 @@ import { useTransaction } from '@/hooks/use-transaction';
 import { useUpdateTransaction } from '@/hooks/use-update-transaction';
 import type { Tables } from '@/types/supabase';
 import { formatDisplayAmount, processAmountKeyPress } from '@/utils/currency';
+import { toLocalDateString } from '@/utils/date';
 
 export function useTransactionForm(transactionId?: string, initialDate?: string) {
   const router = useRouter();
@@ -97,7 +98,7 @@ export function useTransactionForm(transactionId?: string, initialDate?: string)
           id: transactionId,
           amount,
           category_id: selectedCategory.id,
-          date: date.toISOString().split('T')[0],
+          date: toLocalDateString(date),
           description: description.trim() || null,
           type,
         },
@@ -119,7 +120,7 @@ export function useTransactionForm(transactionId?: string, initialDate?: string)
         {
           amount,
           category_id: selectedCategory.id,
-          date: date.toISOString().split('T')[0],
+          date: toLocalDateString(date),
           description: description.trim() || null,
           type,
           user_id: userId,
