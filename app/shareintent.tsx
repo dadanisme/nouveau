@@ -1,8 +1,9 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Image } from 'expo-image';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { Alert } from '@/components/alert';
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
 import { colors, design } from '@/constants/colors';
@@ -108,8 +109,20 @@ function EmptyState() {
 
 export default function ShareIntentScreen() {
   const insets = useSafeAreaInsets();
-  const { hasShareIntent, sharedText, sharedUrl, imageFiles, pdfFiles, otherFiles, handleDismiss } =
-    useShareIntentScreen();
+  const {
+    hasShareIntent,
+    sharedText,
+    sharedUrl,
+    imageFiles,
+    pdfFiles,
+    otherFiles,
+    canScan,
+    isScanning,
+    alertState,
+    handleDismiss,
+    handleScanReceipt,
+    dismissAlert,
+  } = useShareIntentScreen();
 
   const hasContent =
     hasShareIntent &&
@@ -152,10 +165,28 @@ export default function ShareIntentScreen() {
       </ScrollView>
 
       <View style={[styles.footer, { paddingBottom: insets.bottom + design.spacing.md }]}>
-        <Button onPress={handleDismiss} style={styles.doneButton}>
-          <Text style={styles.doneText}>Done</Text>
-        </Button>
+        {canScan ? (
+          <Button onPress={handleScanReceipt} disabled={isScanning} style={styles.doneButton}>
+            {isScanning ? (
+              <ActivityIndicator size="small" color={colors.gray[900]} />
+            ) : (
+              <Ionicons name="scan" size={20} color={colors.gray[900]} />
+            )}
+            <Text style={styles.doneText}>{isScanning ? 'Scanning...' : 'Scan Receipt'}</Text>
+          </Button>
+        ) : (
+          <Button onPress={handleDismiss} style={styles.doneButton}>
+            <Text style={styles.doneText}>Done</Text>
+          </Button>
+        )}
       </View>
+
+      <Alert
+        visible={alertState !== null}
+        title={alertState?.title ?? ''}
+        message={alertState?.message}
+        onDismiss={dismissAlert}
+      />
     </View>
   );
 }

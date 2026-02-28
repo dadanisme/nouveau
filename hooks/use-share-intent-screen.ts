@@ -1,7 +1,10 @@
+import * as Haptics from 'expo-haptics';
+import { useRouter } from 'expo-router';
 import { useShareIntentContext } from 'expo-share-intent';
 import type { ShareIntentFile } from 'expo-share-intent';
-import { useRouter } from 'expo-router';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
+
+import { useScanReceipt } from '@/hooks/use-scan-receipt';
 
 export type CategorizedFile = ShareIntentFile & {
   isImage: boolean;
@@ -11,6 +14,9 @@ export type CategorizedFile = ShareIntentFile & {
 export function useShareIntentScreen() {
   const router = useRouter();
   const { hasShareIntent, shareIntent, resetShareIntent } = useShareIntentContext();
+  const scanReceipt = useScanReceipt();
+
+  const [alertState, setAlertState] = useState<{ title: string; message: string } | null>(null);
 
   const sharedText = shareIntent.text ?? null;
   const sharedUrl = shareIntent.webUrl ?? null;
@@ -33,10 +39,40 @@ export function useShareIntentScreen() {
     return { imageFiles: images, pdfFiles: pdfs, otherFiles: others };
   }, [shareIntent.files]);
 
-  const handleDismiss = () => {
+  const canScan = imageFiles.length > 0 || pdfFiles.length > 0;
+  const isScanning = scanReceipt.isPending;
+
+  function handleDismiss() {
     resetShareIntent();
     router.replace('/');
-  };
+  }
+
+  function handleScanReceipt() {
+    const scannableFiles = [...imageFiles, ...pdfFiles] as ShareIntentFile[];
+    const text = sharedText ?? sharedUrl ?? undefined;
+
+    scanReceipt.mutate(
+      { files: scannableFiles, text },
+      {
+        onSuccess: () => {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+          resetShareIntent();
+          router.replace('/');
+        },
+        onError: (error) => {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+          setAlertState({
+            title: 'Scan Failed',
+            message: error instanceof Error ? error.message : 'An unexpected error occurred.',
+          });
+        },
+      },
+    );
+  }
+
+  function dismissAlert() {
+    setAlertState(null);
+  }
 
   return {
     hasShareIntent,
@@ -45,6 +81,11 @@ export function useShareIntentScreen() {
     imageFiles,
     pdfFiles,
     otherFiles,
+    canScan,
+    isScanning,
+    alertState,
     handleDismiss,
+    handleScanReceipt,
+    dismissAlert,
   };
 }

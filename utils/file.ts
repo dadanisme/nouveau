@@ -1,3 +1,5 @@
+import { File } from 'expo-file-system';
+
 const UNITS = ['B', 'KB', 'MB', 'GB'] as const;
 
 export function formatFileSize(bytes: number | null | undefined): string {
@@ -12,4 +14,9 @@ export function formatFileSize(bytes: number | null | undefined): string {
   }
 
   return `${unitIndex === 0 ? size : size.toFixed(1)} ${UNITS[unitIndex]}`;
+}
+
+export async function readFileAsBase64(uri: string): Promise<string> {
+  const file = new File(uri);
+  return file.base64();
 }
