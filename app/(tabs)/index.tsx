@@ -3,6 +3,8 @@ import { useRouter } from 'expo-router';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { AnimatedTabScreen } from '@/components/animated-tab-screen';
+
 import { Avatar } from '@/components/avatar';
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
@@ -30,122 +32,126 @@ export default function HomeScreen() {
   } = useHomeScreen();
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={[
-        styles.contentContainer,
-        { paddingTop: insets.top + design.spacing.md },
-      ]}
-      showsVerticalScrollIndicator={false}
-      refreshControl={
-        <RefreshControl
-          refreshing={isRefetching}
-          onRefresh={refetch}
-          tintColor={colors.primary.DEFAULT}
-          colors={[colors.primary.DEFAULT]}
-          progressViewOffset={insets.top}
-        />
-      }
-    >
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <Avatar uri={profileImage} name={displayName} size={48} />
-          <View>
-            <Text style={styles.greeting}>{greeting},</Text>
-            <Text style={styles.name}>{firstName}</Text>
-          </View>
-        </View>
-        <Button
-          variant="outline"
-          onPress={() => router.push('/settings')}
-          style={styles.settingsButton}
-        >
-          <Ionicons name="settings-outline" size={22} color={colors.gray[900]} />
-        </Button>
-      </View>
-
-      {/* Balance Card */}
-      <Card style={styles.balanceCard}>
-        <Text style={styles.balanceLabel}>Your Balance</Text>
-        <Text style={styles.balanceAmount}>{formatCurrency(balance)}</Text>
-        <View style={styles.overviewRow}>
-          <View style={styles.overviewItem}>
-            <View style={styles.overviewLabelRow}>
-              <Ionicons name="arrow-down" size={14} color={colors.income} />
-              <Text style={styles.overviewLabel}>Income</Text>
+    <AnimatedTabScreen index={0}>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={[
+          styles.contentContainer,
+          { paddingTop: insets.top + design.spacing.md },
+        ]}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefetching}
+            onRefresh={refetch}
+            tintColor={colors.primary.DEFAULT}
+            colors={[colors.primary.DEFAULT]}
+            progressViewOffset={insets.top}
+          />
+        }
+      >
+        {/* Header */}
+        <View style={styles.header}>
+          <View style={styles.headerLeft}>
+            <Avatar uri={profileImage} name={displayName} size={48} />
+            <View>
+              <Text style={styles.greeting}>{greeting},</Text>
+              <Text style={styles.name}>{firstName}</Text>
             </View>
-            <Text style={styles.overviewAmount}>
-              {formatCompactAmount(overview.income)}{' '}
-              <Text
-                style={{
-                  fontSize: design.fontSize.xs,
-                  fontWeight: '700',
-                  color:
-                    overview.incomeChange === 0
-                      ? colors.gray[500]
-                      : overview.incomeChange > 0
-                        ? colors.income
-                        : colors.expense,
-                }}
-              >
-                ({overview.incomeChange > 0 ? '+' : ''}
-                {overview.incomeChange}%)
-              </Text>
-            </Text>
           </View>
-          <View style={styles.overviewDivider} />
-          <View style={styles.overviewItem}>
-            <View style={styles.overviewLabelRow}>
-              <Ionicons name="arrow-up" size={14} color={colors.expense} />
-              <Text style={styles.overviewLabel}>Expenses</Text>
-            </View>
-            <Text style={styles.overviewAmount}>
-              {formatCompactAmount(overview.expense)}{' '}
-              <Text
-                style={{
-                  fontSize: design.fontSize.xs,
-                  fontWeight: '700',
-                  color:
-                    overview.expenseChange === 0
-                      ? colors.gray[500]
-                      : overview.expenseChange < 0
-                        ? colors.income
-                        : colors.expense,
-                }}
-              >
-                ({overview.expenseChange > 0 ? '+' : ''}
-                {overview.expenseChange}%)
-              </Text>
-            </Text>
-          </View>
+          <Button
+            variant="outline"
+            onPress={() => router.push('/settings')}
+            style={styles.settingsButton}
+          >
+            <Ionicons name="settings-outline" size={22} color={colors.gray[900]} />
+          </Button>
         </View>
-      </Card>
 
-      {/* Recent Transactions */}
-      <View style={styles.transactionsHeader}>
-        <Text style={styles.sectionTitle}>Recent Transactions</Text>
-        <Pressable onPress={() => router.push('/(tabs)/transactions')}>
-          <Text style={styles.seeAll}>See All</Text>
-        </Pressable>
-      </View>
-      <Card style={styles.transactionsCard}>
-        {isLoadingTransactions ? (
-          Array.from({ length: 4 }, (_, i) => <TransactionItemSkeleton key={i} isLast={i === 3} />)
-        ) : transactions.length > 0 ? (
-          transactions.map((tx, index) => (
-            <TransactionItem
-              key={tx.id}
-              transaction={tx}
-              isLast={index === transactions.length - 1}
-              onPress={() => router.push({ pathname: '/add-transaction', params: { id: tx.id } })}
-            />
-          ))
-        ) : (
-          <Text style={styles.emptyText}>No transactions yet</Text>
-        )}
-      </Card>
-    </ScrollView>
+        {/* Balance Card */}
+        <Card style={styles.balanceCard}>
+          <Text style={styles.balanceLabel}>Your Balance</Text>
+          <Text style={styles.balanceAmount}>{formatCurrency(balance)}</Text>
+          <View style={styles.overviewRow}>
+            <View style={styles.overviewItem}>
+              <View style={styles.overviewLabelRow}>
+                <Ionicons name="arrow-down" size={14} color={colors.income} />
+                <Text style={styles.overviewLabel}>Income</Text>
+              </View>
+              <Text style={styles.overviewAmount}>
+                {formatCompactAmount(overview.income)}{' '}
+                <Text
+                  style={{
+                    fontSize: design.fontSize.xs,
+                    fontWeight: '700',
+                    color:
+                      overview.incomeChange === 0
+                        ? colors.gray[500]
+                        : overview.incomeChange > 0
+                          ? colors.income
+                          : colors.expense,
+                  }}
+                >
+                  ({overview.incomeChange > 0 ? '+' : ''}
+                  {overview.incomeChange}%)
+                </Text>
+              </Text>
+            </View>
+            <View style={styles.overviewDivider} />
+            <View style={styles.overviewItem}>
+              <View style={styles.overviewLabelRow}>
+                <Ionicons name="arrow-up" size={14} color={colors.expense} />
+                <Text style={styles.overviewLabel}>Expenses</Text>
+              </View>
+              <Text style={styles.overviewAmount}>
+                {formatCompactAmount(overview.expense)}{' '}
+                <Text
+                  style={{
+                    fontSize: design.fontSize.xs,
+                    fontWeight: '700',
+                    color:
+                      overview.expenseChange === 0
+                        ? colors.gray[500]
+                        : overview.expenseChange < 0
+                          ? colors.income
+                          : colors.expense,
+                  }}
+                >
+                  ({overview.expenseChange > 0 ? '+' : ''}
+                  {overview.expenseChange}%)
+                </Text>
+              </Text>
+            </View>
+          </View>
+        </Card>
+
+        {/* Recent Transactions */}
+        <View style={styles.transactionsHeader}>
+          <Text style={styles.sectionTitle}>Recent Transactions</Text>
+          <Pressable onPress={() => router.push('/(tabs)/transactions')}>
+            <Text style={styles.seeAll}>See All</Text>
+          </Pressable>
+        </View>
+        <Card style={styles.transactionsCard}>
+          {isLoadingTransactions ? (
+            Array.from({ length: 4 }, (_, i) => (
+              <TransactionItemSkeleton key={i} isLast={i === 3} />
+            ))
+          ) : transactions.length > 0 ? (
+            transactions.map((tx, index) => (
+              <TransactionItem
+                key={tx.id}
+                transaction={tx}
+                isLast={index === transactions.length - 1}
+                onPress={() => router.push({ pathname: '/add-transaction', params: { id: tx.id } })}
+              />
+            ))
+          ) : (
+            <Text style={styles.emptyText}>No transactions yet</Text>
+          )}
+        </Card>
+      </ScrollView>
+    </AnimatedTabScreen>
   );
 }
 

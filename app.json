@@ -61,11 +61,7 @@
             "NSExtensionActivationSupportsFileWithMaxCount": 5
           },
           "iosShareExtensionName": "Nouveau Share Extension",
-          "androidIntentFilters": [
-            "text/*",
-            "image/*",
-            "application/pdf"
-          ],
+          "androidIntentFilters": ["text/*", "image/*", "application/pdf"],
           "androidMainActivityAttributes": {
             "android:launchMode": "singleTask"
           },
@@ -92,9 +88,7 @@
                   "targetName": "NouveauShareExtension",
                   "bundleIdentifier": "com.muhammadramdan.nouveau.share-extension",
                   "entitlements": {
-                    "com.apple.security.application-groups": [
-                      "group.com.muhammadramdan.nouveau"
-                    ]
+                    "com.apple.security.application-groups": ["group.com.muhammadramdan.nouveau"]
                   }
                 }
               ]

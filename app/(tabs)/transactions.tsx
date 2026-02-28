@@ -2,6 +2,8 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 
+import { AnimatedTabScreen } from '@/components/animated-tab-screen';
+
 import { Button } from '@/components/button';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -62,106 +64,108 @@ export default function TransactionsScreen() {
   }
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={[
-        styles.contentContainer,
-        { paddingTop: insets.top + design.spacing.md },
-      ]}
-      showsVerticalScrollIndicator={false}
-      refreshControl={
-        <RefreshControl
-          refreshing={isRefetching}
-          onRefresh={refetch}
-          tintColor={colors.primary.DEFAULT}
-          colors={[colors.primary.DEFAULT]}
-          progressViewOffset={insets.top}
-        />
-      }
-    >
-      {/* Month Navigation Header */}
-      <View style={styles.monthNav}>
-        <Pressable onPress={goToPreviousMonth} hitSlop={12}>
-          <Ionicons name="chevron-back" size={24} color={colors.gray[900]} />
-        </Pressable>
-        <Text style={styles.monthLabel}>{monthLabel}</Text>
-        <Pressable onPress={goToNextMonth} hitSlop={12}>
-          <Ionicons name="chevron-forward" size={24} color={colors.gray[900]} />
-        </Pressable>
-      </View>
-
-      {/* Filter Tabs */}
-      <View style={styles.filterRow}>
-        {FILTERS.map((filter) => {
-          const isActive = activeFilter === filter.key;
-          return (
-            <Button
-              key={filter.key}
-              variant={isActive ? 'primary' : 'outline'}
-              onPress={() => setActiveFilter(filter.key)}
-              style={styles.filterTab}
-            >
-              <Text style={[styles.filterLabel, isActive && styles.filterLabelActive]}>
-                {filter.label}
-              </Text>
-            </Button>
-          );
-        })}
-      </View>
-
-      {/* Summary Card */}
-      <Card style={styles.summaryCard}>
-        <View style={styles.summaryRow}>
-          <View style={styles.summaryItem}>
-            <View style={styles.summaryLabelRow}>
-              <Ionicons name="arrow-down" size={14} color={colors.income} />
-              <Text style={styles.summaryLabel}>Income</Text>
-            </View>
-            <Text style={[styles.summaryAmount, { color: colors.income }]}>
-              {formatCompactAmount(totals.income)}
-            </Text>
-          </View>
-          <View style={styles.summaryDivider} />
-          <View style={styles.summaryItem}>
-            <View style={styles.summaryLabelRow}>
-              <Ionicons name="arrow-up" size={14} color={colors.expense} />
-              <Text style={styles.summaryLabel}>Expense</Text>
-            </View>
-            <Text style={[styles.summaryAmount, { color: colors.expense }]}>
-              {formatCompactAmount(totals.expense)}
-            </Text>
-          </View>
-        </View>
-      </Card>
-
-      {/* Loading State */}
-      {isLoading && (
-        <>
-          <TransactionGroupSkeleton itemCount={3} />
-          <TransactionGroupSkeleton itemCount={2} />
-          <TransactionGroupSkeleton itemCount={2} />
-        </>
-      )}
-
-      {/* Transaction Groups */}
-      {!isLoading &&
-        groupedTransactions.map((group) => (
-          <DateGroup
-            key={group.dateKey}
-            group={group}
-            onTransactionPress={handleTransactionPress}
-            onDatePress={handleDatePress}
+    <AnimatedTabScreen index={1}>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={[
+          styles.contentContainer,
+          { paddingTop: insets.top + design.spacing.md },
+        ]}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefetching}
+            onRefresh={refetch}
+            tintColor={colors.primary.DEFAULT}
+            colors={[colors.primary.DEFAULT]}
+            progressViewOffset={insets.top}
           />
-        ))}
-
-      {/* Empty State */}
-      {!isLoading && groupedTransactions.length === 0 && (
-        <View style={styles.centered}>
-          <Ionicons name="receipt-outline" size={48} color={colors.gray[300]} />
-          <Text style={styles.emptyText}>No transactions</Text>
+        }
+      >
+        {/* Month Navigation Header */}
+        <View style={styles.monthNav}>
+          <Pressable onPress={goToPreviousMonth} hitSlop={12}>
+            <Ionicons name="chevron-back" size={24} color={colors.gray[900]} />
+          </Pressable>
+          <Text style={styles.monthLabel}>{monthLabel}</Text>
+          <Pressable onPress={goToNextMonth} hitSlop={12}>
+            <Ionicons name="chevron-forward" size={24} color={colors.gray[900]} />
+          </Pressable>
         </View>
-      )}
-    </ScrollView>
+
+        {/* Filter Tabs */}
+        <View style={styles.filterRow}>
+          {FILTERS.map((filter) => {
+            const isActive = activeFilter === filter.key;
+            return (
+              <Button
+                key={filter.key}
+                variant={isActive ? 'primary' : 'outline'}
+                onPress={() => setActiveFilter(filter.key)}
+                style={styles.filterTab}
+              >
+                <Text style={[styles.filterLabel, isActive && styles.filterLabelActive]}>
+                  {filter.label}
+                </Text>
+              </Button>
+            );
+          })}
+        </View>
+
+        {/* Summary Card */}
+        <Card style={styles.summaryCard}>
+          <View style={styles.summaryRow}>
+            <View style={styles.summaryItem}>
+              <View style={styles.summaryLabelRow}>
+                <Ionicons name="arrow-down" size={14} color={colors.income} />
+                <Text style={styles.summaryLabel}>Income</Text>
+              </View>
+              <Text style={[styles.summaryAmount, { color: colors.income }]}>
+                {formatCompactAmount(totals.income)}
+              </Text>
+            </View>
+            <View style={styles.summaryDivider} />
+            <View style={styles.summaryItem}>
+              <View style={styles.summaryLabelRow}>
+                <Ionicons name="arrow-up" size={14} color={colors.expense} />
+                <Text style={styles.summaryLabel}>Expense</Text>
+              </View>
+              <Text style={[styles.summaryAmount, { color: colors.expense }]}>
+                {formatCompactAmount(totals.expense)}
+              </Text>
+            </View>
+          </View>
+        </Card>
+
+        {/* Loading State */}
+        {isLoading && (
+          <>
+            <TransactionGroupSkeleton itemCount={3} />
+            <TransactionGroupSkeleton itemCount={2} />
+            <TransactionGroupSkeleton itemCount={2} />
+          </>
+        )}
+
+        {/* Transaction Groups */}
+        {!isLoading &&
+          groupedTransactions.map((group) => (
+            <DateGroup
+              key={group.dateKey}
+              group={group}
+              onTransactionPress={handleTransactionPress}
+              onDatePress={handleDatePress}
+            />
+          ))}
+
+        {/* Empty State */}
+        {!isLoading && groupedTransactions.length === 0 && (
+          <View style={styles.centered}>
+            <Ionicons name="receipt-outline" size={48} color={colors.gray[300]} />
+            <Text style={styles.emptyText}>No transactions</Text>
+          </View>
+        )}
+      </ScrollView>
+    </AnimatedTabScreen>
   );
 }
 
