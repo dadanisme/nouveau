@@ -1,3 +1,5 @@
+import { useCallback, useState } from 'react';
+
 import type { TransactionItemData } from '@/components/transaction-item';
 import { useSession, useUserProfile } from '@/hooks/use-auth';
 import { useBalance, useMonthlyTotals, useRecentTransactions } from '@/hooks/use-transactions';
@@ -30,20 +32,21 @@ export function useHomeScreen() {
   const recentTx = recentTxQuery.data;
   const isLoadingTransactions = recentTxQuery.isLoading;
 
-  const isRefetching =
-    balanceQuery.isRefetching ||
-    currentTotalsQuery.isRefetching ||
-    prevTotalsQuery.isRefetching ||
-    recentTxQuery.isRefetching;
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const refetch = async () => {
-    await Promise.all([
-      balanceQuery.refetch(),
-      currentTotalsQuery.refetch(),
-      prevTotalsQuery.refetch(),
-      recentTxQuery.refetch(),
-    ]);
-  };
+  const refetch = useCallback(async () => {
+    setIsRefreshing(true);
+    try {
+      await Promise.all([
+        balanceQuery.refetch(),
+        currentTotalsQuery.refetch(),
+        prevTotalsQuery.refetch(),
+        recentTxQuery.refetch(),
+      ]);
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [balanceQuery, currentTotalsQuery, prevTotalsQuery, recentTxQuery]);
 
   const currentIncome = currentTotals?.income ?? 0;
   const currentExpense = currentTotals?.expense ?? 0;
@@ -82,7 +85,7 @@ export function useHomeScreen() {
     overview,
     transactions,
     isLoadingTransactions,
-    isRefetching,
+    isRefreshing,
     refetch,
   };
 }

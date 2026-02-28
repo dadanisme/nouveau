@@ -51,7 +51,7 @@ export default function TransactionsScreen() {
     goToPreviousMonth,
     goToNextMonth,
     isLoading,
-    isRefetching,
+    isRefreshing,
     refetch,
   } = useTransactionsScreen();
 
@@ -74,7 +74,7 @@ export default function TransactionsScreen() {
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
-            refreshing={isRefetching}
+            refreshing={isRefreshing}
             onRefresh={refetch}
             tintColor={colors.primary.DEFAULT}
             colors={[colors.primary.DEFAULT]}

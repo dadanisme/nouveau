@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 import { useSession } from '@/hooks/use-auth';
 import { useCategories } from '@/hooks/use-categories';
@@ -8,8 +8,18 @@ import type { Tables } from '@/types/supabase';
 export function useCategoryManagement() {
   const { session } = useSession();
   const userId = session?.user.id;
-  const { data: categories = [], isLoading, isRefetching, refetch } = useCategories(userId);
+  const { data: categories = [], isLoading, refetch: queryRefetch } = useCategories(userId);
   const deleteCategory = useDeleteCategory();
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const refetch = useCallback(async () => {
+    setIsRefreshing(true);
+    try {
+      await queryRefetch();
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [queryRefetch]);
 
   const [showForm, setShowForm] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Tables<'categories'> | null>(null);
@@ -77,7 +87,7 @@ export function useCategoryManagement() {
     expenseCategories,
     incomeCategories,
     isLoading,
-    isRefetching,
+    isRefreshing,
     refetch,
     showForm,
     editingCategory,

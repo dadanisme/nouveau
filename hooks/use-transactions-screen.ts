@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 import { useSession } from '@/hooks/use-auth';
 import { useTransactions, type TransactionWithCategory } from '@/hooks/use-transactions';
@@ -34,11 +34,16 @@ export function useTransactionsScreen() {
   const isLoadingAll = allQuery.isLoading;
   const isLoadingFiltered = filteredQuery.isLoading;
 
-  const isRefetching = allQuery.isRefetching || filteredQuery.isRefetching;
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const refetch = async () => {
-    await Promise.all([allQuery.refetch(), filteredQuery.refetch()]);
-  };
+  const refetch = useCallback(async () => {
+    setIsRefreshing(true);
+    try {
+      await Promise.all([allQuery.refetch(), filteredQuery.refetch()]);
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [allQuery, filteredQuery]);
 
   const monthLabel = new Date(viewYear, viewMonth).toLocaleDateString('en-US', {
     month: 'long',
@@ -109,7 +114,7 @@ export function useTransactionsScreen() {
     goToPreviousMonth,
     goToNextMonth,
     isLoading: isLoadingAll || isLoadingFiltered,
-    isRefetching,
+    isRefreshing,
     refetch,
   };
 }

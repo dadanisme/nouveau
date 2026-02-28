@@ -210,7 +210,7 @@ export default function CategoriesScreen() {
           ]}
           refreshControl={
             <RefreshControl
-              refreshing={mgmt.isRefetching}
+              refreshing={mgmt.isRefreshing}
               onRefresh={mgmt.refetch}
               tintColor={colors.primary.DEFAULT}
               colors={[colors.primary.DEFAULT]}
