@@ -49,23 +49,6 @@ export default function AddTransactionScreen() {
 
   const amountColor = type === 'income' ? colors.income : colors.expense;
 
-  if (isEditMode && isLoadingTransaction) {
-    return (
-      <View style={[styles.container, { paddingTop: insets.top }]}>
-        <View style={styles.header}>
-          <Button variant="outline" onPress={goBack} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={22} color={colors.gray[900]} />
-          </Button>
-          <Text style={styles.headerTitle}>Edit Transaction</Text>
-          <View style={styles.headerSpacer} />
-        </View>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.primary.DEFAULT} />
-        </View>
-      </View>
-    );
-  }
-
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.header}>
@@ -111,7 +94,13 @@ export default function AddTransactionScreen() {
           <View style={styles.amountSectionContainer}>
             <View style={styles.amountSection}>
               <Text style={styles.amountLabel}>Amount</Text>
-              <Text style={[styles.amountText, { color: amountColor }]}>{getDisplayAmount()}</Text>
+              {isEditMode && isLoadingTransaction ? (
+                <ActivityIndicator size="large" color={colors.primary.DEFAULT} />
+              ) : (
+                <Text style={[styles.amountText, { color: amountColor }]}>
+                  {getDisplayAmount()}
+                </Text>
+              )}
             </View>
 
             <TextInput
@@ -292,11 +281,6 @@ const styles = StyleSheet.create({
   },
   headerSpacer: {
     width: 40,
-  },
-  loadingContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   content: {
     flex: 1,
