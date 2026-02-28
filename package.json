@@ -11,7 +11,8 @@
     "lint": "expo lint",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "supabase:gen-types": "supabase gen types --project-id hsoxjmdfnnxyribqskjl > types/supabase.ts && prettier --write types/supabase.ts"
+    "supabase:gen-types": "supabase gen types --project-id hsoxjmdfnnxyribqskjl > types/supabase.ts && prettier --write types/supabase.ts",
+    "postinstall": "patch -p1 -N --no-backup-if-mismatch < patches/expo-share-intent+6.0.0.patch || true"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
