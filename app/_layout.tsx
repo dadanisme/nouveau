@@ -112,6 +112,13 @@ export default function RootLayout() {
                     }}
                   />
                   <Stack.Screen
+                    name="subscriptions"
+                    options={{
+                      headerShown: false,
+                      animationDuration: 350,
+                    }}
+                  />
+                  <Stack.Screen
                     name="shareintent"
                     options={{
                       headerShown: false,

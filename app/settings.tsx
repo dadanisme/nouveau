@@ -13,6 +13,7 @@ import { useSession, useSignOut, useUserProfile } from '@/hooks/use-auth';
 
 const MENU_ITEMS = [
   { icon: 'grid-outline', label: 'Categories', route: '/categories' },
+  { icon: 'star-outline', label: 'Subscriptions', route: '/subscriptions' },
   { icon: 'notifications-outline', label: 'Notifications' },
   { icon: 'cash-outline', label: 'Currency' },
   { icon: 'download-outline', label: 'Export Data' },

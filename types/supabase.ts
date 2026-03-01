@@ -133,8 +133,7 @@ export type Database = {
       };
       feature_subscriptions: {
         Row: {
-          feature_flag: string;
-          feature_name: string;
+          feature_id: string;
           granted_at: string | null;
           granted_by: string;
           id: string;
@@ -145,8 +144,7 @@ export type Database = {
           user_id: string;
         };
         Insert: {
-          feature_flag: string;
-          feature_name: string;
+          feature_id: string;
           granted_at?: string | null;
           granted_by: string;
           id?: string;
@@ -157,8 +155,7 @@ export type Database = {
           user_id: string;
         };
         Update: {
-          feature_flag?: string;
-          feature_name?: string;
+          feature_id?: string;
           granted_at?: string | null;
           granted_by?: string;
           id?: string;
@@ -169,6 +166,13 @@ export type Database = {
           user_id?: string;
         };
         Relationships: [
+          {
+            foreignKeyName: 'feature_subscriptions_feature_id_fkey';
+            columns: ['feature_id'];
+            isOneToOne: false;
+            referencedRelation: 'features';
+            referencedColumns: ['id'];
+          },
           {
             foreignKeyName: 'feature_subscriptions_granted_by_fkey';
             columns: ['granted_by'];
@@ -191,6 +195,27 @@ export type Database = {
             referencedColumns: ['id'];
           },
         ];
+      };
+      features: {
+        Row: {
+          description: string | null;
+          flag: string;
+          id: string;
+          name: string;
+        };
+        Insert: {
+          description?: string | null;
+          flag: string;
+          id?: string;
+          name: string;
+        };
+        Update: {
+          description?: string | null;
+          flag?: string;
+          id?: string;
+          name?: string;
+        };
+        Relationships: [];
       };
       transactions: {
         Row: {
