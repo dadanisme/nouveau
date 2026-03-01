@@ -33,7 +33,7 @@ export async function authenticatedFetch<T>(url: string, options?: RequestInit):
     let message: string;
     try {
       const json = JSON.parse(body);
-      message = json.error ?? json.message ?? body;
+      message = json.error?.message ?? json.error ?? json.message ?? body;
     } catch {
       message = body || `Request failed with status ${response.status}`;
     }
