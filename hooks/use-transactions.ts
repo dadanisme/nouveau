@@ -44,17 +44,9 @@ export function useBalance(userId: string | undefined) {
   return useQuery({
     queryKey: ['balance', userId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('transactions')
-        .select('amount, type')
-        .eq('user_id', userId!);
+      const { data, error } = await supabase.rpc('get_balance', { uid: userId! });
       if (error) throw error;
-
-      let balance = 0;
-      for (const tx of data) {
-        balance += tx.type === 'income' ? tx.amount : -tx.amount;
-      }
-      return balance;
+      return (data as number) ?? 0;
     },
     enabled: !!userId,
   });
@@ -68,21 +60,14 @@ export function useMonthlyTotals(userId: string | undefined, year: number, month
       const lastDay = new Date(year, month + 1, 0).getDate();
       const endDate = `${year}-${String(month + 1).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
 
-      const { data, error } = await supabase
-        .from('transactions')
-        .select('amount, type')
-        .eq('user_id', userId!)
-        .gte('date', startDate)
-        .lte('date', endDate);
+      const { data, error } = await supabase.rpc('get_monthly_totals', {
+        uid: userId!,
+        start_date: startDate,
+        end_date: endDate,
+      });
       if (error) throw error;
-
-      let income = 0;
-      let expense = 0;
-      for (const tx of data) {
-        if (tx.type === 'income') income += tx.amount;
-        else expense += tx.amount;
-      }
-      return { income, expense };
+      const row = (data as { income: number; expense: number }[])[0];
+      return row ?? { income: 0, expense: 0 };
     },
     enabled: !!userId,
   });

@@ -335,6 +335,14 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      get_balance: { Args: { uid: string }; Returns: number };
+      get_monthly_totals: {
+        Args: { end_date: string; start_date: string; uid: string };
+        Returns: {
+          expense: number;
+          income: number;
+        }[];
+      };
       is_admin: { Args: never; Returns: boolean };
     };
     Enums: {
