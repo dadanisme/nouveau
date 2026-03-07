@@ -30,7 +30,14 @@ export async function downloadToTempFile(remoteUrl: string, filename: string): P
   if (destinationFile.exists) {
     destinationFile.delete();
   }
-  return File.downloadFileAsync(remoteUrl, destination);
+  return File.downloadFileAsync(remoteUrl, destinationFile);
+}
+
+export function cleanupTempDownloads(): void {
+  const dir = new Directory(Paths.cache, 'proof-downloads');
+  if (dir.exists) {
+    dir.delete();
+  }
 }
 
 export function isSaveableImage(mimeType: string): boolean {

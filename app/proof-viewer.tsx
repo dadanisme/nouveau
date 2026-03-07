@@ -19,6 +19,7 @@ import { Card } from '@/components/card';
 import { colors, design } from '@/constants/colors';
 import { useProofDownload } from '@/hooks/use-proof-download';
 import { useProofs } from '@/hooks/use-proofs';
+import { isSaveableImage } from '@/utils/file';
 
 export default function ProofViewerScreen() {
   const { transactionId } = useLocalSearchParams<{ transactionId: string }>();
@@ -26,11 +27,11 @@ export default function ProofViewerScreen() {
   const router = useRouter();
   const { width } = useWindowDimensions();
   const { data: proofs, isLoading, error } = useProofs(transactionId);
-  const { isSaving, isSharing, saveAllToPhotos, shareAll, alert, dismissAlert } =
-    useProofDownload();
+  const { isSaving, isSharing, saveAllToPhotos, share, alert, dismissAlert } = useProofDownload();
 
-  const hasImages = proofs?.some((p) => p.mimeType.startsWith('image/')) ?? false;
+  const hasImages = proofs?.some((p) => isSaveableImage(p.mimeType)) ?? false;
 
+  const FOOTER_HEIGHT = insets.bottom + design.spacing.md + 48 + design.spacing.md;
   const contentWidth = width - design.spacing.lg * 2 - design.borderWidth * 2;
   const [webviewHeights, setWebviewHeights] = useState<Record<string, number>>({});
   const [imageAspectRatios, setImageAspectRatios] = useState<Record<string, number>>({});
@@ -69,7 +70,7 @@ export default function ProofViewerScreen() {
         <ScrollView
           contentContainerStyle={[
             styles.scrollContent,
-            { paddingBottom: insets.bottom + design.spacing.lg },
+            { paddingBottom: FOOTER_HEIGHT + design.spacing.lg },
           ]}
           showsVerticalScrollIndicator={false}
         >
@@ -137,7 +138,7 @@ export default function ProofViewerScreen() {
             <Button
               onPress={() => saveAllToPhotos(proofs)}
               disabled={isSaving || isSharing}
-              style={[styles.footerButton, styles.saveButton]}
+              style={styles.saveButton}
             >
               {isSaving ? (
                 <ActivityIndicator size="small" color={colors.gray[900]} />
@@ -149,12 +150,7 @@ export default function ProofViewerScreen() {
               </Text>
             </Button>
           )}
-          <Button
-            variant="outline"
-            onPress={() => shareAll(proofs)}
-            disabled={isSaving || isSharing}
-            style={styles.footerButton}
-          >
+          <Button variant="outline" onPress={() => share(proofs)} disabled={isSaving || isSharing}>
             {isSharing ? (
               <ActivityIndicator size="small" color={colors.gray[900]} />
             ) : (
@@ -253,7 +249,6 @@ const styles = StyleSheet.create({
     paddingTop: design.spacing.md,
     gap: design.spacing.sm,
   },
-  footerButton: {},
   saveButton: {
     flex: 1,
     backgroundColor: colors.primary.DEFAULT,

@@ -3,7 +3,7 @@ import * as MediaLibrary from 'expo-media-library';
 import * as Sharing from 'expo-sharing';
 
 import { type Proof } from '@/hooks/use-proofs';
-import { downloadToTempFile, isSaveableImage } from '@/utils/file';
+import { cleanupTempDownloads, downloadToTempFile, isSaveableImage } from '@/utils/file';
 
 interface AlertState {
   visible: boolean;
@@ -58,11 +58,12 @@ export function useProofDownload() {
         message: 'Could not save images. Please try again.',
       });
     } finally {
+      cleanupTempDownloads();
       setIsSaving(false);
     }
   }, []);
 
-  const shareAll = useCallback(async (proofs: Proof[]) => {
+  const share = useCallback(async (proofs: Proof[]) => {
     if (proofs.length === 0) return;
 
     setIsSharing(true);
@@ -77,6 +78,7 @@ export function useProofDownload() {
         message: 'Could not share the file. Please try again.',
       });
     } finally {
+      cleanupTempDownloads();
       setIsSharing(false);
     }
   }, []);
@@ -89,7 +91,7 @@ export function useProofDownload() {
     isSaving,
     isSharing,
     saveAllToPhotos,
-    shareAll,
+    share,
     alert,
     dismissAlert,
   };
