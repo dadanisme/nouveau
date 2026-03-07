@@ -12,7 +12,9 @@
       "bundleIdentifier": "com.muhammadramdan.nouveau",
       "appleTeamId": "C4SQMCY5WT",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSPhotoLibraryUsageDescription": "Allow Nouveau to save receipt photos to your library.",
+        "NSPhotoLibraryAddUsageDescription": "Allow Nouveau to save receipt photos to your library."
       }
     },
     "android": {
@@ -70,7 +72,15 @@
       ],
       "expo-font",
       "expo-image",
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "Allow Nouveau to save receipt photos to your library.",
+          "savePhotosPermission": "Allow Nouveau to save receipt photos to your library.",
+          "isAccessMediaLocationEnabled": true
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
