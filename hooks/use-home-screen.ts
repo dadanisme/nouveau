@@ -74,6 +74,7 @@ export function useHomeScreen() {
     date: tx.date,
     amount: tx.amount,
     type: tx.type as 'income' | 'expense',
+    hasProofs: (tx.receipt_proofs?.[0]?.count ?? 0) > 0,
   }));
 
   return {

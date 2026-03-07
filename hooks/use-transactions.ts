@@ -5,6 +5,7 @@ import type { Tables } from '@/types/supabase';
 
 export type TransactionWithCategory = Tables<'transactions'> & {
   category: Pick<Tables<'categories'>, 'id' | 'name' | 'type' | 'color' | 'icon'>;
+  receipt_proofs: [{ count: number }];
 };
 
 export function useTransactions(
@@ -22,7 +23,9 @@ export function useTransactions(
 
       let query = supabase
         .from('transactions')
-        .select('*, category:categories!category_id(id, name, type, color, icon)')
+        .select(
+          '*, category:categories!category_id(id, name, type, color, icon), receipt_proofs(count)',
+        )
         .eq('user_id', userId!)
         .gte('date', startDate)
         .lte('date', endDate)
@@ -79,7 +82,9 @@ export function useRecentTransactions(userId: string | undefined, limit = 6) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('transactions')
-        .select('*, category:categories!category_id(id, name, type, color, icon)')
+        .select(
+          '*, category:categories!category_id(id, name, type, color, icon), receipt_proofs(count)',
+        )
         .eq('user_id', userId!)
         .order('date', { ascending: false })
         .limit(limit);

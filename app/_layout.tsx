@@ -119,6 +119,13 @@ export default function RootLayout() {
                     }}
                   />
                   <Stack.Screen
+                    name="proof-viewer"
+                    options={{
+                      headerShown: false,
+                      animationDuration: 350,
+                    }}
+                  />
+                  <Stack.Screen
                     name="shareintent"
                     options={{
                       headerShown: false,

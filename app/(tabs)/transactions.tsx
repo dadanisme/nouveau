@@ -1,7 +1,9 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
+import { useState } from 'react';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 
+import { Alert } from '@/components/alert';
 import { AnimatedTabScreen } from '@/components/animated-tab-screen';
 
 import { Button } from '@/components/button';
@@ -12,6 +14,7 @@ import { TAB_BAR_HEIGHT } from '@/components/tab-bar';
 import { TransactionGroupSkeleton } from '@/components/transaction-group-skeleton';
 import { TransactionItem, type TransactionItemData } from '@/components/transaction-item';
 import { colors, design } from '@/constants/colors';
+import { useDeleteTransaction } from '@/hooks/use-delete-transaction';
 import {
   useTransactionsScreen,
   type FilterType,
@@ -36,6 +39,7 @@ function toItemData(tx: TransactionWithCategory): TransactionItemData {
     date: tx.date.split('T')[0],
     amount: tx.amount,
     type: tx.type as 'income' | 'expense',
+    hasProofs: (tx.receipt_proofs?.[0]?.count ?? 0) > 0,
   };
 }
 
@@ -54,6 +58,8 @@ export default function TransactionsScreen() {
     isRefreshing,
     refetch,
   } = useTransactionsScreen();
+  const deleteMutation = useDeleteTransaction();
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   function handleTransactionPress(id: string) {
     router.push({ pathname: '/add-transaction', params: { id } });
@@ -61,6 +67,17 @@ export default function TransactionsScreen() {
 
   function handleDatePress(dateKey: string) {
     router.push({ pathname: '/add-transaction', params: { date: dateKey } });
+  }
+
+  function handleViewProofs(transactionId: string) {
+    router.push({ pathname: '/proof-viewer', params: { transactionId } });
+  }
+
+  function handleDeleteConfirm() {
+    if (!deleteTarget) return;
+    deleteMutation.mutate(deleteTarget, {
+      onSettled: () => setDeleteTarget(null),
+    });
   }
 
   return (
@@ -154,6 +171,8 @@ export default function TransactionsScreen() {
               group={group}
               onTransactionPress={handleTransactionPress}
               onDatePress={handleDatePress}
+              onViewProofs={handleViewProofs}
+              onDelete={setDeleteTarget}
             />
           ))}
 
@@ -165,6 +184,17 @@ export default function TransactionsScreen() {
           </View>
         )}
       </ScrollView>
+
+      <Alert
+        visible={!!deleteTarget}
+        title="Delete Transaction"
+        message="Are you sure you want to delete this transaction? This action cannot be undone."
+        actions={[
+          { label: 'Cancel', onPress: () => setDeleteTarget(null) },
+          { label: 'Delete', variant: 'dark', onPress: handleDeleteConfirm },
+        ]}
+        onDismiss={() => setDeleteTarget(null)}
+      />
     </AnimatedTabScreen>
   );
 }
@@ -173,10 +203,14 @@ function DateGroup({
   group,
   onTransactionPress,
   onDatePress,
+  onViewProofs,
+  onDelete,
 }: {
   group: TransactionGroup;
   onTransactionPress: (id: string) => void;
   onDatePress: (dateKey: string) => void;
+  onViewProofs: (id: string) => void;
+  onDelete: (id: string) => void;
 }) {
   return (
     <View style={styles.dateGroup}>
@@ -209,6 +243,8 @@ function DateGroup({
             isLast={index === group.transactions.length - 1}
             showDate={false}
             onPress={() => onTransactionPress(tx.id)}
+            onViewProofs={() => onViewProofs(tx.id)}
+            onDelete={() => onDelete(tx.id)}
           />
         ))}
       </Card>
