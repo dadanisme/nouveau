@@ -1,6 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useState } from 'react';
 import {
   ActivityIndicator,
   ScrollView,
@@ -24,7 +25,9 @@ export default function ProofViewerScreen() {
   const { width } = useWindowDimensions();
   const { data: proofs, isLoading, error } = useProofs(transactionId);
 
-  const imageWidth = width - design.spacing.lg * 2;
+  const contentWidth = width - design.spacing.lg * 2 - design.borderWidth * 2;
+  const [webviewHeights, setWebviewHeights] = useState<Record<string, number>>({});
+  const [imageAspectRatios, setImageAspectRatios] = useState<Record<string, number>>({});
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -66,21 +69,47 @@ export default function ProofViewerScreen() {
         >
           {proofs.map((proof) => (
             <Card key={proof.id} style={styles.proofCard}>
-              <Text style={styles.filename} numberOfLines={1}>
-                {proof.filename}
-              </Text>
               {proof.mimeType.startsWith('image/') ? (
                 <Image
                   source={{ uri: proof.url }}
-                  style={[styles.image, { width: imageWidth - design.spacing.lg * 2 }]}
+                  style={[
+                    styles.image,
+                    {
+                      width: contentWidth,
+                      height: imageAspectRatios[proof.id]
+                        ? contentWidth / imageAspectRatios[proof.id]
+                        : contentWidth,
+                    },
+                  ]}
                   contentFit="contain"
+                  onLoad={(e) => {
+                    const { width: w, height: h } = e.source;
+                    if (w && h) {
+                      setImageAspectRatios((prev) => ({ ...prev, [proof.id]: w / h }));
+                    }
+                  }}
                 />
               ) : proof.mimeType === 'text/html' ? (
-                <View style={styles.webviewContainer}>
+                <View
+                  style={[styles.webviewContainer, { height: webviewHeights[proof.id] || 600 }]}
+                >
                   <WebView
                     source={{ uri: proof.url }}
                     style={styles.webview}
                     originWhitelist={['https://*']}
+                    injectedJavaScript={`
+                      setTimeout(() => {
+                        window.ReactNativeWebView.postMessage(
+                          JSON.stringify({ height: document.documentElement.scrollHeight })
+                        );
+                      }, 500);
+                    `}
+                    onMessage={(event) => {
+                      const data = JSON.parse(event.nativeEvent.data);
+                      if (data.height) {
+                        setWebviewHeights((prev) => ({ ...prev, [proof.id]: data.height }));
+                      }
+                    }}
                   />
                 </View>
               ) : (
@@ -148,24 +177,14 @@ const styles = StyleSheet.create({
     gap: design.spacing.md,
   },
   proofCard: {
-    padding: design.spacing.lg,
-    gap: design.spacing.sm + 4,
-  },
-  filename: {
-    fontSize: design.fontSize.sm,
-    fontWeight: '700',
-    color: colors.gray[600],
+    padding: 0,
+    overflow: 'hidden',
   },
   image: {
-    minHeight: 300,
-    borderRadius: design.radius.sm,
+    aspectRatio: undefined,
   },
   webviewContainer: {
-    height: 400,
-    borderRadius: design.radius.sm,
     overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: colors.gray[200],
   },
   webview: {
     flex: 1,
