@@ -1,4 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { useRef } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import ContextMenu from 'react-native-context-menu-view';
 
@@ -41,12 +42,30 @@ export function TransactionItem({
   const amountPrefix = isIncome ? '+' : '-';
   const icon = transaction.categoryIcon ? parseIcon(transaction.categoryIcon) : null;
 
-  const Wrapper = onPress ? Pressable : View;
-  const wrapperProps = onPress ? { onPress } : {};
   const hasContextMenu = !!(onDelete || onViewProofs);
+  const pressStartRef = useRef(0);
 
+  // When a ContextMenu wraps a Pressable, the long press that opens the context
+  // menu still propagates as a regular press to the inner Pressable, causing both
+  // the menu and the onPress action to fire. To work around this, we avoid using
+  // Pressable when a context menu is present and instead use raw touch events with
+  // a timing threshold — only taps shorter than 300ms are treated as a press.
   const content = (
-    <Wrapper {...wrapperProps} style={[styles.container, !isLast && styles.border]}>
+    <View
+      style={[styles.container, !isLast && styles.border]}
+      {...(onPress && hasContextMenu
+        ? {
+            onTouchStart: () => {
+              pressStartRef.current = Date.now();
+            },
+            onTouchEnd: () => {
+              if (Date.now() - pressStartRef.current < 300) {
+                onPress();
+              }
+            },
+          }
+        : {})}
+    >
       <View style={[styles.icon, { backgroundColor: transaction.categoryColor + '20' }]}>
         {icon ? (
           <Ionicons
@@ -76,7 +95,7 @@ export function TransactionItem({
         {amountPrefix}
         {formatCompactAmount(transaction.amount)}
       </Text>
-    </Wrapper>
+    </View>
   );
 
   if (hasContextMenu) {
@@ -100,6 +119,10 @@ export function TransactionItem({
         {content}
       </ContextMenu>
     );
+  }
+
+  if (onPress) {
+    return <Pressable onPress={onPress}>{content}</Pressable>;
   }
 
   return content;
