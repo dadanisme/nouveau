@@ -1,5 +1,7 @@
 import { supabase } from '@/lib/supabase';
 
+export const API_BASE_URL = 'https://moneymail-api-1016548251938.asia-southeast2.run.app';
+
 export class ApiError extends Error {
   status: number;
 

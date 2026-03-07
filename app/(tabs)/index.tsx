@@ -12,6 +12,7 @@ import { TAB_BAR_HEIGHT } from '@/components/tab-bar';
 import { TransactionItem } from '@/components/transaction-item';
 import { TransactionItemSkeleton } from '@/components/transaction-item-skeleton';
 import { colors, design } from '@/constants/colors';
+import { useDeleteConfirmation } from '@/hooks/use-delete-confirmation';
 import { useHomeScreen } from '@/hooks/use-home-screen';
 import { formatCompactAmount, formatCurrency } from '@/utils/currency';
 
@@ -30,6 +31,7 @@ export default function HomeScreen() {
     isRefreshing,
     refetch,
   } = useHomeScreen();
+  const { requestDelete, deleteConfirmAlert } = useDeleteConfirmation();
 
   return (
     <AnimatedTabScreen index={0}>
@@ -144,6 +146,10 @@ export default function HomeScreen() {
                 transaction={tx}
                 isLast={index === transactions.length - 1}
                 onPress={() => router.push({ pathname: '/add-transaction', params: { id: tx.id } })}
+                onViewProofs={() =>
+                  router.push({ pathname: '/proof-viewer', params: { transactionId: tx.id } })
+                }
+                onDelete={() => requestDelete(tx.id)}
               />
             ))
           ) : (
@@ -151,6 +157,8 @@ export default function HomeScreen() {
           )}
         </Card>
       </ScrollView>
+
+      {deleteConfirmAlert}
     </AnimatedTabScreen>
   );
 }

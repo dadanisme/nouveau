@@ -1,10 +1,10 @@
 import { useMutation } from '@tanstack/react-query';
 import type { ShareIntentFile } from 'expo-share-intent';
 
-import { authenticatedFetch } from '@/lib/api';
+import { API_BASE_URL, authenticatedFetch } from '@/lib/api';
 import { readFileAsBase64 } from '@/utils/file';
 
-const RECEIPT_API_URL = 'https://moneymail-api-1016548251938.asia-southeast2.run.app/api/receipts';
+const RECEIPT_API_URL = `${API_BASE_URL}/api/receipts`;
 
 const ALLOWED_MIME_TYPES = ['image/png', 'image/jpeg', 'image/webp', 'application/pdf'];
 

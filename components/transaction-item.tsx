@@ -1,5 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import ContextMenu from 'react-native-context-menu-view';
 
 import { colors, design } from '@/constants/colors';
 import { formatCompactAmount } from '@/utils/currency';
@@ -15,6 +16,7 @@ export interface TransactionItemData {
   date: string;
   amount: number;
   type: 'income' | 'expense';
+  hasProofs?: boolean;
 }
 
 interface TransactionItemProps {
@@ -22,6 +24,8 @@ interface TransactionItemProps {
   isLast?: boolean;
   showDate?: boolean;
   onPress?: () => void;
+  onViewProofs?: () => void;
+  onDelete?: () => void;
 }
 
 export function TransactionItem({
@@ -29,6 +33,8 @@ export function TransactionItem({
   isLast,
   showDate = true,
   onPress,
+  onViewProofs,
+  onDelete,
 }: TransactionItemProps) {
   const isIncome = transaction.type === 'income';
   const amountColor = isIncome ? colors.income : colors.expense;
@@ -37,8 +43,9 @@ export function TransactionItem({
 
   const Wrapper = onPress ? Pressable : View;
   const wrapperProps = onPress ? { onPress } : {};
+  const hasContextMenu = !!(onDelete || onViewProofs);
 
-  return (
+  const content = (
     <Wrapper {...wrapperProps} style={[styles.container, !isLast && styles.border]}>
       <View style={[styles.icon, { backgroundColor: transaction.categoryColor + '20' }]}>
         {icon ? (
@@ -56,10 +63,13 @@ export function TransactionItem({
         <Text style={styles.description} numberOfLines={1}>
           {transaction.description ?? transaction.categoryName}
         </Text>
-        <Text style={styles.meta}>
-          {transaction.categoryName}
-          {showDate ? ` \u00B7 ${formatShortDate(transaction.date)}` : ''}
-        </Text>
+        <View style={styles.metaRow}>
+          {transaction.hasProofs && <Ionicons name="attach" size={12} color={colors.gray[400]} />}
+          <Text style={styles.meta}>
+            {transaction.categoryName}
+            {showDate ? ` \u00B7 ${formatShortDate(transaction.date)}` : ''}
+          </Text>
+        </View>
       </View>
 
       <Text style={[styles.amount, { color: amountColor }]}>
@@ -68,6 +78,31 @@ export function TransactionItem({
       </Text>
     </Wrapper>
   );
+
+  if (hasContextMenu) {
+    const handlers = [onPress, ...(transaction.hasProofs ? [onViewProofs] : []), onDelete];
+    const menuActions = [
+      { title: 'Edit', systemIcon: 'pencil' },
+      ...(transaction.hasProofs
+        ? [{ title: 'View Proofs', systemIcon: 'doc.text.magnifyingglass' }]
+        : []),
+      { title: 'Delete', systemIcon: 'trash', destructive: true },
+    ];
+
+    return (
+      <ContextMenu
+        actions={menuActions}
+        onPress={(e: { nativeEvent: { index: number } }) => {
+          handlers[e.nativeEvent.index]?.();
+        }}
+        previewBackgroundColor="transparent"
+      >
+        {content}
+      </ContextMenu>
+    );
+  }
+
+  return content;
 }
 
 const styles = StyleSheet.create({
@@ -108,6 +143,11 @@ const styles = StyleSheet.create({
     fontSize: design.fontSize.xs,
     color: colors.gray[400],
     fontWeight: '500',
+  },
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
   },
   amount: {
     fontSize: design.fontSize.md,

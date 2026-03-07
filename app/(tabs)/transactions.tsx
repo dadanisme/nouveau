@@ -10,34 +10,22 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Card } from '@/components/card';
 import { TAB_BAR_HEIGHT } from '@/components/tab-bar';
 import { TransactionGroupSkeleton } from '@/components/transaction-group-skeleton';
-import { TransactionItem, type TransactionItemData } from '@/components/transaction-item';
+import { TransactionItem } from '@/components/transaction-item';
 import { colors, design } from '@/constants/colors';
+import { useDeleteConfirmation } from '@/hooks/use-delete-confirmation';
 import {
   useTransactionsScreen,
   type FilterType,
   type TransactionGroup,
 } from '@/hooks/use-transactions-screen';
-import type { TransactionWithCategory } from '@/hooks/use-transactions';
 import { formatCompactAmount } from '@/utils/currency';
+import { toTransactionItemData } from '@/utils/transaction';
 
 const FILTERS: { key: FilterType; label: string }[] = [
   { key: 'all', label: 'All' },
   { key: 'income', label: 'Income' },
   { key: 'expense', label: 'Expense' },
 ];
-
-function toItemData(tx: TransactionWithCategory): TransactionItemData {
-  return {
-    id: tx.id,
-    description: tx.description,
-    categoryName: tx.category.name,
-    categoryColor: tx.category.color,
-    categoryIcon: tx.category.icon,
-    date: tx.date.split('T')[0],
-    amount: tx.amount,
-    type: tx.type as 'income' | 'expense',
-  };
-}
 
 export default function TransactionsScreen() {
   const insets = useSafeAreaInsets();
@@ -54,6 +42,7 @@ export default function TransactionsScreen() {
     isRefreshing,
     refetch,
   } = useTransactionsScreen();
+  const { requestDelete, deleteConfirmAlert } = useDeleteConfirmation();
 
   function handleTransactionPress(id: string) {
     router.push({ pathname: '/add-transaction', params: { id } });
@@ -61,6 +50,10 @@ export default function TransactionsScreen() {
 
   function handleDatePress(dateKey: string) {
     router.push({ pathname: '/add-transaction', params: { date: dateKey } });
+  }
+
+  function handleViewProofs(transactionId: string) {
+    router.push({ pathname: '/proof-viewer', params: { transactionId } });
   }
 
   return (
@@ -154,6 +147,8 @@ export default function TransactionsScreen() {
               group={group}
               onTransactionPress={handleTransactionPress}
               onDatePress={handleDatePress}
+              onViewProofs={handleViewProofs}
+              onDelete={requestDelete}
             />
           ))}
 
@@ -165,6 +160,8 @@ export default function TransactionsScreen() {
           </View>
         )}
       </ScrollView>
+
+      {deleteConfirmAlert}
     </AnimatedTabScreen>
   );
 }
@@ -173,10 +170,14 @@ function DateGroup({
   group,
   onTransactionPress,
   onDatePress,
+  onViewProofs,
+  onDelete,
 }: {
   group: TransactionGroup;
   onTransactionPress: (id: string) => void;
   onDatePress: (dateKey: string) => void;
+  onViewProofs: (id: string) => void;
+  onDelete: (id: string) => void;
 }) {
   return (
     <View style={styles.dateGroup}>
@@ -205,10 +206,12 @@ function DateGroup({
         {group.transactions.map((tx, index) => (
           <TransactionItem
             key={tx.id}
-            transaction={toItemData(tx)}
+            transaction={toTransactionItemData(tx)}
             isLast={index === group.transactions.length - 1}
             showDate={false}
             onPress={() => onTransactionPress(tx.id)}
+            onViewProofs={() => onViewProofs(tx.id)}
+            onDelete={() => onDelete(tx.id)}
           />
         ))}
       </Card>

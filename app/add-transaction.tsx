@@ -1,8 +1,10 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useState } from 'react';
 import { ActivityIndicator, Keyboard, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { ActionMenu } from '@/components/action-menu';
 import { Alert } from '@/components/alert';
 import { Button } from '@/components/button';
 import { CategoryPicker } from '@/components/category-picker';
@@ -15,6 +17,8 @@ import { parseIcon } from '@/utils/icon';
 export default function AddTransactionScreen() {
   const { id, date: dateParam } = useLocalSearchParams<{ id?: string; date?: string }>();
   const insets = useSafeAreaInsets();
+  const router = useRouter();
+  const [showActionMenu, setShowActionMenu] = useState(false);
   const {
     type,
     description,
@@ -58,7 +62,17 @@ export default function AddTransactionScreen() {
         <Text style={styles.headerTitle}>
           {isEditMode ? 'Edit Transaction' : 'Add Transaction'}
         </Text>
-        <View style={styles.headerSpacer} />
+        {isEditMode ? (
+          <Button
+            variant="outline"
+            onPress={() => setShowActionMenu(true)}
+            style={styles.menuButton}
+          >
+            <Ionicons name="ellipsis-horizontal" size={22} color={colors.gray[900]} />
+          </Button>
+        ) : (
+          <View style={styles.headerSpacer} />
+        )}
       </View>
 
       <View style={styles.content}>
@@ -250,6 +264,26 @@ export default function AddTransactionScreen() {
         ]}
         onDismiss={() => setShowDeleteConfirm(false)}
       />
+
+      <ActionMenu
+        visible={showActionMenu}
+        onDismiss={() => setShowActionMenu(false)}
+        actions={[
+          {
+            icon: 'document-text-outline',
+            label: 'View Proofs',
+            onPress: () => {
+              if (id) router.push({ pathname: '/proof-viewer', params: { transactionId: id } });
+            },
+          },
+          {
+            icon: 'trash-outline',
+            label: 'Delete',
+            destructive: true,
+            onPress: () => setShowDeleteConfirm(true),
+          },
+        ]}
+      />
     </View>
   );
 }
@@ -281,6 +315,13 @@ const styles = StyleSheet.create({
   },
   headerSpacer: {
     width: 40,
+  },
+  menuButton: {
+    width: 40,
+    height: 40,
+    paddingVertical: 0,
+    paddingHorizontal: 0,
+    borderRadius: design.radius.sm,
   },
   content: {
     flex: 1,
