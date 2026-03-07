@@ -1,10 +1,8 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Alert } from '@/components/alert';
 import { AnimatedTabScreen } from '@/components/animated-tab-screen';
 
 import { Avatar } from '@/components/avatar';
@@ -14,7 +12,7 @@ import { TAB_BAR_HEIGHT } from '@/components/tab-bar';
 import { TransactionItem } from '@/components/transaction-item';
 import { TransactionItemSkeleton } from '@/components/transaction-item-skeleton';
 import { colors, design } from '@/constants/colors';
-import { useDeleteTransaction } from '@/hooks/use-delete-transaction';
+import { useDeleteConfirmation } from '@/hooks/use-delete-confirmation';
 import { useHomeScreen } from '@/hooks/use-home-screen';
 import { formatCompactAmount, formatCurrency } from '@/utils/currency';
 
@@ -33,15 +31,7 @@ export default function HomeScreen() {
     isRefreshing,
     refetch,
   } = useHomeScreen();
-  const deleteMutation = useDeleteTransaction();
-  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
-
-  function handleDeleteConfirm() {
-    if (!deleteTarget) return;
-    deleteMutation.mutate(deleteTarget, {
-      onSettled: () => setDeleteTarget(null),
-    });
-  }
+  const { requestDelete, deleteConfirmAlert } = useDeleteConfirmation();
 
   return (
     <AnimatedTabScreen index={0}>
@@ -159,7 +149,7 @@ export default function HomeScreen() {
                 onViewProofs={() =>
                   router.push({ pathname: '/proof-viewer', params: { transactionId: tx.id } })
                 }
-                onDelete={() => setDeleteTarget(tx.id)}
+                onDelete={() => requestDelete(tx.id)}
               />
             ))
           ) : (
@@ -168,16 +158,7 @@ export default function HomeScreen() {
         </Card>
       </ScrollView>
 
-      <Alert
-        visible={!!deleteTarget}
-        title="Delete Transaction"
-        message="Are you sure you want to delete this transaction? This action cannot be undone."
-        actions={[
-          { label: 'Cancel', onPress: () => setDeleteTarget(null) },
-          { label: 'Delete', variant: 'dark', onPress: handleDeleteConfirm },
-        ]}
-        onDismiss={() => setDeleteTarget(null)}
-      />
+      {deleteConfirmAlert}
     </AnimatedTabScreen>
   );
 }

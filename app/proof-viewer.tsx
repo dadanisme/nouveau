@@ -77,7 +77,11 @@ export default function ProofViewerScreen() {
                 />
               ) : proof.mimeType === 'text/html' ? (
                 <View style={styles.webviewContainer}>
-                  <WebView source={{ uri: proof.url }} style={styles.webview} scalesPageToFit />
+                  <WebView
+                    source={{ uri: proof.url }}
+                    style={styles.webview}
+                    originWhitelist={['https://*']}
+                  />
                 </View>
               ) : (
                 <View style={styles.unsupported}>
@@ -153,7 +157,7 @@ const styles = StyleSheet.create({
     color: colors.gray[600],
   },
   image: {
-    aspectRatio: 1,
+    minHeight: 300,
     borderRadius: design.radius.sm,
   },
   webviewContainer: {

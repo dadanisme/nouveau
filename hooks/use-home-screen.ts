@@ -1,9 +1,9 @@
 import { useCallback, useState } from 'react';
 
-import type { TransactionItemData } from '@/components/transaction-item';
 import { useSession, useUserProfile } from '@/hooks/use-auth';
 import { useBalance, useMonthlyTotals, useRecentTransactions } from '@/hooks/use-transactions';
 import { getGreeting } from '@/utils/greeting';
+import { toTransactionItemData } from '@/utils/transaction';
 
 export function useHomeScreen() {
   const { session } = useSession();
@@ -65,17 +65,7 @@ export function useHomeScreen() {
     expenseChange,
   };
 
-  const transactions: TransactionItemData[] = (recentTx ?? []).map((tx) => ({
-    id: tx.id,
-    description: tx.description,
-    categoryName: tx.category.name,
-    categoryColor: tx.category.color,
-    categoryIcon: tx.category.icon,
-    date: tx.date,
-    amount: tx.amount,
-    type: tx.type as 'income' | 'expense',
-    hasProofs: (tx.receipt_proofs?.[0]?.count ?? 0) > 0,
-  }));
+  const transactions = (recentTx ?? []).map(toTransactionItemData);
 
   return {
     greeting,

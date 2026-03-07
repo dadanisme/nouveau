@@ -43,21 +43,7 @@ export function TransactionItem({
 
   const Wrapper = onPress ? Pressable : View;
   const wrapperProps = onPress ? { onPress } : {};
-
-  const menuActions = [
-    { title: 'Edit', systemIcon: 'pencil' },
-    ...(transaction.hasProofs
-      ? [{ title: 'View Proofs', systemIcon: 'doc.text.magnifyingglass' }]
-      : []),
-    { title: 'Delete', systemIcon: 'trash', destructive: true },
-  ];
-
-  const handleMenuPress = (e: { nativeEvent: { index: number; name: string } }) => {
-    const { name } = e.nativeEvent;
-    if (name === 'Edit') onPress?.();
-    else if (name === 'View Proofs') onViewProofs?.();
-    else if (name === 'Delete') onDelete?.();
-  };
+  const hasContextMenu = !!(onDelete || onViewProofs);
 
   const content = (
     <Wrapper {...wrapperProps} style={[styles.container, !isLast && styles.border]}>
@@ -93,11 +79,22 @@ export function TransactionItem({
     </Wrapper>
   );
 
-  if (onDelete || onViewProofs) {
+  if (hasContextMenu) {
+    const handlers = [onPress, ...(transaction.hasProofs ? [onViewProofs] : []), onDelete];
+    const menuActions = [
+      { title: 'Edit', systemIcon: 'pencil' },
+      ...(transaction.hasProofs
+        ? [{ title: 'View Proofs', systemIcon: 'doc.text.magnifyingglass' }]
+        : []),
+      { title: 'Delete', systemIcon: 'trash', destructive: true },
+    ];
+
     return (
       <ContextMenu
         actions={menuActions}
-        onPress={handleMenuPress}
+        onPress={(e: { nativeEvent: { index: number } }) => {
+          handlers[e.nativeEvent.index]?.();
+        }}
         previewBackgroundColor="transparent"
       >
         {content}

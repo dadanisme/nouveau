@@ -5,6 +5,7 @@ import type { Tables } from '@/types/supabase';
 
 export type TransactionWithCategory = Tables<'transactions'> & {
   category: Pick<Tables<'categories'>, 'id' | 'name' | 'type' | 'color' | 'icon'>;
+  /** Supabase aggregate count from `receipt_proofs(count)` join — always a single-element tuple */
   receipt_proofs: [{ count: number }];
 };
 

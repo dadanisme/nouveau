@@ -1,9 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { Alert } from '@/components/alert';
 import { AnimatedTabScreen } from '@/components/animated-tab-screen';
 
 import { Button } from '@/components/button';
@@ -12,36 +10,22 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Card } from '@/components/card';
 import { TAB_BAR_HEIGHT } from '@/components/tab-bar';
 import { TransactionGroupSkeleton } from '@/components/transaction-group-skeleton';
-import { TransactionItem, type TransactionItemData } from '@/components/transaction-item';
+import { TransactionItem } from '@/components/transaction-item';
 import { colors, design } from '@/constants/colors';
-import { useDeleteTransaction } from '@/hooks/use-delete-transaction';
+import { useDeleteConfirmation } from '@/hooks/use-delete-confirmation';
 import {
   useTransactionsScreen,
   type FilterType,
   type TransactionGroup,
 } from '@/hooks/use-transactions-screen';
-import type { TransactionWithCategory } from '@/hooks/use-transactions';
 import { formatCompactAmount } from '@/utils/currency';
+import { toTransactionItemData } from '@/utils/transaction';
 
 const FILTERS: { key: FilterType; label: string }[] = [
   { key: 'all', label: 'All' },
   { key: 'income', label: 'Income' },
   { key: 'expense', label: 'Expense' },
 ];
-
-function toItemData(tx: TransactionWithCategory): TransactionItemData {
-  return {
-    id: tx.id,
-    description: tx.description,
-    categoryName: tx.category.name,
-    categoryColor: tx.category.color,
-    categoryIcon: tx.category.icon,
-    date: tx.date.split('T')[0],
-    amount: tx.amount,
-    type: tx.type as 'income' | 'expense',
-    hasProofs: (tx.receipt_proofs?.[0]?.count ?? 0) > 0,
-  };
-}
 
 export default function TransactionsScreen() {
   const insets = useSafeAreaInsets();
@@ -58,8 +42,7 @@ export default function TransactionsScreen() {
     isRefreshing,
     refetch,
   } = useTransactionsScreen();
-  const deleteMutation = useDeleteTransaction();
-  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+  const { requestDelete, deleteConfirmAlert } = useDeleteConfirmation();
 
   function handleTransactionPress(id: string) {
     router.push({ pathname: '/add-transaction', params: { id } });
@@ -71,13 +54,6 @@ export default function TransactionsScreen() {
 
   function handleViewProofs(transactionId: string) {
     router.push({ pathname: '/proof-viewer', params: { transactionId } });
-  }
-
-  function handleDeleteConfirm() {
-    if (!deleteTarget) return;
-    deleteMutation.mutate(deleteTarget, {
-      onSettled: () => setDeleteTarget(null),
-    });
   }
 
   return (
@@ -172,7 +148,7 @@ export default function TransactionsScreen() {
               onTransactionPress={handleTransactionPress}
               onDatePress={handleDatePress}
               onViewProofs={handleViewProofs}
-              onDelete={setDeleteTarget}
+              onDelete={requestDelete}
             />
           ))}
 
@@ -185,16 +161,7 @@ export default function TransactionsScreen() {
         )}
       </ScrollView>
 
-      <Alert
-        visible={!!deleteTarget}
-        title="Delete Transaction"
-        message="Are you sure you want to delete this transaction? This action cannot be undone."
-        actions={[
-          { label: 'Cancel', onPress: () => setDeleteTarget(null) },
-          { label: 'Delete', variant: 'dark', onPress: handleDeleteConfirm },
-        ]}
-        onDismiss={() => setDeleteTarget(null)}
-      />
+      {deleteConfirmAlert}
     </AnimatedTabScreen>
   );
 }
@@ -239,7 +206,7 @@ function DateGroup({
         {group.transactions.map((tx, index) => (
           <TransactionItem
             key={tx.id}
-            transaction={toItemData(tx)}
+            transaction={toTransactionItemData(tx)}
             isLast={index === group.transactions.length - 1}
             showDate={false}
             onPress={() => onTransactionPress(tx.id)}
