@@ -1,4 +1,4 @@
-import { File } from 'expo-file-system';
+import { Directory, File, Paths } from 'expo-file-system';
 
 const UNITS = ['B', 'KB', 'MB', 'GB'] as const;
 
@@ -19,4 +19,27 @@ export function formatFileSize(bytes: number | null | undefined): string {
 export async function readFileAsBase64(uri: string): Promise<string> {
   const file = new File(uri);
   return file.base64();
+}
+
+export async function downloadToTempFile(remoteUrl: string, filename: string): Promise<File> {
+  const destination = new Directory(Paths.cache, 'proof-downloads');
+  if (!destination.exists) {
+    destination.create();
+  }
+  const destinationFile = new File(destination, filename);
+  if (destinationFile.exists) {
+    destinationFile.delete();
+  }
+  return File.downloadFileAsync(remoteUrl, destinationFile);
+}
+
+export function cleanupTempDownloads(): void {
+  const dir = new Directory(Paths.cache, 'proof-downloads');
+  if (dir.exists) {
+    dir.delete();
+  }
+}
+
+export function isSaveableImage(mimeType: string): boolean {
+  return mimeType.startsWith('image/');
 }
