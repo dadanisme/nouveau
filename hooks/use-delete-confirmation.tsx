@@ -2,6 +2,8 @@ import { useState } from 'react';
 
 import { Alert } from '@/components/alert';
 import { useDeleteTransaction } from '@/hooks/use-delete-transaction';
+import i18n from '@/lib/i18n';
+import { k } from '@/locales/keys';
 
 export function useDeleteConfirmation() {
   const deleteMutation = useDeleteTransaction();
@@ -19,11 +21,11 @@ export function useDeleteConfirmation() {
     deleteConfirmAlert: (
       <Alert
         visible={!!deleteTarget}
-        title="Delete Transaction"
-        message="Are you sure you want to delete this transaction? This action cannot be undone."
+        title={i18n.t(k.addTransaction.deleteTransaction)}
+        message={i18n.t(k.addTransaction.deleteTransactionMessage)}
         actions={[
-          { label: 'Cancel', onPress: () => setDeleteTarget(null) },
-          { label: 'Delete', variant: 'dark' as const, onPress: confirm },
+          { label: i18n.t(k.common.cancel), onPress: () => setDeleteTarget(null) },
+          { label: i18n.t(k.common.delete), variant: 'dark' as const, onPress: confirm },
         ]}
         onDismiss={() => setDeleteTarget(null)}
       />

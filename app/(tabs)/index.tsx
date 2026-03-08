@@ -12,8 +12,10 @@ import { TAB_BAR_HEIGHT } from '@/components/tab-bar';
 import { TransactionItem } from '@/components/transaction-item';
 import { TransactionItemSkeleton } from '@/components/transaction-item-skeleton';
 import { colors, design } from '@/constants/colors';
+import { useLanguage } from '@/contexts/language';
 import { useDeleteConfirmation } from '@/hooks/use-delete-confirmation';
 import { useHomeScreen } from '@/hooks/use-home-screen';
+import { k } from '@/locales/keys';
 import { formatCompactAmount, formatCurrency } from '@/utils/currency';
 
 export default function HomeScreen() {
@@ -32,6 +34,7 @@ export default function HomeScreen() {
     refetch,
   } = useHomeScreen();
   const { requestDelete, deleteConfirmAlert } = useDeleteConfirmation();
+  const { t } = useLanguage();
 
   return (
     <AnimatedTabScreen index={0}>
@@ -72,13 +75,13 @@ export default function HomeScreen() {
 
         {/* Balance Card */}
         <Card style={styles.balanceCard}>
-          <Text style={styles.balanceLabel}>Your Balance</Text>
+          <Text style={styles.balanceLabel}>{t(k.home.yourBalance)}</Text>
           <Text style={styles.balanceAmount}>{formatCurrency(balance)}</Text>
           <View style={styles.overviewRow}>
             <View style={styles.overviewItem}>
               <View style={styles.overviewLabelRow}>
                 <Ionicons name="arrow-down" size={14} color={colors.income} />
-                <Text style={styles.overviewLabel}>Income</Text>
+                <Text style={styles.overviewLabel}>{t(k.home.income)}</Text>
               </View>
               <Text style={styles.overviewAmount}>
                 {formatCompactAmount(overview.income)}{' '}
@@ -103,7 +106,7 @@ export default function HomeScreen() {
             <View style={styles.overviewItem}>
               <View style={styles.overviewLabelRow}>
                 <Ionicons name="arrow-up" size={14} color={colors.expense} />
-                <Text style={styles.overviewLabel}>Expenses</Text>
+                <Text style={styles.overviewLabel}>{t(k.home.expenses)}</Text>
               </View>
               <Text style={styles.overviewAmount}>
                 {formatCompactAmount(overview.expense)}{' '}
@@ -129,9 +132,9 @@ export default function HomeScreen() {
 
         {/* Recent Transactions */}
         <View style={styles.transactionsHeader}>
-          <Text style={styles.sectionTitle}>Recent Transactions</Text>
+          <Text style={styles.sectionTitle}>{t(k.home.recentTransactions)}</Text>
           <Pressable onPress={() => router.push('/(tabs)/transactions')}>
-            <Text style={styles.seeAll}>See All</Text>
+            <Text style={styles.seeAll}>{t(k.home.seeAll)}</Text>
           </Pressable>
         </View>
         <Card style={styles.transactionsCard}>
@@ -153,7 +156,7 @@ export default function HomeScreen() {
               />
             ))
           ) : (
-            <Text style={styles.emptyText}>No transactions yet</Text>
+            <Text style={styles.emptyText}>{t(k.home.noTransactions)}</Text>
           )}
         </Card>
       </ScrollView>

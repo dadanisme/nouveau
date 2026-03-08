@@ -13,7 +13,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/button';
 import { colors, design } from '@/constants/colors';
+import { useLanguage } from '@/contexts/language';
 import { useSession } from '@/hooks/use-auth';
+import i18n from '@/lib/i18n';
+import { k } from '@/locales/keys';
 import { useSubscriptions } from '@/hooks/use-subscriptions';
 import type { Tables } from '@/types/supabase';
 
@@ -24,7 +27,8 @@ type SubscriptionWithFeature = Tables<'feature_subscriptions'> & {
 function formatDate(dateString: string | null): string {
   if (!dateString) return '—';
   const date = new Date(dateString);
-  return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+  const locale = i18n.locale === 'id' ? 'id-ID' : 'en-US';
+  return date.toLocaleDateString(locale, { year: 'numeric', month: 'short', day: 'numeric' });
 }
 
 function SubscriptionRow({
@@ -35,14 +39,14 @@ function SubscriptionRow({
   isLast: boolean;
 }) {
   const isRevoked = subscription.status === 'revoked';
-  const dateLabel = isRevoked ? 'Revoked' : 'Granted';
+  const dateLabel = isRevoked ? i18n.t(k.subscriptions.revoked) : i18n.t(k.subscriptions.granted);
   const dateValue = isRevoked ? subscription.revoked_at : subscription.granted_at;
 
   return (
     <View style={[styles.row, !isLast && styles.rowBorder]}>
       <View style={styles.rowContent}>
         <Text style={styles.rowName} numberOfLines={1}>
-          {subscription.feature?.name ?? 'Unknown Feature'}
+          {subscription.feature?.name ?? i18n.t(k.subscriptions.unknownFeature)}
         </Text>
         <Text style={styles.rowDate}>
           {dateLabel} {formatDate(dateValue)}
@@ -61,6 +65,7 @@ export default function SubscriptionsScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { session } = useSession();
+  const { t } = useLanguage();
   const {
     data: subscriptions,
     isLoading,
@@ -84,7 +89,7 @@ export default function SubscriptionsScreen() {
         <Button variant="outline" onPress={() => router.back()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={22} color={colors.gray[900]} />
         </Button>
-        <Text style={styles.headerTitle}>Subscriptions</Text>
+        <Text style={styles.headerTitle}>{t(k.subscriptions.title)}</Text>
         <View style={styles.headerSpacer} />
       </View>
 
@@ -122,10 +127,8 @@ export default function SubscriptionsScreen() {
           ) : (
             <View style={styles.emptyContainer}>
               <Ionicons name="star-outline" size={48} color={colors.gray[300]} />
-              <Text style={styles.emptyText}>No subscriptions</Text>
-              <Text style={styles.emptySubtext}>
-                You don&apos;t have any feature subscriptions yet
-              </Text>
+              <Text style={styles.emptyText}>{t(k.subscriptions.noSubscriptions)}</Text>
+              <Text style={styles.emptySubtext}>{t(k.subscriptions.noSubscriptionsMessage)}</Text>
             </View>
           )}
         </ScrollView>

@@ -12,7 +12,9 @@ import { TAB_BAR_HEIGHT } from '@/components/tab-bar';
 import { TransactionGroupSkeleton } from '@/components/transaction-group-skeleton';
 import { TransactionItem } from '@/components/transaction-item';
 import { colors, design } from '@/constants/colors';
+import { useLanguage } from '@/contexts/language';
 import { useDeleteConfirmation } from '@/hooks/use-delete-confirmation';
+import { k } from '@/locales/keys';
 import {
   useTransactionsScreen,
   type FilterType,
@@ -20,12 +22,6 @@ import {
 } from '@/hooks/use-transactions-screen';
 import { formatCompactAmount } from '@/utils/currency';
 import { toTransactionItemData } from '@/utils/transaction';
-
-const FILTERS: { key: FilterType; label: string }[] = [
-  { key: 'all', label: 'All' },
-  { key: 'income', label: 'Income' },
-  { key: 'expense', label: 'Expense' },
-];
 
 export default function TransactionsScreen() {
   const insets = useSafeAreaInsets();
@@ -43,6 +39,13 @@ export default function TransactionsScreen() {
     refetch,
   } = useTransactionsScreen();
   const { requestDelete, deleteConfirmAlert } = useDeleteConfirmation();
+  const { t } = useLanguage();
+
+  const FILTERS: { key: FilterType; label: string }[] = [
+    { key: 'all', label: t(k.transactions.all) },
+    { key: 'income', label: t(k.transactions.income) },
+    { key: 'expense', label: t(k.transactions.expense) },
+  ];
 
   function handleTransactionPress(id: string) {
     router.push({ pathname: '/add-transaction', params: { id } });
@@ -111,7 +114,7 @@ export default function TransactionsScreen() {
             <View style={styles.summaryItem}>
               <View style={styles.summaryLabelRow}>
                 <Ionicons name="arrow-down" size={14} color={colors.income} />
-                <Text style={styles.summaryLabel}>Income</Text>
+                <Text style={styles.summaryLabel}>{t(k.transactions.income)}</Text>
               </View>
               <Text style={[styles.summaryAmount, { color: colors.income }]}>
                 {formatCompactAmount(totals.income)}
@@ -121,7 +124,7 @@ export default function TransactionsScreen() {
             <View style={styles.summaryItem}>
               <View style={styles.summaryLabelRow}>
                 <Ionicons name="arrow-up" size={14} color={colors.expense} />
-                <Text style={styles.summaryLabel}>Expense</Text>
+                <Text style={styles.summaryLabel}>{t(k.transactions.expense)}</Text>
               </View>
               <Text style={[styles.summaryAmount, { color: colors.expense }]}>
                 {formatCompactAmount(totals.expense)}
@@ -156,7 +159,7 @@ export default function TransactionsScreen() {
         {!isLoading && groupedTransactions.length === 0 && (
           <View style={styles.centered}>
             <Ionicons name="receipt-outline" size={48} color={colors.gray[300]} />
-            <Text style={styles.emptyText}>No transactions</Text>
+            <Text style={styles.emptyText}>{t(k.transactions.noTransactions)}</Text>
           </View>
         )}
       </ScrollView>

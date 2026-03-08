@@ -70,12 +70,12 @@ Uses **TanStack React Query** for all Supabase data operations. Hooks live in `h
 
 ### Utilities
 
-Pure functions live in `utils/`. No React or side-effect dependencies.
+Pure functions live in `utils/`. Note: `greeting.ts`, `currency.ts`, and `date.ts` depend on `i18n` for locale-aware formatting.
 
-- `utils/date.ts` — `isSameDay`, `getDaysInMonth`, `getFirstDayOfWeek`, `formatShortDate`
+- `utils/date.ts` — `isSameDay`, `getDaysInMonth`, `getFirstDayOfWeek`, `formatShortDate` (locale-aware)
 - `utils/string.ts` — `getInitials`
-- `utils/greeting.ts` — `getGreeting`
-- `utils/currency.ts` — `processAmountKeyPress`, `formatDisplayAmount`
+- `utils/greeting.ts` — `getGreeting` (returns localized greeting via `i18n`)
+- `utils/currency.ts` — `processAmountKeyPress`, `formatDisplayAmount`, `formatCompactAmount`, `formatCurrency` (use `i18n` for prefix/suffixes)
 
 Conventions:
 
@@ -85,6 +85,38 @@ Conventions:
 - Use TanStack `useQuery` for declarative data fetching — no `useEffect` + fetch patterns
 - Use TanStack `useMutation` for data mutations (inserts, updates, deletes, auth actions)
 - `QueryClientProvider` wraps the app in `app/_layout.tsx`
+
+### Localization
+
+i18n setup using `expo-localization` + `i18n-js`:
+
+- **`lib/i18n.ts`** — Singleton `I18n` instance. Import directly from utils/hooks (no React dependency).
+- **`contexts/language.tsx`** — `LanguageProvider` wraps the app (outermost provider in `_layout.tsx`). Provides `useLanguage()` hook.
+- **`locales/en.ts`** / **`locales/id.ts`** — Translation files (English + Bahasa Indonesia). Nested by feature.
+- **`locales/keys.ts`** — Auto-generated type-safe key constants (`k`). Derived at runtime from the English locale structure via `buildKeys()`. Never hardcode keys manually.
+
+**`useLanguage()` hook API**: `{ locale, setLocale, t }`
+
+**Convention**:
+
+- **Always use `k` constants** instead of raw string keys: `t(k.common.cancel)` not `t('common.cancel')`. Import `k` from `@/locales/keys`.
+- **Components** use `t(k.*)` from `useLanguage()` hook (triggers re-render on locale change)
+- **Utils/hooks** import `i18n` directly from `lib/i18n.ts` and use `i18n.t(k.*)` (no React context needed)
+
+**Adding new strings**: Add key to both `locales/en.ts` and `locales/id.ts` — the `k` constant is auto-generated from the English locale, so no manual key registration needed. Use `t(k.section.key)` in components or `i18n.t(k.section.key)` in utils/hooks. Use `%{name}` for interpolation.
+
+Language preference is persisted to `localStorage` under key `app_language`.
+
+**Provider hierarchy** in `app/_layout.tsx`:
+
+```
+GestureHandlerRootView
+  → LanguageProvider
+    → QueryClientProvider
+      → ShareIntentProvider
+        → BottomSheetModalProvider
+          → AuthListener → AuthGuard → Stack
+```
 
 ### Design System
 

@@ -17,6 +17,8 @@ import { Alert } from '@/components/alert';
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
 import { colors, design } from '@/constants/colors';
+import { useLanguage } from '@/contexts/language';
+import { k } from '@/locales/keys';
 import { useProofDownload } from '@/hooks/use-proof-download';
 import { useProofs } from '@/hooks/use-proofs';
 import { isSaveableImage } from '@/utils/file';
@@ -28,6 +30,7 @@ export default function ProofViewerScreen() {
   const { width } = useWindowDimensions();
   const { data: proofs, isLoading, error } = useProofs(transactionId);
   const { isSaving, isSharing, saveAllToPhotos, share, alert, dismissAlert } = useProofDownload();
+  const { t } = useLanguage();
 
   const hasImages = proofs?.some((p) => isSaveableImage(p.mimeType)) ?? false;
 
@@ -42,7 +45,10 @@ export default function ProofViewerScreen() {
         <Button variant="outline" onPress={() => router.back()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={22} color={colors.gray[900]} />
         </Button>
-        <Text style={styles.headerTitle}>Receipt Proofs{proofs ? ` (${proofs.length})` : ''}</Text>
+        <Text style={styles.headerTitle}>
+          {t(k.proofs.title)}
+          {proofs ? ` (${proofs.length})` : ''}
+        </Text>
         <View style={styles.headerSpacer} />
       </View>
 
@@ -55,14 +61,14 @@ export default function ProofViewerScreen() {
       {error && (
         <View style={styles.centered}>
           <Ionicons name="alert-circle-outline" size={48} color={colors.expense} />
-          <Text style={styles.errorText}>Failed to load proofs</Text>
+          <Text style={styles.errorText}>{t(k.proofs.failedToLoad)}</Text>
         </View>
       )}
 
       {proofs && proofs.length === 0 && (
         <View style={styles.centered}>
           <Ionicons name="document-outline" size={48} color={colors.gray[300]} />
-          <Text style={styles.emptyText}>No proofs attached</Text>
+          <Text style={styles.emptyText}>{t(k.proofs.noProofs)}</Text>
         </View>
       )}
 
@@ -123,7 +129,7 @@ export default function ProofViewerScreen() {
                 <View style={styles.unsupported}>
                   <Ionicons name="document-outline" size={32} color={colors.gray[400]} />
                   <Text style={styles.unsupportedText}>
-                    Unsupported file type: {proof.mimeType}
+                    {t(k.proofs.unsupportedType, { type: proof.mimeType })}
                   </Text>
                 </View>
               )}
@@ -146,7 +152,7 @@ export default function ProofViewerScreen() {
                 <Ionicons name="download-outline" size={20} color={colors.gray[900]} />
               )}
               <Text style={styles.footerButtonText}>
-                {isSaving ? 'Saving...' : 'Save to Photos'}
+                {isSaving ? t(k.proofs.saving) : t(k.proofs.saveToPhotos)}
               </Text>
             </Button>
           )}

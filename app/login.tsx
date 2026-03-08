@@ -16,12 +16,15 @@ import {
 import { Alert } from '@/components/alert';
 import { Button } from '@/components/button';
 import { colors, design } from '@/constants/colors';
+import { useLanguage } from '@/contexts/language';
 import { useSignInWithEmail, useSignInWithGoogle } from '@/hooks/use-auth';
+import { k } from '@/locales/keys';
 
 export default function LoginScreen() {
   const signInWithEmail = useSignInWithEmail();
   const signInWithGoogle = useSignInWithGoogle();
   const router = useRouter();
+  const { t } = useLanguage();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -32,7 +35,7 @@ export default function LoginScreen() {
 
   const handleEmailSignIn = () => {
     if (!email.trim() || !password.trim()) {
-      setAlert({ title: 'Missing Fields', message: 'Please enter both email and password.' });
+      setAlert({ title: t(k.login.missingFields), message: t(k.login.missingFieldsMessage) });
       return;
     }
 
@@ -41,8 +44,8 @@ export default function LoginScreen() {
       {
         onError: (error) => {
           setAlert({
-            title: 'Sign-In Failed',
-            message: error instanceof Error ? error.message : 'An unexpected error occurred',
+            title: t(k.login.signInFailed),
+            message: error instanceof Error ? error.message : t(k.common.unexpectedError),
           });
         },
       },
@@ -53,8 +56,8 @@ export default function LoginScreen() {
     signInWithGoogle.mutate(undefined, {
       onError: (error) => {
         setAlert({
-          title: 'Sign-In Failed',
-          message: error instanceof Error ? error.message : 'An unexpected error occurred',
+          title: t(k.login.signInFailed),
+          message: error instanceof Error ? error.message : t(k.common.unexpectedError),
         });
       },
     });
@@ -71,16 +74,14 @@ export default function LoginScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.content}>
-          <Text style={styles.heading}>Your financial journey starts here</Text>
-          <Text style={styles.subtitle}>
-            Manage your money, transactions, and finances seamlessly.
-          </Text>
+          <Text style={styles.heading}>{t(k.login.heading)}</Text>
+          <Text style={styles.subtitle}>{t(k.login.subtitle)}</Text>
 
           <View style={styles.form}>
             <View style={styles.inputWrapper}>
               <TextInput
                 style={styles.input}
-                placeholder="Email"
+                placeholder={t(k.login.email)}
                 placeholderTextColor={colors.gray[400]}
                 value={email}
                 onChangeText={setEmail}
@@ -94,7 +95,7 @@ export default function LoginScreen() {
             <View style={styles.inputWrapper}>
               <TextInput
                 style={[styles.input, styles.passwordInput]}
-                placeholder="Password"
+                placeholder={t(k.login.password)}
                 placeholderTextColor={colors.gray[400]}
                 value={password}
                 onChangeText={setPassword}
@@ -118,21 +119,21 @@ export default function LoginScreen() {
 
             <Button onPress={handleEmailSignIn} disabled={isSubmitting}>
               <Text style={styles.primaryButtonText}>
-                {isSubmitting ? 'Please wait...' : 'Sign In'}
+                {isSubmitting ? t(k.common.pleaseWait) : t(k.login.signIn)}
               </Text>
             </Button>
 
             <Pressable onPress={() => router.push('/signup')} disabled={isSubmitting}>
               <Text style={styles.toggleText}>
-                {"Don't have an account? "}
-                <Text style={styles.toggleTextBold}>Sign Up</Text>
+                {t(k.login.noAccount)}
+                <Text style={styles.toggleTextBold}>{t(k.login.signUp)}</Text>
               </Text>
             </Pressable>
           </View>
 
           <View style={styles.divider}>
             <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>or continue with</Text>
+            <Text style={styles.dividerText}>{t(k.login.orContinueWith)}</Text>
             <View style={styles.dividerLine} />
           </View>
 
@@ -144,12 +145,12 @@ export default function LoginScreen() {
                 }}
                 style={styles.googleIcon}
               />
-              <Text style={styles.oauthButtonText}>Sign in with Google</Text>
+              <Text style={styles.oauthButtonText}>{t(k.login.signInWithGoogle)}</Text>
             </Button>
 
             <Button variant="dark" disabled>
               <Ionicons name="logo-apple" size={20} color={colors.white} />
-              <Text style={styles.appleButtonText}>Sign in with Apple</Text>
+              <Text style={styles.appleButtonText}>{t(k.login.signInWithApple)}</Text>
             </Button>
           </View>
         </View>

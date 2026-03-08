@@ -1,3 +1,5 @@
+import i18n from '@/lib/i18n';
+
 export function isSameDay(a: Date, b: Date): boolean {
   return (
     a.getFullYear() === b.getFullYear() &&
@@ -24,5 +26,6 @@ export function toLocalDateString(date: Date): string {
 
 export function formatShortDate(dateStr: string): string {
   const date = new Date(dateStr);
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  const locale = i18n.locale === 'id' ? 'id-ID' : 'en-US';
+  return date.toLocaleDateString(locale, { month: 'short', day: 'numeric' });
 }

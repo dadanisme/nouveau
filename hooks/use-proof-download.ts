@@ -3,6 +3,8 @@ import * as MediaLibrary from 'expo-media-library';
 import * as Sharing from 'expo-sharing';
 
 import { type Proof } from '@/hooks/use-proofs';
+import i18n from '@/lib/i18n';
+import { k } from '@/locales/keys';
 import { cleanupTempDownloads, downloadToTempFile, isSaveableImage } from '@/utils/file';
 
 interface AlertState {
@@ -32,8 +34,8 @@ export function useProofDownload() {
       if (status !== 'granted') {
         setAlert({
           visible: true,
-          title: 'Permission Denied',
-          message: 'Please allow photo library access in Settings to save images.',
+          title: i18n.t(k.proofs.permissionDenied),
+          message: i18n.t(k.proofs.permissionMessage),
         });
         return;
       }
@@ -45,17 +47,17 @@ export function useProofDownload() {
 
       setAlert({
         visible: true,
-        title: 'Saved',
+        title: i18n.t(k.proofs.saved),
         message:
           imageProofs.length === 1
-            ? 'Image saved to your photo library.'
-            : `${imageProofs.length} images saved to your photo library.`,
+            ? i18n.t(k.proofs.savedOne)
+            : i18n.t(k.proofs.savedMany, { count: imageProofs.length }),
       });
     } catch {
       setAlert({
         visible: true,
-        title: 'Save Failed',
-        message: 'Could not save images. Please try again.',
+        title: i18n.t(k.proofs.saveFailed),
+        message: i18n.t(k.proofs.saveFailedMessage),
       });
     } finally {
       cleanupTempDownloads();
@@ -74,8 +76,8 @@ export function useProofDownload() {
     } catch {
       setAlert({
         visible: true,
-        title: 'Share Failed',
-        message: 'Could not share the file. Please try again.',
+        title: i18n.t(k.proofs.shareFailed),
+        message: i18n.t(k.proofs.shareFailedMessage),
       });
     } finally {
       cleanupTempDownloads();

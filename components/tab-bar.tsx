@@ -14,6 +14,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/button';
 import { colors, design } from '@/constants/colors';
+import i18n from '@/lib/i18n';
+import { k } from '@/locales/keys';
 
 type IconName = React.ComponentProps<typeof Ionicons>['name'];
 
@@ -23,11 +25,17 @@ interface TabConfig {
   label: string;
 }
 
-const TAB_CONFIG: Record<string, TabConfig> = {
-  index: { icon: 'home-outline', activeIcon: 'home', label: 'Home' },
-  transactions: { icon: 'wallet-outline', activeIcon: 'wallet', label: 'Transactions' },
-  dashboard: { icon: 'grid-outline', activeIcon: 'grid', label: 'Dashboard' },
-};
+function getTabConfig(): Record<string, TabConfig> {
+  return {
+    index: { icon: 'home-outline', activeIcon: 'home', label: i18n.t(k.tabBar.home) },
+    transactions: {
+      icon: 'wallet-outline',
+      activeIcon: 'wallet',
+      label: i18n.t(k.tabBar.transactions),
+    },
+    dashboard: { icon: 'grid-outline', activeIcon: 'grid', label: i18n.t(k.tabBar.dashboard) },
+  };
+}
 const TAB_SIZE = 48;
 const ACTIVE_TAB_WIDTH = 148;
 
@@ -107,6 +115,7 @@ function AnimatedTab({ route, isFocused, config, onPress, onLongPress }: Animate
 export function TabBar({ state, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const tabConfig = getTabConfig();
 
   const createHandlers = (route: (typeof state.routes)[number], index: number) => ({
     onPress: () => {
@@ -133,7 +142,7 @@ export function TabBar({ state, navigation }: BottomTabBarProps) {
         {/* Navigation tabs group */}
         <View style={styles.navBar}>
           {state.routes.map((route, index) => {
-            const config = TAB_CONFIG[route.name];
+            const config = tabConfig[route.name];
             if (!config) return null;
             const handlers = createHandlers(route, index);
             return (

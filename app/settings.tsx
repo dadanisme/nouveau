@@ -1,4 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { BottomSheetView } from '@gorhom/bottom-sheet';
+import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
@@ -6,19 +8,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Alert } from '@/components/alert';
 import { Avatar } from '@/components/avatar';
+import { BottomSheet } from '@/components/bottom-sheet';
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
 import { colors, design } from '@/constants/colors';
+import { useLanguage } from '@/contexts/language';
 import { useSession, useSignOut, useUserProfile } from '@/hooks/use-auth';
-
-const MENU_ITEMS = [
-  { icon: 'grid-outline', label: 'Categories', route: '/categories' },
-  { icon: 'star-outline', label: 'Subscriptions', route: '/subscriptions' },
-  { icon: 'notifications-outline', label: 'Notifications' },
-  { icon: 'cash-outline', label: 'Currency' },
-  { icon: 'download-outline', label: 'Export Data' },
-  { icon: 'information-circle-outline', label: 'About' },
-] as const;
+import { k } from '@/locales/keys';
 
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
@@ -26,22 +22,42 @@ export default function SettingsScreen() {
   const { session } = useSession();
   const { data: user, error: userError } = useUserProfile(session?.user.id);
   const signOut = useSignOut();
+  const { t, locale, setLocale } = useLanguage();
 
   const displayName = user?.display_name ?? session?.user.user_metadata?.full_name ?? '';
   const email = user?.email ?? session?.user.email ?? '';
   const profileImage = user?.profile_image ?? session?.user.user_metadata?.avatar_url;
 
   const [alert, setAlert] = useState<{ title: string; message: string } | null>(null);
+  const [showLanguagePicker, setShowLanguagePicker] = useState(false);
+
+  const MENU_ITEMS = [
+    { icon: 'grid-outline', label: t(k.settings.categories), route: '/categories' },
+    { icon: 'star-outline', label: t(k.settings.subscriptions), route: '/subscriptions' },
+    { icon: 'language-outline', label: t(k.settings.language), action: 'language' },
+    { icon: 'notifications-outline', label: t(k.settings.notifications) },
+    { icon: 'cash-outline', label: t(k.settings.currency) },
+    { icon: 'download-outline', label: t(k.settings.exportData) },
+    { icon: 'information-circle-outline', label: t(k.settings.about) },
+  ] as const;
 
   const handleSignOut = () => {
     signOut.mutate(undefined, {
       onError: (error) => {
         setAlert({
-          title: 'Sign Out Failed',
-          message: error instanceof Error ? error.message : 'An unexpected error occurred',
+          title: t(k.settings.signOutFailed),
+          message: error instanceof Error ? error.message : t(k.common.unexpectedError),
         });
       },
     });
+  };
+
+  const handleMenuPress = (item: (typeof MENU_ITEMS)[number]) => {
+    if ('route' in item && item.route) {
+      router.push(item.route);
+    } else if ('action' in item && item.action === 'language') {
+      setShowLanguagePicker(true);
+    }
   };
 
   return (
@@ -50,7 +66,7 @@ export default function SettingsScreen() {
         <Button variant="outline" onPress={() => router.back()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={22} color={colors.gray[900]} />
         </Button>
-        <Text style={styles.headerTitle}>Settings</Text>
+        <Text style={styles.headerTitle}>{t(k.settings.title)}</Text>
         <View style={styles.headerSpacer} />
       </View>
 
@@ -58,17 +74,15 @@ export default function SettingsScreen() {
         {userError && (
           <Card style={styles.errorCard}>
             <Ionicons name="warning-outline" size={20} color={colors.expense} />
-            <Text style={styles.errorText}>
-              Failed to load profile data. Some information may be incomplete.
-            </Text>
+            <Text style={styles.errorText}>{t(k.settings.profileError)}</Text>
           </Card>
         )}
 
         <Card style={styles.profileCard}>
           <Avatar uri={profileImage} name={displayName} size={64} />
           <View style={styles.profileInfo}>
-            <Text style={styles.profileName}>{displayName || 'Unknown'}</Text>
-            <Text style={styles.profileEmail}>{email || 'No email'}</Text>
+            <Text style={styles.profileName}>{displayName || t(k.settings.unknown)}</Text>
+            <Text style={styles.profileEmail}>{email || t(k.settings.noEmail)}</Text>
           </View>
         </Card>
 
@@ -77,7 +91,7 @@ export default function SettingsScreen() {
             <Pressable
               key={item.label}
               style={[styles.menuRow, index < MENU_ITEMS.length - 1 && styles.menuRowBorder]}
-              onPress={'route' in item ? () => router.push(item.route) : undefined}
+              onPress={() => handleMenuPress(item)}
             >
               <Ionicons
                 name={item.icon as keyof typeof Ionicons.glyphMap}
@@ -93,10 +107,59 @@ export default function SettingsScreen() {
         <Button style={styles.signOutButton} onPress={handleSignOut} disabled={signOut.isPending}>
           <Ionicons name="log-out-outline" size={22} color={colors.white} />
           <Text style={styles.signOutText}>
-            {signOut.isPending ? 'Please wait...' : 'Sign Out'}
+            {signOut.isPending ? t(k.common.pleaseWait) : t(k.settings.signOut)}
           </Text>
         </Button>
       </View>
+
+      <BottomSheet
+        visible={showLanguagePicker}
+        onDismiss={() => setShowLanguagePicker(false)}
+        snapPoints={['30%']}
+      >
+        <BottomSheetView style={styles.languageContent}>
+          <Text style={styles.languageTitle}>{t(k.settings.selectLanguage)}</Text>
+          <Button
+            variant="outline"
+            style={[styles.languageOption, locale === 'en' && styles.languageOptionActive]}
+            onPress={() => {
+              setLocale('en');
+              setShowLanguagePicker(false);
+            }}
+          >
+            <View style={styles.languageOptionLeft}>
+              <View style={styles.flagContainer}>
+                <Image
+                  source={{ uri: 'https://flagcdn.com/w80/gb.png' }}
+                  style={styles.flagImage}
+                />
+              </View>
+              <Text style={styles.languageLabel}>{t(k.settings.english)}</Text>
+            </View>
+            {locale === 'en' && <Ionicons name="checkmark" size={22} color={colors.gray[900]} />}
+          </Button>
+          <Button
+            variant="outline"
+            style={[styles.languageOption, locale === 'id' && styles.languageOptionActive]}
+            onPress={() => {
+              setLocale('id');
+              setShowLanguagePicker(false);
+            }}
+          >
+            <View style={styles.languageOptionLeft}>
+              <View style={styles.flagContainer}>
+                <Image
+                  source={{ uri: 'https://flagcdn.com/w80/id.png' }}
+                  style={styles.flagImage}
+                />
+              </View>
+              <Text style={styles.languageLabel}>{t(k.settings.indonesian)}</Text>
+            </View>
+            {locale === 'id' && <Ionicons name="checkmark" size={22} color={colors.gray[900]} />}
+          </Button>
+        </BottomSheetView>
+      </BottomSheet>
+
       <Alert
         visible={!!alert}
         title={alert?.title ?? ''}
@@ -200,5 +263,46 @@ const styles = StyleSheet.create({
     fontSize: design.fontSize.md,
     fontWeight: '700',
     color: colors.white,
+  },
+  languageContent: {
+    paddingHorizontal: design.spacing.lg,
+    paddingBottom: design.spacing.lg,
+    gap: design.spacing.sm,
+  },
+  languageTitle: {
+    fontSize: design.fontSize.lg,
+    fontWeight: '800',
+    color: colors.black,
+    textAlign: 'center',
+    marginBottom: design.spacing.sm,
+  },
+  languageOption: {
+    justifyContent: 'space-between',
+  },
+  languageOptionActive: {
+    backgroundColor: colors.primary.DEFAULT,
+  },
+  languageOptionLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: design.spacing.sm,
+  },
+  flagContainer: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    borderWidth: design.borderWidth,
+    borderColor: colors.black,
+    ...design.shadow,
+  },
+  flagImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 14,
+  },
+  languageLabel: {
+    fontSize: design.fontSize.md,
+    fontWeight: '700',
+    color: colors.gray[900],
   },
 });

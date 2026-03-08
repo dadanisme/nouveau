@@ -5,6 +5,8 @@ import { Keyboard } from 'react-native';
 
 import { useAddTransaction } from '@/hooks/use-add-transaction';
 import { useSession } from '@/hooks/use-auth';
+import i18n from '@/lib/i18n';
+import { k } from '@/locales/keys';
 import { useCategories } from '@/hooks/use-categories';
 import { useDeleteTransaction } from '@/hooks/use-delete-transaction';
 import { useTransaction } from '@/hooks/use-transaction';
@@ -81,11 +83,17 @@ export function useTransactionForm(transactionId?: string, initialDate?: string)
   async function handleSubmit(mode: 'save' | 'add-more' = 'save') {
     const amount = parseFloat(amountString);
     if (!amount || amount <= 0) {
-      setAlertState({ title: 'Invalid Amount', message: 'Please enter a valid amount.' });
+      setAlertState({
+        title: i18n.t(k.addTransaction.invalidAmount),
+        message: i18n.t(k.addTransaction.invalidAmountMessage),
+      });
       return;
     }
     if (!selectedCategory) {
-      setAlertState({ title: 'No Category', message: 'Please select a category.' });
+      setAlertState({
+        title: i18n.t(k.addTransaction.noCategory),
+        message: i18n.t(k.addTransaction.noCategoryMessage),
+      });
       return;
     }
 
@@ -109,8 +117,8 @@ export function useTransactionForm(transactionId?: string, initialDate?: string)
           },
           onError: (error) => {
             setAlertState({
-              title: 'Failed to Update',
-              message: error instanceof Error ? error.message : 'An unexpected error occurred.',
+              title: i18n.t(k.addTransaction.failedToUpdate),
+              message: error instanceof Error ? error.message : i18n.t(k.common.unexpectedError),
             });
           },
         },
@@ -136,8 +144,8 @@ export function useTransactionForm(transactionId?: string, initialDate?: string)
           },
           onError: (error) => {
             setAlertState({
-              title: 'Failed to Save',
-              message: error instanceof Error ? error.message : 'An unexpected error occurred.',
+              title: i18n.t(k.addTransaction.failedToSave),
+              message: error instanceof Error ? error.message : i18n.t(k.common.unexpectedError),
             });
           },
         },
@@ -155,8 +163,8 @@ export function useTransactionForm(transactionId?: string, initialDate?: string)
       },
       onError: (error) => {
         setAlertState({
-          title: 'Failed to Delete',
-          message: error instanceof Error ? error.message : 'An unexpected error occurred.',
+          title: i18n.t(k.addTransaction.failedToDelete),
+          message: error instanceof Error ? error.message : i18n.t(k.common.unexpectedError),
         });
       },
     });
