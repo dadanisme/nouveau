@@ -15,7 +15,7 @@ import { Button } from '@/components/button';
 import { colors, design } from '@/constants/colors';
 import { useLanguage } from '@/contexts/language';
 import { useSession } from '@/hooks/use-auth';
-import i18n from '@/lib/i18n';
+import { getDateLocale } from '@/lib/i18n';
 import { k } from '@/locales/keys';
 import { useSubscriptions } from '@/hooks/use-subscriptions';
 import type { Tables } from '@/types/supabase';
@@ -27,8 +27,11 @@ type SubscriptionWithFeature = Tables<'feature_subscriptions'> & {
 function formatDate(dateString: string | null): string {
   if (!dateString) return '—';
   const date = new Date(dateString);
-  const locale = i18n.locale === 'id' ? 'id-ID' : 'en-US';
-  return date.toLocaleDateString(locale, { year: 'numeric', month: 'short', day: 'numeric' });
+  return date.toLocaleDateString(getDateLocale(), {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
 }
 
 function SubscriptionRow({

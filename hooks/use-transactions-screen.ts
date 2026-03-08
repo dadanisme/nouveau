@@ -2,7 +2,7 @@ import { useCallback, useMemo, useState } from 'react';
 
 import { useSession } from '@/hooks/use-auth';
 import { useTransactions, type TransactionWithCategory } from '@/hooks/use-transactions';
-import i18n from '@/lib/i18n';
+import { getDateLocale } from '@/lib/i18n';
 
 export interface TransactionGroup {
   dateKey: string;
@@ -46,8 +46,7 @@ export function useTransactionsScreen() {
     }
   }, [allQuery, filteredQuery]);
 
-  const locale = i18n.locale === 'id' ? 'id-ID' : 'en-US';
-  const monthLabel = new Date(viewYear, viewMonth).toLocaleDateString(locale, {
+  const monthLabel = new Date(viewYear, viewMonth).toLocaleDateString(getDateLocale(), {
     month: 'long',
     year: 'numeric',
   });

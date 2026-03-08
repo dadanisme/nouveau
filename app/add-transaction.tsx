@@ -13,7 +13,7 @@ import { NumberPad } from '@/components/number-pad';
 import { colors, design } from '@/constants/colors';
 import { useLanguage } from '@/contexts/language';
 import { useTransactionForm } from '@/hooks/use-transaction-form';
-import i18n from '@/lib/i18n';
+import { getDateLocale } from '@/lib/i18n';
 import { k } from '@/locales/keys';
 import { parseIcon } from '@/utils/icon';
 
@@ -161,7 +161,7 @@ export default function AddTransactionScreen() {
             <Button variant="outline" style={styles.pill} onPress={openDatePicker}>
               <Ionicons name="calendar-outline" size={16} color={colors.gray[600]} />
               <Text style={styles.pillText}>
-                {date.toLocaleDateString(i18n.locale === 'id' ? 'id-ID' : 'en-US', {
+                {date.toLocaleDateString(getDateLocale(), {
                   month: 'short',
                   day: 'numeric',
                   year: 'numeric',

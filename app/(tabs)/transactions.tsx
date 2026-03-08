@@ -1,5 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
+import { useMemo } from 'react';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { AnimatedTabScreen } from '@/components/animated-tab-screen';
@@ -41,11 +42,14 @@ export default function TransactionsScreen() {
   const { requestDelete, deleteConfirmAlert } = useDeleteConfirmation();
   const { t } = useLanguage();
 
-  const FILTERS: { key: FilterType; label: string }[] = [
-    { key: 'all', label: t(k.transactions.all) },
-    { key: 'income', label: t(k.transactions.income) },
-    { key: 'expense', label: t(k.transactions.expense) },
-  ];
+  const FILTERS: { key: FilterType; label: string }[] = useMemo(
+    () => [
+      { key: 'all', label: t(k.transactions.all) },
+      { key: 'income', label: t(k.transactions.income) },
+      { key: 'expense', label: t(k.transactions.expense) },
+    ],
+    [t],
+  );
 
   function handleTransactionPress(id: string) {
     router.push({ pathname: '/add-transaction', params: { id } });

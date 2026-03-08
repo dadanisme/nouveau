@@ -10,4 +10,13 @@ i18n.locale = deviceLocale === 'id' ? 'id' : 'en';
 i18n.enableFallback = true;
 i18n.defaultLocale = 'en';
 
+const DATE_LOCALE_MAP: Record<string, string> = {
+  en: 'en-US',
+  id: 'id-ID',
+};
+
+export function getDateLocale(): string {
+  return DATE_LOCALE_MAP[i18n.locale] ?? 'en-US';
+}
+
 export default i18n;
