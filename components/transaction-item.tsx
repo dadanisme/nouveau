@@ -44,22 +44,31 @@ export function TransactionItem({
 
   const hasContextMenu = !!(onDelete || onViewProofs);
   const pressStartRef = useRef(0);
+  const pressPositionRef = useRef({ x: 0, y: 0 });
 
   // When a ContextMenu wraps a Pressable, the long press that opens the context
   // menu still propagates as a regular press to the inner Pressable, causing both
   // the menu and the onPress action to fire. To work around this, we avoid using
   // Pressable when a context menu is present and instead use raw touch events with
-  // a timing threshold — only taps shorter than 300ms are treated as a press.
+  // a timing threshold — only taps shorter than 300ms that haven't moved more than
+  // 10px are treated as a press. This prevents scrolling from triggering onPress.
   const content = (
     <View
       style={[styles.container, !isLast && styles.border]}
       {...(onPress && hasContextMenu
         ? {
-            onTouchStart: () => {
+            onTouchStart: (e) => {
               pressStartRef.current = Date.now();
+              pressPositionRef.current = {
+                x: e.nativeEvent.pageX,
+                y: e.nativeEvent.pageY,
+              };
             },
-            onTouchEnd: () => {
-              if (Date.now() - pressStartRef.current < 300) {
+            onTouchEnd: (e) => {
+              const dx = e.nativeEvent.pageX - pressPositionRef.current.x;
+              const dy = e.nativeEvent.pageY - pressPositionRef.current.y;
+              const moved = Math.sqrt(dx * dx + dy * dy) > 10;
+              if (!moved && Date.now() - pressStartRef.current < 300) {
                 onPress();
               }
             },
