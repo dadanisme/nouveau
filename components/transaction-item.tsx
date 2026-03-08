@@ -4,6 +4,8 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import ContextMenu from 'react-native-context-menu-view';
 
 import { colors, design } from '@/constants/colors';
+import i18n from '@/lib/i18n';
+import { k } from '@/locales/keys';
 import { formatCompactAmount } from '@/utils/currency';
 import { formatShortDate } from '@/utils/date';
 import { parseIcon } from '@/utils/icon';
@@ -110,11 +112,11 @@ export function TransactionItem({
   if (hasContextMenu) {
     const handlers = [onPress, ...(transaction.hasProofs ? [onViewProofs] : []), onDelete];
     const menuActions = [
-      { title: 'Edit', systemIcon: 'pencil' },
+      { title: i18n.t(k.contextMenu.edit), systemIcon: 'pencil' },
       ...(transaction.hasProofs
-        ? [{ title: 'View Proofs', systemIcon: 'doc.text.magnifyingglass' }]
+        ? [{ title: i18n.t(k.contextMenu.viewProofs), systemIcon: 'doc.text.magnifyingglass' }]
         : []),
-      { title: 'Delete', systemIcon: 'trash', destructive: true },
+      { title: i18n.t(k.contextMenu.delete), systemIcon: 'trash', destructive: true },
     ];
 
     return (

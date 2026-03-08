@@ -1,3 +1,6 @@
+import i18n from '@/lib/i18n';
+import { k } from '@/locales/keys';
+
 export function processAmountKeyPress(prev: string, key: string): string {
   if (key === 'backspace') {
     return prev.slice(0, -1);
@@ -12,27 +15,40 @@ export function processAmountKeyPress(prev: string, key: string): string {
 }
 
 export function formatCompactAmount(value: number): string {
+  const prefix = i18n.t(k.currency.prefix);
+  const billion = i18n.t(k.currency.billion);
+  const million = i18n.t(k.currency.million);
+  const thousand = i18n.t(k.currency.thousand);
+
   if (value >= 1_000_000_000) {
     const compact = value / 1_000_000_000;
-    return compact % 1 === 0 ? `Rp${compact}B` : `Rp${parseFloat(compact.toFixed(1))}B`;
+    return compact % 1 === 0
+      ? `${prefix}${compact}${billion}`
+      : `${prefix}${parseFloat(compact.toFixed(1))}${billion}`;
   }
   if (value >= 1_000_000) {
     const compact = value / 1_000_000;
-    return compact % 1 === 0 ? `Rp${compact}M` : `Rp${parseFloat(compact.toFixed(1))}M`;
+    return compact % 1 === 0
+      ? `${prefix}${compact}${million}`
+      : `${prefix}${parseFloat(compact.toFixed(1))}${million}`;
   }
   if (value >= 1_000) {
     const compact = value / 1_000;
-    return compact % 1 === 0 ? `Rp${compact}K` : `Rp${parseFloat(compact.toFixed(1))}K`;
+    return compact % 1 === 0
+      ? `${prefix}${compact}${thousand}`
+      : `${prefix}${parseFloat(compact.toFixed(1))}${thousand}`;
   }
-  return `Rp${Math.round(value)}`;
+  return `${prefix}${Math.round(value)}`;
 }
 
 export function formatCurrency(value: number): string {
-  return `Rp${value.toLocaleString('id-ID', { maximumFractionDigits: 0 })}`;
+  const prefix = i18n.t(k.currency.prefix);
+  return `${prefix}${value.toLocaleString('id-ID', { maximumFractionDigits: 0 })}`;
 }
 
 export function formatDisplayAmount(amountString: string): string {
-  if (!amountString) return 'Rp0';
+  const prefix = i18n.t(k.currency.prefix);
+  if (!amountString) return `${prefix}0`;
   const intPart = parseInt(amountString, 10).toLocaleString('id-ID');
-  return `Rp${intPart}`;
+  return `${prefix}${intPart}`;
 }

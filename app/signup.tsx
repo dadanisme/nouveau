@@ -15,11 +15,14 @@ import {
 import { Alert } from '@/components/alert';
 import { Button } from '@/components/button';
 import { colors, design } from '@/constants/colors';
+import { useLanguage } from '@/contexts/language';
 import { useSignUpWithEmail } from '@/hooks/use-auth';
+import { k } from '@/locales/keys';
 
 export default function SignUpScreen() {
   const signUpWithEmail = useSignUpWithEmail();
   const router = useRouter();
+  const { t } = useLanguage();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -30,7 +33,7 @@ export default function SignUpScreen() {
 
   const handleSignUp = () => {
     if (!email.trim() || !password.trim()) {
-      setAlert({ title: 'Missing Fields', message: 'Please enter both email and password.' });
+      setAlert({ title: t(k.signup.missingFields), message: t(k.signup.missingFieldsMessage) });
       return;
     }
 
@@ -39,14 +42,14 @@ export default function SignUpScreen() {
       {
         onSuccess: () => {
           setAlert({
-            title: 'Check Your Email',
-            message: 'We sent you a confirmation link. Please verify your email to continue.',
+            title: t(k.signup.checkEmail),
+            message: t(k.signup.checkEmailMessage),
           });
         },
         onError: (error) => {
           setAlert({
-            title: 'Sign-Up Failed',
-            message: error instanceof Error ? error.message : 'An unexpected error occurred',
+            title: t(k.signup.signUpFailed),
+            message: error instanceof Error ? error.message : t(k.common.unexpectedError),
           });
         },
       },
@@ -68,14 +71,14 @@ export default function SignUpScreen() {
             <Ionicons name="arrow-back" size={20} color={colors.gray[900]} />
           </Button>
 
-          <Text style={styles.heading}>Create your account</Text>
-          <Text style={styles.subtitle}>Sign up to start managing your finances with Nouveau.</Text>
+          <Text style={styles.heading}>{t(k.signup.heading)}</Text>
+          <Text style={styles.subtitle}>{t(k.signup.subtitle)}</Text>
 
           <View style={styles.form}>
             <View style={styles.inputWrapper}>
               <TextInput
                 style={styles.input}
-                placeholder="Email"
+                placeholder={t(k.signup.email)}
                 placeholderTextColor={colors.gray[400]}
                 value={email}
                 onChangeText={setEmail}
@@ -89,7 +92,7 @@ export default function SignUpScreen() {
             <View style={styles.inputWrapper}>
               <TextInput
                 style={[styles.input, styles.passwordInput]}
-                placeholder="Password"
+                placeholder={t(k.signup.password)}
                 placeholderTextColor={colors.gray[400]}
                 value={password}
                 onChangeText={setPassword}
@@ -113,14 +116,14 @@ export default function SignUpScreen() {
 
             <Button onPress={handleSignUp} disabled={isSubmitting}>
               <Text style={styles.primaryButtonText}>
-                {isSubmitting ? 'Please wait...' : 'Sign Up'}
+                {isSubmitting ? t(k.common.pleaseWait) : t(k.signup.signUp)}
               </Text>
             </Button>
 
             <Pressable onPress={() => router.back()} disabled={isSubmitting}>
               <Text style={styles.toggleText}>
-                {'Already have an account? '}
-                <Text style={styles.toggleTextBold}>Sign In</Text>
+                {t(k.signup.hasAccount)}
+                <Text style={styles.toggleTextBold}>{t(k.signup.signIn)}</Text>
               </Text>
             </Pressable>
           </View>

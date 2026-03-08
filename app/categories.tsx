@@ -18,8 +18,10 @@ import { Button } from '@/components/button';
 import { ColorPicker } from '@/components/color-picker';
 import { IconPicker } from '@/components/icon-picker';
 import { colors, design } from '@/constants/colors';
+import { useLanguage } from '@/contexts/language';
 import { useCategoryForm } from '@/hooks/use-category-form';
 import { useCategoryManagement } from '@/hooks/use-category-management';
+import { k } from '@/locales/keys';
 import type { Tables } from '@/types/supabase';
 import { parseIcon } from '@/utils/icon';
 
@@ -67,16 +69,19 @@ function CategoryFormSheet({
   onDelete: () => void;
 }) {
   const form = useCategoryForm({ editingCategory, onSuccess: onDismiss });
+  const { t } = useLanguage();
 
   return (
     <>
       <BottomSheet visible={visible} onDismiss={onDismiss} snapPoints={['55%']}>
         <BottomSheetView style={styles.formContent}>
-          <Text style={styles.formTitle}>{form.isEditing ? 'Edit Category' : 'New Category'}</Text>
+          <Text style={styles.formTitle}>
+            {form.isEditing ? t(k.categories.editCategory) : t(k.categories.newCategory)}
+          </Text>
 
           <BottomSheetTextInput
             style={styles.nameInput}
-            placeholder="Category name"
+            placeholder={t(k.categories.categoryName)}
             placeholderTextColor={colors.gray[400]}
             value={form.name}
             onChangeText={form.setName}
@@ -94,7 +99,7 @@ function CategoryFormSheet({
               onPress={() => form.setType('expense')}
             >
               <Text style={[styles.typeText, form.type === 'expense' && styles.typeTextActive]}>
-                Expense
+                {t(k.common.expense)}
               </Text>
             </Button>
             <Button
@@ -106,7 +111,7 @@ function CategoryFormSheet({
               onPress={() => form.setType('income')}
             >
               <Text style={[styles.typeText, form.type === 'income' && styles.typeTextActive]}>
-                Income
+                {t(k.common.income)}
               </Text>
             </Button>
           </View>
@@ -123,13 +128,13 @@ function CategoryFormSheet({
                 <Ionicons name="apps-outline" size={20} color={colors.gray[400]} />
               )}
               <Text style={[styles.pickerText, !form.icon && styles.pickerTextPlaceholder]}>
-                Icon
+                {t(k.categories.icon)}
               </Text>
             </Button>
 
             <Button variant="outline" style={styles.pickerButton} onPress={form.openColorPicker}>
               <View style={[styles.colorDot, { backgroundColor: form.color }]} />
-              <Text style={styles.pickerText}>Color</Text>
+              <Text style={styles.pickerText}>{t(k.categories.color)}</Text>
             </Button>
           </View>
 
@@ -142,14 +147,16 @@ function CategoryFormSheet({
             {form.isPending ? (
               <ActivityIndicator size="small" color={colors.black} />
             ) : (
-              <Text style={styles.saveText}>{form.isEditing ? 'Update' : 'Save'}</Text>
+              <Text style={styles.saveText}>
+                {form.isEditing ? t(k.common.update) : t(k.common.save)}
+              </Text>
             )}
           </Button>
 
           {form.isEditing && (
             <Button variant="outline" style={styles.deleteButton} onPress={onDelete}>
               <Ionicons name="trash-outline" size={18} color={colors.expense} />
-              <Text style={styles.deleteText}>Delete Category</Text>
+              <Text style={styles.deleteText}>{t(k.categories.deleteCategory)}</Text>
             </Button>
           )}
         </BottomSheetView>
@@ -184,6 +191,7 @@ export default function CategoriesScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const mgmt = useCategoryManagement();
+  const { t } = useLanguage();
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -191,7 +199,7 @@ export default function CategoriesScreen() {
         <Button variant="outline" onPress={() => router.back()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={22} color={colors.gray[900]} />
         </Button>
-        <Text style={styles.headerTitle}>Categories</Text>
+        <Text style={styles.headerTitle}>{t(k.categories.title)}</Text>
         <Button variant="outline" onPress={mgmt.openAddForm} style={styles.addButton}>
           <Ionicons name="add" size={22} color={colors.gray[900]} />
         </Button>
@@ -220,7 +228,7 @@ export default function CategoriesScreen() {
         >
           {mgmt.expenseCategories.length > 0 && (
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Expense</Text>
+              <Text style={styles.sectionTitle}>{t(k.common.expense)}</Text>
               <View style={styles.sectionCard}>
                 {mgmt.expenseCategories.map((cat, i) => (
                   <CategoryRow
@@ -236,7 +244,7 @@ export default function CategoriesScreen() {
 
           {mgmt.incomeCategories.length > 0 && (
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Income</Text>
+              <Text style={styles.sectionTitle}>{t(k.common.income)}</Text>
               <View style={styles.sectionCard}>
                 {mgmt.incomeCategories.map((cat, i) => (
                   <CategoryRow
@@ -253,8 +261,8 @@ export default function CategoriesScreen() {
           {mgmt.expenseCategories.length === 0 && mgmt.incomeCategories.length === 0 && (
             <View style={styles.emptyContainer}>
               <Ionicons name="grid-outline" size={48} color={colors.gray[300]} />
-              <Text style={styles.emptyText}>No categories yet</Text>
-              <Text style={styles.emptySubtext}>Tap + to add your first category</Text>
+              <Text style={styles.emptyText}>{t(k.categories.noCategories)}</Text>
+              <Text style={styles.emptySubtext}>{t(k.categories.addFirst)}</Text>
             </View>
           )}
         </ScrollView>
@@ -274,11 +282,11 @@ export default function CategoriesScreen() {
 
       <Alert
         visible={!!mgmt.deletingCategory}
-        title="Delete Category"
-        message={`Are you sure you want to delete "${mgmt.deletingCategory?.name}"?`}
+        title={t(k.categories.deleteCategory)}
+        message={t(k.categories.deleteCategoryMessage, { name: mgmt.deletingCategory?.name })}
         actions={[
-          { label: 'Cancel', variant: 'outline', onPress: mgmt.cancelDelete },
-          { label: 'Delete', variant: 'dark', onPress: mgmt.executeDelete },
+          { label: t(k.common.cancel), variant: 'outline', onPress: mgmt.cancelDelete },
+          { label: t(k.common.delete), variant: 'dark', onPress: mgmt.executeDelete },
         ]}
         onDismiss={mgmt.cancelDelete}
       />

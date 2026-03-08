@@ -4,6 +4,8 @@ import { useShareIntentContext } from 'expo-share-intent';
 import type { ShareIntentFile } from 'expo-share-intent';
 import { useMemo, useState } from 'react';
 
+import i18n from '@/lib/i18n';
+import { k } from '@/locales/keys';
 import { useScanReceipt } from '@/hooks/use-scan-receipt';
 
 export type CategorizedFile = ShareIntentFile & {
@@ -62,8 +64,8 @@ export function useShareIntentScreen() {
         onError: (error) => {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
           setAlertState({
-            title: 'Scan Failed',
-            message: error instanceof Error ? error.message : 'An unexpected error occurred.',
+            title: i18n.t(k.shareIntent.scanFailed),
+            message: error instanceof Error ? error.message : i18n.t(k.common.unexpectedError),
           });
         },
       },

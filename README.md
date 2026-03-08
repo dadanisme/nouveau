@@ -11,6 +11,7 @@ A personal finance tracker built with Expo and React Native. Track your income a
 - **TanStack React Query** — server state management
 - **React Native Reanimated** — animations
 - **@gorhom/bottom-sheet** — gesture-driven bottom sheets
+- **expo-localization** + **i18n-js** — internationalization (English + Bahasa Indonesia)
 
 ## Getting Started
 
@@ -71,9 +72,11 @@ app/
     transactions.tsx       # Transactions tab
     dashboard.tsx          # Dashboard tab
 components/                # Reusable UI components
+contexts/                  # React contexts (language provider)
 hooks/                     # React Query hooks & screen logic
+locales/                   # Translation files (en, id) + auto-generated key constants (keys.ts)
 utils/                     # Pure utility functions
 constants/                 # Design tokens & colors
-lib/                       # Supabase client
+lib/                       # Supabase client, i18n singleton
 types/                     # TypeScript types (incl. generated Supabase types)
 ```

@@ -7,7 +7,9 @@ import { Alert } from '@/components/alert';
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
 import { colors, design } from '@/constants/colors';
+import { useLanguage } from '@/contexts/language';
 import { useShareIntentScreen, type CategorizedFile } from '@/hooks/use-share-intent-screen';
+import { k } from '@/locales/keys';
 import { formatFileSize } from '@/utils/file';
 
 function Badge({ label, color }: { label: string; color: string }) {
@@ -95,20 +97,19 @@ function FileContent({ file }: { file: CategorizedFile }) {
   );
 }
 
-function EmptyState() {
+function EmptyState({ t }: { t: (scope: string) => string }) {
   return (
     <View style={styles.emptyState}>
       <Ionicons name="share-outline" size={64} color={colors.gray[300]} />
-      <Text style={styles.emptyTitle}>No Shared Content</Text>
-      <Text style={styles.emptyMessage}>
-        Share images, PDFs, or text from other apps to view them here.
-      </Text>
+      <Text style={styles.emptyTitle}>{t(k.shareIntent.noContent)}</Text>
+      <Text style={styles.emptyMessage}>{t(k.shareIntent.noContentMessage)}</Text>
     </View>
   );
 }
 
 export default function ShareIntentScreen() {
   const insets = useSafeAreaInsets();
+  const { t } = useLanguage();
   const {
     hasShareIntent,
     sharedText,
@@ -134,7 +135,7 @@ export default function ShareIntentScreen() {
         <Button variant="outline" onPress={handleDismiss} style={styles.closeButton}>
           <Ionicons name="close" size={22} color={colors.gray[900]} />
         </Button>
-        <Text style={styles.headerTitle}>Shared Content</Text>
+        <Text style={styles.headerTitle}>{t(k.shareIntent.title)}</Text>
         <View style={styles.headerSpacer} />
       </View>
 
@@ -160,7 +161,7 @@ export default function ShareIntentScreen() {
             ))}
           </>
         ) : (
-          <EmptyState />
+          <EmptyState t={t} />
         )}
       </ScrollView>
 
@@ -172,11 +173,13 @@ export default function ShareIntentScreen() {
             ) : (
               <Ionicons name="scan" size={20} color={colors.gray[900]} />
             )}
-            <Text style={styles.doneText}>{isScanning ? 'Scanning...' : 'Scan Receipt'}</Text>
+            <Text style={styles.doneText}>
+              {isScanning ? t(k.shareIntent.scanning) : t(k.shareIntent.scanReceipt)}
+            </Text>
           </Button>
         ) : (
           <Button onPress={handleDismiss} style={styles.doneButton}>
-            <Text style={styles.doneText}>Done</Text>
+            <Text style={styles.doneText}>{t(k.common.done)}</Text>
           </Button>
         )}
       </View>

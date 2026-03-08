@@ -11,13 +11,17 @@ import { CategoryPicker } from '@/components/category-picker';
 import { DatePicker } from '@/components/date-picker';
 import { NumberPad } from '@/components/number-pad';
 import { colors, design } from '@/constants/colors';
+import { useLanguage } from '@/contexts/language';
 import { useTransactionForm } from '@/hooks/use-transaction-form';
+import { getDateLocale } from '@/lib/i18n';
+import { k } from '@/locales/keys';
 import { parseIcon } from '@/utils/icon';
 
 export default function AddTransactionScreen() {
   const { id, date: dateParam } = useLocalSearchParams<{ id?: string; date?: string }>();
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { t } = useLanguage();
   const [showActionMenu, setShowActionMenu] = useState(false);
   const {
     type,
@@ -60,7 +64,7 @@ export default function AddTransactionScreen() {
           <Ionicons name="arrow-back" size={22} color={colors.gray[900]} />
         </Button>
         <Text style={styles.headerTitle}>
-          {isEditMode ? 'Edit Transaction' : 'Add Transaction'}
+          {isEditMode ? t(k.addTransaction.editTransaction) : t(k.addTransaction.addTransaction)}
         </Text>
         {isEditMode ? (
           <Button
@@ -88,7 +92,7 @@ export default function AddTransactionScreen() {
               onPress={() => handleTypeChange('income')}
             >
               <Text style={[styles.toggleText, type === 'income' && styles.toggleTextActive]}>
-                Income
+                {t(k.addTransaction.income)}
               </Text>
             </Button>
             <Button
@@ -100,14 +104,14 @@ export default function AddTransactionScreen() {
               onPress={() => handleTypeChange('expense')}
             >
               <Text style={[styles.toggleText, type === 'expense' && styles.toggleTextActive]}>
-                Expense
+                {t(k.addTransaction.expense)}
               </Text>
             </Button>
           </View>
 
           <View style={styles.amountSectionContainer}>
             <View style={styles.amountSection}>
-              <Text style={styles.amountLabel}>Amount</Text>
+              <Text style={styles.amountLabel}>{t(k.addTransaction.amount)}</Text>
               {isEditMode && isLoadingTransaction ? (
                 <ActivityIndicator size="large" color={colors.primary.DEFAULT} />
               ) : (
@@ -119,7 +123,7 @@ export default function AddTransactionScreen() {
 
             <TextInput
               style={styles.descriptionInput}
-              placeholder="Add a note (optional)"
+              placeholder={t(k.addTransaction.addNote)}
               placeholderTextColor={colors.gray[400]}
               value={description}
               onChangeText={setDescription}
@@ -149,7 +153,7 @@ export default function AddTransactionScreen() {
                 <Ionicons name="grid-outline" size={16} color={colors.gray[500]} />
               )}
               <Text style={[styles.pillText, !selectedCategory && styles.pillTextPlaceholder]}>
-                {selectedCategory?.name ?? 'Category'}
+                {selectedCategory?.name ?? t(k.addTransaction.category)}
               </Text>
               <Ionicons name="chevron-down" size={14} color={colors.gray[400]} />
             </Button>
@@ -157,7 +161,7 @@ export default function AddTransactionScreen() {
             <Button variant="outline" style={styles.pill} onPress={openDatePicker}>
               <Ionicons name="calendar-outline" size={16} color={colors.gray[600]} />
               <Text style={styles.pillText}>
-                {date.toLocaleDateString('en-US', {
+                {date.toLocaleDateString(getDateLocale(), {
                   month: 'short',
                   day: 'numeric',
                   year: 'numeric',
@@ -184,7 +188,7 @@ export default function AddTransactionScreen() {
                 ) : (
                   <>
                     <Ionicons name="trash-outline" size={18} color={colors.expense} />
-                    <Text style={styles.deleteText}>Delete</Text>
+                    <Text style={styles.deleteText}>{t(k.addTransaction.delete)}</Text>
                   </>
                 )}
               </Button>
@@ -197,7 +201,7 @@ export default function AddTransactionScreen() {
                 {isPending ? (
                   <ActivityIndicator size="small" color={colors.black} />
                 ) : (
-                  <Text style={styles.submitText}>Update</Text>
+                  <Text style={styles.submitText}>{t(k.common.update)}</Text>
                 )}
               </Button>
             </View>
@@ -212,7 +216,7 @@ export default function AddTransactionScreen() {
                 {isPending ? (
                   <ActivityIndicator size="small" color={colors.gray[700]} />
                 ) : (
-                  <Text style={styles.addMoreText}>Add More</Text>
+                  <Text style={styles.addMoreText}>{t(k.addTransaction.addMore)}</Text>
                 )}
               </Button>
               <Button
@@ -224,7 +228,7 @@ export default function AddTransactionScreen() {
                 {isPending ? (
                   <ActivityIndicator size="small" color={colors.black} />
                 ) : (
-                  <Text style={styles.submitText}>Save</Text>
+                  <Text style={styles.submitText}>{t(k.common.save)}</Text>
                 )}
               </Button>
             </View>
@@ -256,11 +260,11 @@ export default function AddTransactionScreen() {
 
       <Alert
         visible={showDeleteConfirm}
-        title="Delete Transaction"
-        message="Are you sure you want to delete this transaction? This action cannot be undone."
+        title={t(k.addTransaction.deleteTransaction)}
+        message={t(k.addTransaction.deleteTransactionMessage)}
         actions={[
-          { label: 'Cancel', onPress: () => setShowDeleteConfirm(false) },
-          { label: 'Delete', variant: 'dark', onPress: handleDelete },
+          { label: t(k.common.cancel), onPress: () => setShowDeleteConfirm(false) },
+          { label: t(k.common.delete), variant: 'dark', onPress: handleDelete },
         ]}
         onDismiss={() => setShowDeleteConfirm(false)}
       />
@@ -271,14 +275,14 @@ export default function AddTransactionScreen() {
         actions={[
           {
             icon: 'document-text-outline',
-            label: 'View Proofs',
+            label: t(k.addTransaction.viewProofs),
             onPress: () => {
               if (id) router.push({ pathname: '/proof-viewer', params: { transactionId: id } });
             },
           },
           {
             icon: 'trash-outline',
-            label: 'Delete',
+            label: t(k.common.delete),
             destructive: true,
             onPress: () => setShowDeleteConfirm(true),
           },

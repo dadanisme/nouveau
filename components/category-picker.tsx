@@ -5,6 +5,8 @@ import { StyleSheet, Text, View } from 'react-native';
 import { BottomSheet } from '@/components/bottom-sheet';
 import { Button } from '@/components/button';
 import { colors, design } from '@/constants/colors';
+import i18n from '@/lib/i18n';
+import { k } from '@/locales/keys';
 import type { Tables } from '@/types/supabase';
 import { parseIcon } from '@/utils/icon';
 
@@ -33,7 +35,7 @@ export function CategoryPicker({
   return (
     <BottomSheet visible={visible} onDismiss={onDismiss} snapPoints={['60%']}>
       <BottomSheetScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <Text style={styles.title}>Select Category</Text>
+        <Text style={styles.title}>{i18n.t(k.categoryPicker.title)}</Text>
         {rows.map((row, rowIndex) => (
           <View key={rowIndex} style={styles.row}>
             {row.map((category) => {

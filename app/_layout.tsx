@@ -9,6 +9,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { AuthListener } from '@/components/auth-listener';
 import { SplashOverlay } from '@/components/splash-overlay';
+import { LanguageProvider } from '@/contexts/language';
 import { useSession } from '@/hooks/use-auth';
 
 SplashScreen.preventAutoHideAsync();
@@ -65,80 +66,82 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={styles.root}>
-      <QueryClientProvider client={queryClient}>
-        <ShareIntentProvider
-          options={{
-            debug: __DEV__,
-            resetOnBackground: true,
-            onResetShareIntent: () => router.replace('/'),
-          }}
-        >
-          <ShareIntentNavigator />
-          <BottomSheetModalProvider>
-            <AuthListener>
-              <AuthGuard>
-                <Stack>
-                  <Stack.Screen
-                    name="login"
-                    options={{ headerShown: false, animation: 'flip', animationDuration: 300 }}
-                  />
-                  <Stack.Screen
-                    name="signup"
-                    options={{ headerShown: false, animationDuration: 300 }}
-                  />
-                  <Stack.Screen
-                    name="(tabs)"
-                    options={{ headerShown: false, animation: 'flip', animationDuration: 300 }}
-                  />
-                  <Stack.Screen
-                    name="add-transaction"
-                    options={{
-                      headerShown: false,
-                      animationDuration: 350,
-                    }}
-                  />
-                  <Stack.Screen
-                    name="settings"
-                    options={{
-                      headerShown: false,
-                      animationDuration: 350,
-                    }}
-                  />
-                  <Stack.Screen
-                    name="categories"
-                    options={{
-                      headerShown: false,
-                      animationDuration: 350,
-                    }}
-                  />
-                  <Stack.Screen
-                    name="subscriptions"
-                    options={{
-                      headerShown: false,
-                      animationDuration: 350,
-                    }}
-                  />
-                  <Stack.Screen
-                    name="proof-viewer"
-                    options={{
-                      headerShown: false,
-                      animationDuration: 350,
-                    }}
-                  />
-                  <Stack.Screen
-                    name="shareintent"
-                    options={{
-                      headerShown: false,
-                      animation: 'fade',
-                      animationDuration: 300,
-                    }}
-                  />
-                </Stack>
-              </AuthGuard>
-            </AuthListener>
-          </BottomSheetModalProvider>
-        </ShareIntentProvider>
-      </QueryClientProvider>
+      <LanguageProvider>
+        <QueryClientProvider client={queryClient}>
+          <ShareIntentProvider
+            options={{
+              debug: __DEV__,
+              resetOnBackground: true,
+              onResetShareIntent: () => router.replace('/'),
+            }}
+          >
+            <ShareIntentNavigator />
+            <BottomSheetModalProvider>
+              <AuthListener>
+                <AuthGuard>
+                  <Stack>
+                    <Stack.Screen
+                      name="login"
+                      options={{ headerShown: false, animation: 'flip', animationDuration: 300 }}
+                    />
+                    <Stack.Screen
+                      name="signup"
+                      options={{ headerShown: false, animationDuration: 300 }}
+                    />
+                    <Stack.Screen
+                      name="(tabs)"
+                      options={{ headerShown: false, animation: 'flip', animationDuration: 300 }}
+                    />
+                    <Stack.Screen
+                      name="add-transaction"
+                      options={{
+                        headerShown: false,
+                        animationDuration: 350,
+                      }}
+                    />
+                    <Stack.Screen
+                      name="settings"
+                      options={{
+                        headerShown: false,
+                        animationDuration: 350,
+                      }}
+                    />
+                    <Stack.Screen
+                      name="categories"
+                      options={{
+                        headerShown: false,
+                        animationDuration: 350,
+                      }}
+                    />
+                    <Stack.Screen
+                      name="subscriptions"
+                      options={{
+                        headerShown: false,
+                        animationDuration: 350,
+                      }}
+                    />
+                    <Stack.Screen
+                      name="proof-viewer"
+                      options={{
+                        headerShown: false,
+                        animationDuration: 350,
+                      }}
+                    />
+                    <Stack.Screen
+                      name="shareintent"
+                      options={{
+                        headerShown: false,
+                        animation: 'fade',
+                        animationDuration: 300,
+                      }}
+                    />
+                  </Stack>
+                </AuthGuard>
+              </AuthListener>
+            </BottomSheetModalProvider>
+          </ShareIntentProvider>
+        </QueryClientProvider>
+      </LanguageProvider>
     </GestureHandlerRootView>
   );
 }

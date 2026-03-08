@@ -5,23 +5,9 @@ import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-na
 import { BottomSheet } from '@/components/bottom-sheet';
 import { useCalendar } from '@/hooks/use-calendar';
 import { colors, design } from '@/constants/colors';
+import i18n from '@/lib/i18n';
+import { k } from '@/locales/keys';
 import { isSameDay } from '@/utils/date';
-
-const WEEKDAYS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'] as const;
-const MONTH_NAMES = [
-  'January',
-  'February',
-  'March',
-  'April',
-  'May',
-  'June',
-  'July',
-  'August',
-  'September',
-  'October',
-  'November',
-  'December',
-] as const;
 
 interface DatePickerProps {
   visible: boolean;
@@ -35,6 +21,8 @@ export function DatePicker({ visible, value, onSelect, onDismiss }: DatePickerPr
   const cellSize = Math.floor((width - design.spacing.lg * 2) / 7);
   const { viewYear, viewMonth, today, goToPrevMonth, goToNextMonth, handleDayPress, cells } =
     useCalendar({ visible, value, onSelect });
+  const monthNames = i18n.t(k.datePicker.months, { returnObjects: true }) as unknown as string[];
+  const weekdays = i18n.t(k.datePicker.weekdays, { returnObjects: true }) as unknown as string[];
 
   return (
     <BottomSheet visible={visible} onDismiss={onDismiss}>
@@ -45,7 +33,7 @@ export function DatePicker({ visible, value, onSelect, onDismiss }: DatePickerPr
             <Ionicons name="chevron-back" size={22} color={colors.gray[700]} />
           </Pressable>
           <Text style={styles.monthTitle}>
-            {MONTH_NAMES[viewMonth]} {viewYear}
+            {monthNames[viewMonth]} {viewYear}
           </Text>
           <Pressable onPress={goToNextMonth} hitSlop={12}>
             <Ionicons name="chevron-forward" size={22} color={colors.gray[700]} />
@@ -54,7 +42,7 @@ export function DatePicker({ visible, value, onSelect, onDismiss }: DatePickerPr
 
         {/* Weekday labels */}
         <View style={styles.weekdayRow}>
-          {WEEKDAYS.map((label, i) => (
+          {weekdays.map((label: string, i: number) => (
             <View key={i} style={styles.weekdayCell}>
               <Text style={styles.weekdayText}>{label}</Text>
             </View>

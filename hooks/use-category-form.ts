@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import { CATEGORY_COLORS } from '@/constants/category-colors';
 import { useAddCategory, useUpdateCategory } from '@/hooks/use-category-mutations';
 import { useSession } from '@/hooks/use-auth';
+import i18n from '@/lib/i18n';
+import { k } from '@/locales/keys';
 import type { Tables } from '@/types/supabase';
 import { parseIcon } from '@/utils/icon';
 
@@ -45,7 +47,10 @@ export function useCategoryForm({ editingCategory, onSuccess }: UseCategoryFormO
   function handleSubmit() {
     const trimmedName = name.trim();
     if (!trimmedName) {
-      setAlertState({ title: 'Invalid Name', message: 'Please enter a category name.' });
+      setAlertState({
+        title: i18n.t(k.categories.invalidName),
+        message: i18n.t(k.categories.invalidNameMessage),
+      });
       return;
     }
 
@@ -71,8 +76,8 @@ export function useCategoryForm({ editingCategory, onSuccess }: UseCategoryFormO
           },
           onError: (error) => {
             setAlertState({
-              title: 'Failed to Update',
-              message: error instanceof Error ? error.message : 'An unexpected error occurred.',
+              title: i18n.t(k.categories.failedToUpdate),
+              message: error instanceof Error ? error.message : i18n.t(k.common.unexpectedError),
             });
           },
         },
@@ -93,8 +98,8 @@ export function useCategoryForm({ editingCategory, onSuccess }: UseCategoryFormO
           },
           onError: (error) => {
             setAlertState({
-              title: 'Failed to Save',
-              message: error instanceof Error ? error.message : 'An unexpected error occurred.',
+              title: i18n.t(k.categories.failedToSave),
+              message: error instanceof Error ? error.message : i18n.t(k.common.unexpectedError),
             });
           },
         },
