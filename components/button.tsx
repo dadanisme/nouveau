@@ -9,7 +9,7 @@ const SHADOW_OFFSET = design.shadowOffset;
 
 interface ButtonProps extends Omit<PressableProps, 'style'> {
   variant?: 'primary' | 'outline' | 'dark';
-  style?: ViewStyle;
+  style?: ViewStyle | (ViewStyle | false | undefined)[];
   children: React.ReactNode;
 }
 

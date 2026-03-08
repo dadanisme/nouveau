@@ -15,7 +15,7 @@ import { Button } from '@/components/button';
 import { colors, design } from '@/constants/colors';
 import { useLanguage } from '@/contexts/language';
 import { useSession } from '@/hooks/use-auth';
-import { getDateLocale } from '@/lib/i18n';
+import i18n, { getDateLocale } from '@/lib/i18n';
 import { k } from '@/locales/keys';
 import { useSubscriptions } from '@/hooks/use-subscriptions';
 import type { Tables } from '@/types/supabase';

@@ -35,10 +35,10 @@ export default function SettingsScreen() {
     { icon: 'grid-outline', label: t(k.settings.categories), route: '/categories' },
     { icon: 'star-outline', label: t(k.settings.subscriptions), route: '/subscriptions' },
     { icon: 'language-outline', label: t(k.settings.language), action: 'language' },
-    { icon: 'notifications-outline', label: t(k.settings.notifications) },
-    { icon: 'cash-outline', label: t(k.settings.currency) },
-    { icon: 'download-outline', label: t(k.settings.exportData) },
-    { icon: 'information-circle-outline', label: t(k.settings.about) },
+    { icon: 'notifications-outline', label: t(k.settings.notifications), disabled: true },
+    { icon: 'cash-outline', label: t(k.settings.currency), disabled: true },
+    { icon: 'download-outline', label: t(k.settings.exportData), disabled: true },
+    { icon: 'information-circle-outline', label: t(k.settings.about), disabled: true },
   ] as const;
 
   const handleSignOut = () => {
@@ -87,21 +87,31 @@ export default function SettingsScreen() {
         </Card>
 
         <Card style={styles.menuCard}>
-          {MENU_ITEMS.map((item, index) => (
-            <Pressable
-              key={item.label}
-              style={[styles.menuRow, index < MENU_ITEMS.length - 1 && styles.menuRowBorder]}
-              onPress={() => handleMenuPress(item)}
-            >
-              <Ionicons
-                name={item.icon as keyof typeof Ionicons.glyphMap}
-                size={20}
-                color={colors.gray[700]}
-              />
-              <Text style={styles.menuLabel}>{item.label}</Text>
-              <Ionicons name="chevron-forward" size={18} color={colors.gray[400]} />
-            </Pressable>
-          ))}
+          {MENU_ITEMS.map((item, index) => {
+            const disabled = 'disabled' in item && item.disabled;
+            return (
+              <Pressable
+                key={item.label}
+                style={[styles.menuRow, index < MENU_ITEMS.length - 1 && styles.menuRowBorder]}
+                onPress={() => handleMenuPress(item)}
+                disabled={disabled}
+              >
+                <Ionicons
+                  name={item.icon as keyof typeof Ionicons.glyphMap}
+                  size={20}
+                  color={disabled ? colors.gray[300] : colors.gray[700]}
+                />
+                <Text style={[styles.menuLabel, disabled && styles.menuLabelDisabled]}>
+                  {item.label}
+                </Text>
+                <Ionicons
+                  name="chevron-forward"
+                  size={18}
+                  color={disabled ? colors.gray[200] : colors.gray[400]}
+                />
+              </Pressable>
+            );
+          })}
         </Card>
 
         <Button style={styles.signOutButton} onPress={handleSignOut} disabled={signOut.isPending}>
@@ -255,6 +265,9 @@ const styles = StyleSheet.create({
     fontSize: design.fontSize.md,
     fontWeight: '600',
     color: colors.gray[900],
+  },
+  menuLabelDisabled: {
+    color: colors.gray[400],
   },
   signOutButton: {
     backgroundColor: colors.expense,
