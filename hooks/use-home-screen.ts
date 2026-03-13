@@ -5,6 +5,8 @@ import { useBalance, useMonthlyTotals, useRecentTransactions } from '@/hooks/use
 import { getGreeting } from '@/utils/greeting';
 import { toTransactionItemData } from '@/utils/transaction';
 
+const BALANCE_HIDDEN_KEY = 'balance_hidden';
+
 export function useHomeScreen() {
   const { session } = useSession();
   const userId = session?.user.id;
@@ -33,6 +35,17 @@ export function useHomeScreen() {
   const isLoadingTransactions = recentTxQuery.isLoading;
 
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [balanceHidden, setBalanceHidden] = useState(
+    () => localStorage.getItem(BALANCE_HIDDEN_KEY) === 'true',
+  );
+
+  const toggleBalanceHidden = useCallback(() => {
+    setBalanceHidden((prev) => {
+      const next = !prev;
+      localStorage.setItem(BALANCE_HIDDEN_KEY, String(next));
+      return next;
+    });
+  }, []);
 
   const refetch = useCallback(async () => {
     setIsRefreshing(true);
@@ -78,5 +91,7 @@ export function useHomeScreen() {
     isLoadingTransactions,
     isRefreshing,
     refetch,
+    balanceHidden,
+    toggleBalanceHidden,
   };
 }

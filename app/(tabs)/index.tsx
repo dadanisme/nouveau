@@ -32,6 +32,8 @@ export default function HomeScreen() {
     isLoadingTransactions,
     isRefreshing,
     refetch,
+    balanceHidden,
+    toggleBalanceHidden,
   } = useHomeScreen();
   const { requestDelete, deleteConfirmAlert } = useDeleteConfirmation();
   const { t } = useLanguage();
@@ -75,8 +77,20 @@ export default function HomeScreen() {
 
         {/* Balance Card */}
         <Card style={styles.balanceCard}>
-          <Text style={styles.balanceLabel}>{t(k.home.yourBalance)}</Text>
-          <Text style={styles.balanceAmount}>{formatCurrency(balance)}</Text>
+          <View style={styles.balanceLabelRow}>
+            <Text style={styles.balanceLabel}>{t(k.home.yourBalance)}</Text>
+            <Pressable onPress={toggleBalanceHidden} hitSlop={8}>
+              <Ionicons
+                name={balanceHidden ? 'eye-off-outline' : 'eye-outline'}
+                size={20}
+                color={colors.gray[900]}
+                style={{ opacity: 0.5 }}
+              />
+            </Pressable>
+          </View>
+          <Text style={styles.balanceAmount}>
+            {balanceHidden ? '••••••' : formatCurrency(balance)}
+          </Text>
           <View style={styles.overviewRow}>
             <View style={styles.overviewItem}>
               <View style={styles.overviewLabelRow}>
@@ -84,22 +98,24 @@ export default function HomeScreen() {
                 <Text style={styles.overviewLabel}>{t(k.home.income)}</Text>
               </View>
               <Text style={styles.overviewAmount}>
-                {formatCompactAmount(overview.income)}{' '}
-                <Text
-                  style={{
-                    fontSize: design.fontSize.xs,
-                    fontWeight: '700',
-                    color:
-                      overview.incomeChange === 0
-                        ? colors.gray[500]
-                        : overview.incomeChange > 0
-                          ? colors.income
-                          : colors.expense,
-                  }}
-                >
-                  ({overview.incomeChange > 0 ? '+' : ''}
-                  {overview.incomeChange}%)
-                </Text>
+                {balanceHidden ? '••••••' : formatCompactAmount(overview.income)}{' '}
+                {!balanceHidden && (
+                  <Text
+                    style={{
+                      fontSize: design.fontSize.xs,
+                      fontWeight: '700',
+                      color:
+                        overview.incomeChange === 0
+                          ? colors.gray[500]
+                          : overview.incomeChange > 0
+                            ? colors.income
+                            : colors.expense,
+                    }}
+                  >
+                    ({overview.incomeChange > 0 ? '+' : ''}
+                    {overview.incomeChange}%)
+                  </Text>
+                )}
               </Text>
             </View>
             <View style={styles.overviewDivider} />
@@ -109,22 +125,24 @@ export default function HomeScreen() {
                 <Text style={styles.overviewLabel}>{t(k.home.expenses)}</Text>
               </View>
               <Text style={styles.overviewAmount}>
-                {formatCompactAmount(overview.expense)}{' '}
-                <Text
-                  style={{
-                    fontSize: design.fontSize.xs,
-                    fontWeight: '700',
-                    color:
-                      overview.expenseChange === 0
-                        ? colors.gray[500]
-                        : overview.expenseChange < 0
-                          ? colors.income
-                          : colors.expense,
-                  }}
-                >
-                  ({overview.expenseChange > 0 ? '+' : ''}
-                  {overview.expenseChange}%)
-                </Text>
+                {balanceHidden ? '••••••' : formatCompactAmount(overview.expense)}{' '}
+                {!balanceHidden && (
+                  <Text
+                    style={{
+                      fontSize: design.fontSize.xs,
+                      fontWeight: '700',
+                      color:
+                        overview.expenseChange === 0
+                          ? colors.gray[500]
+                          : overview.expenseChange < 0
+                            ? colors.income
+                            : colors.expense,
+                    }}
+                  >
+                    ({overview.expenseChange > 0 ? '+' : ''}
+                    {overview.expenseChange}%)
+                  </Text>
+                )}
               </Text>
             </View>
           </View>
@@ -208,6 +226,11 @@ const styles = StyleSheet.create({
     paddingVertical: design.spacing.lg,
     paddingHorizontal: design.spacing.lg,
     backgroundColor: colors.primary.light,
+  },
+  balanceLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   balanceLabel: {
     fontSize: design.fontSize.sm,
