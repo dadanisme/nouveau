@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 
+import { colors } from '@/constants/colors';
 import { useSession } from '@/hooks/use-auth';
 import { useTransactions, type TransactionWithCategory } from '@/hooks/use-transactions';
 import i18n from '@/lib/i18n';
@@ -112,7 +113,7 @@ export function useTransactionsScreen() {
       })),
       {
         name: i18n.t(k.transactions.others),
-        color: '#9CA3AF',
+        color: colors.gray[400],
         amount: othersAmount,
         percentage: (othersAmount / expenseTotal) * 100,
       },

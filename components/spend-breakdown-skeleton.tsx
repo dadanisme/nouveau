@@ -2,7 +2,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { Card } from '@/components/card';
 import { Skeleton } from '@/components/skeleton';
-import { design } from '@/constants/colors';
+import { colors, design } from '@/constants/colors';
 
 const BAR_HEIGHT = 14;
 const DOT_SIZE = 8;
@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
   summaryDivider: {
     width: 1,
     height: 36,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: colors.gray[200],
     marginHorizontal: design.spacing.md,
   },
   barRow: {
