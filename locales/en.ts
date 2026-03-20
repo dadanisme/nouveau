@@ -29,6 +29,7 @@ const en = {
     all: 'All',
     income: 'Income',
     expense: 'Expense',
+    others: 'Others',
   },
   addTransaction: {
     addTransaction: 'Add Transaction',
