@@ -9,6 +9,8 @@ import { Button } from '@/components/button';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Card } from '@/components/card';
+import { SpendBreakdown } from '@/components/spend-breakdown';
+import { SpendBreakdownSkeleton } from '@/components/spend-breakdown-skeleton';
 import { TAB_BAR_HEIGHT } from '@/components/tab-bar';
 import { TransactionGroupSkeleton } from '@/components/transaction-group-skeleton';
 import { TransactionItem } from '@/components/transaction-item';
@@ -32,6 +34,7 @@ export default function TransactionsScreen() {
     activeFilter,
     setActiveFilter,
     totals,
+    expenseCategoryBreakdown,
     groupedTransactions,
     goToPreviousMonth,
     goToNextMonth,
@@ -112,30 +115,16 @@ export default function TransactionsScreen() {
           })}
         </View>
 
-        {/* Summary Card */}
-        <Card style={styles.summaryCard}>
-          <View style={styles.summaryRow}>
-            <View style={styles.summaryItem}>
-              <View style={styles.summaryLabelRow}>
-                <Ionicons name="arrow-down" size={14} color={colors.income} />
-                <Text style={styles.summaryLabel}>{t(k.transactions.income)}</Text>
-              </View>
-              <Text style={[styles.summaryAmount, { color: colors.income }]}>
-                {formatCompactAmount(totals.income)}
-              </Text>
-            </View>
-            <View style={styles.summaryDivider} />
-            <View style={styles.summaryItem}>
-              <View style={styles.summaryLabelRow}>
-                <Ionicons name="arrow-up" size={14} color={colors.expense} />
-                <Text style={styles.summaryLabel}>{t(k.transactions.expense)}</Text>
-              </View>
-              <Text style={[styles.summaryAmount, { color: colors.expense }]}>
-                {formatCompactAmount(totals.expense)}
-              </Text>
-            </View>
-          </View>
-        </Card>
+        {/* Summary + Spend Breakdown */}
+        {isLoading ? (
+          <SpendBreakdownSkeleton />
+        ) : (
+          <SpendBreakdown
+            income={totals.income}
+            expense={totals.expense}
+            categories={expenseCategoryBreakdown}
+          />
+        )}
 
         {/* Loading State */}
         {isLoading && (
@@ -263,39 +252,6 @@ const styles = StyleSheet.create({
   },
   filterLabelActive: {
     color: colors.gray[900],
-  },
-  summaryCard: {
-    marginBottom: design.spacing.lg,
-    paddingVertical: design.spacing.md,
-    paddingHorizontal: design.spacing.lg,
-  },
-  summaryRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  summaryItem: {
-    flex: 1,
-    gap: 4,
-  },
-  summaryLabelRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  summaryLabel: {
-    fontSize: design.fontSize.xs,
-    fontWeight: '600',
-    color: colors.gray[500],
-  },
-  summaryAmount: {
-    fontSize: design.fontSize.lg,
-    fontWeight: '800',
-  },
-  summaryDivider: {
-    width: 1,
-    height: '100%',
-    backgroundColor: colors.gray[200],
-    marginHorizontal: design.spacing.md,
   },
   dateGroup: {
     marginBottom: design.spacing.md,

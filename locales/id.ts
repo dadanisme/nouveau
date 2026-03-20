@@ -31,6 +31,7 @@ const id: Translations = {
     all: 'Semua',
     income: 'Pemasukan',
     expense: 'Pengeluaran',
+    others: 'Lainnya',
   },
   addTransaction: {
     addTransaction: 'Tambah Transaksi',
