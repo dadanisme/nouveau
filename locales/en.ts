@@ -20,9 +20,9 @@ const en = {
     yourBalance: 'Your Balance',
     income: 'Income',
     expenses: 'Expenses',
-    recentTransactions: 'Recent Transactions',
+    topSpending: 'Top Spending This Month',
     seeAll: 'See All',
-    noTransactions: 'No transactions yet',
+    noSpending: 'No spending this month',
   },
   transactions: {
     noTransactions: 'No transactions',

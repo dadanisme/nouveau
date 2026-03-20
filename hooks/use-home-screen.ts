@@ -1,9 +1,9 @@
 import { useCallback, useState } from 'react';
 
 import { useSession, useUserProfile } from '@/hooks/use-auth';
-import { useBalance, useMonthlyTotals, useRecentTransactions } from '@/hooks/use-transactions';
+import { useCategorySpending } from '@/hooks/use-category-spending';
+import { useBalance, useMonthlyTotals } from '@/hooks/use-transactions';
 import { getGreeting } from '@/utils/greeting';
-import { toTransactionItemData } from '@/utils/transaction';
 
 const BALANCE_HIDDEN_KEY = 'balance_hidden';
 
@@ -26,13 +26,11 @@ export function useHomeScreen() {
   const balanceQuery = useBalance(userId);
   const currentTotalsQuery = useMonthlyTotals(userId, currentYear, currentMonth);
   const prevTotalsQuery = useMonthlyTotals(userId, prevYear, prevMonth);
-  const recentTxQuery = useRecentTransactions(userId);
+  const categorySpendingQuery = useCategorySpending(userId, currentYear, currentMonth);
 
   const balance = balanceQuery.data;
   const currentTotals = currentTotalsQuery.data;
   const prevTotals = prevTotalsQuery.data;
-  const recentTx = recentTxQuery.data;
-  const isLoadingTransactions = recentTxQuery.isLoading;
 
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [balanceHidden, setBalanceHidden] = useState(
@@ -54,12 +52,12 @@ export function useHomeScreen() {
         balanceQuery.refetch(),
         currentTotalsQuery.refetch(),
         prevTotalsQuery.refetch(),
-        recentTxQuery.refetch(),
+        categorySpendingQuery.refetch(),
       ]);
     } finally {
       setIsRefreshing(false);
     }
-  }, [balanceQuery, currentTotalsQuery, prevTotalsQuery, recentTxQuery]);
+  }, [balanceQuery, currentTotalsQuery, prevTotalsQuery, categorySpendingQuery]);
 
   const currentIncome = currentTotals?.income ?? 0;
   const currentExpense = currentTotals?.expense ?? 0;
@@ -78,8 +76,6 @@ export function useHomeScreen() {
     expenseChange,
   };
 
-  const transactions = (recentTx ?? []).map(toTransactionItemData);
-
   return {
     greeting,
     firstName,
@@ -87,8 +83,8 @@ export function useHomeScreen() {
     profileImage,
     balance: balance ?? 0,
     overview,
-    transactions,
-    isLoadingTransactions,
+    categorySpending: categorySpendingQuery.categorySpending,
+    isLoadingCategorySpending: categorySpendingQuery.isLoading,
     isRefreshing,
     refetch,
     balanceHidden,

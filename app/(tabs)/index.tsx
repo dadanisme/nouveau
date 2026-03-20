@@ -8,12 +8,11 @@ import { AnimatedTabScreen } from '@/components/animated-tab-screen';
 import { Avatar } from '@/components/avatar';
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
+import { CategorySpendingItem } from '@/components/category-spending-item';
+import { CategorySpendingItemSkeleton } from '@/components/category-spending-item-skeleton';
 import { TAB_BAR_HEIGHT } from '@/components/tab-bar';
-import { TransactionItem } from '@/components/transaction-item';
-import { TransactionItemSkeleton } from '@/components/transaction-item-skeleton';
 import { colors, design } from '@/constants/colors';
 import { useLanguage } from '@/contexts/language';
-import { useDeleteConfirmation } from '@/hooks/use-delete-confirmation';
 import { useHomeScreen } from '@/hooks/use-home-screen';
 import { k } from '@/locales/keys';
 import { formatCompactAmount, formatCurrency } from '@/utils/currency';
@@ -28,14 +27,13 @@ export default function HomeScreen() {
     profileImage,
     balance,
     overview,
-    transactions,
-    isLoadingTransactions,
+    categorySpending,
+    isLoadingCategorySpending,
     isRefreshing,
     refetch,
     balanceHidden,
     toggleBalanceHidden,
   } = useHomeScreen();
-  const { requestDelete, deleteConfirmAlert } = useDeleteConfirmation();
   const { t } = useLanguage();
 
   return (
@@ -148,38 +146,32 @@ export default function HomeScreen() {
           </View>
         </Card>
 
-        {/* Recent Transactions */}
+        {/* Category Spending */}
         <View style={styles.transactionsHeader}>
-          <Text style={styles.sectionTitle}>{t(k.home.recentTransactions)}</Text>
-          <Pressable onPress={() => router.push('/(tabs)/transactions')}>
+          <Text style={styles.sectionTitle}>{t(k.home.topSpending)}</Text>
+          <Pressable onPress={() => router.push('/(tabs)/dashboard')}>
             <Text style={styles.seeAll}>{t(k.home.seeAll)}</Text>
           </Pressable>
         </View>
         <Card style={styles.transactionsCard}>
-          {isLoadingTransactions ? (
-            Array.from({ length: 4 }, (_, i) => (
-              <TransactionItemSkeleton key={i} isLast={i === 3} />
+          {isLoadingCategorySpending ? (
+            Array.from({ length: 5 }, (_, i) => (
+              <CategorySpendingItemSkeleton key={i} isLast={i === 4} />
             ))
-          ) : transactions.length > 0 ? (
-            transactions.map((tx, index) => (
-              <TransactionItem
-                key={tx.id}
-                transaction={tx}
-                isLast={index === transactions.length - 1}
-                onPress={() => router.push({ pathname: '/add-transaction', params: { id: tx.id } })}
-                onViewProofs={() =>
-                  router.push({ pathname: '/proof-viewer', params: { transactionId: tx.id } })
-                }
-                onDelete={() => requestDelete(tx.id)}
+          ) : categorySpending.length > 0 ? (
+            categorySpending.map((item, index) => (
+              <CategorySpendingItem
+                key={item.categoryId}
+                item={item}
+                isLast={index === categorySpending.length - 1}
+                balanceHidden={balanceHidden}
               />
             ))
           ) : (
-            <Text style={styles.emptyText}>{t(k.home.noTransactions)}</Text>
+            <Text style={styles.emptyText}>{t(k.home.noSpending)}</Text>
           )}
         </Card>
       </ScrollView>
-
-      {deleteConfirmAlert}
     </AnimatedTabScreen>
   );
 }

@@ -22,9 +22,9 @@ const id: Translations = {
     yourBalance: 'Saldo Anda',
     income: 'Pemasukan',
     expenses: 'Pengeluaran',
-    recentTransactions: 'Transaksi Terbaru',
+    topSpending: 'Pengeluaran Teratas Bulan Ini',
     seeAll: 'Lihat Semua',
-    noTransactions: 'Belum ada transaksi',
+    noSpending: 'Tidak ada pengeluaran bulan ini',
   },
   transactions: {
     noTransactions: 'Tidak ada transaksi',
