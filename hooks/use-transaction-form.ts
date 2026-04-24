@@ -1,6 +1,6 @@
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Keyboard } from 'react-native';
 
 import { useAddTransaction } from '@/hooks/use-add-transaction';
@@ -8,6 +8,7 @@ import { useSession } from '@/hooks/use-auth';
 import i18n from '@/lib/i18n';
 import { k } from '@/locales/keys';
 import { useCategories } from '@/hooks/use-categories';
+import { useClassifyDescription } from '@/hooks/use-classify-description';
 import { useDeleteTransaction } from '@/hooks/use-delete-transaction';
 import { useTransaction } from '@/hooks/use-transaction';
 import { useUpdateTransaction } from '@/hooks/use-update-transaction';
@@ -23,6 +24,7 @@ export function useTransactionForm(transactionId?: string, initialDate?: string)
   const addTransaction = useAddTransaction();
   const updateTransaction = useUpdateTransaction();
   const deleteTransaction = useDeleteTransaction();
+  const { mutate: classifyDescription } = useClassifyDescription();
   const { data: existingTransaction, isLoading: isLoadingTransaction } =
     useTransaction(transactionId);
 
@@ -38,6 +40,8 @@ export function useTransactionForm(transactionId?: string, initialDate?: string)
   const [alertState, setAlertState] = useState<{ title: string; message: string } | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [prefilled, setPrefilled] = useState(false);
+  const userPickedCategoryRef = useRef(false);
+  const lastClassifiedDescriptionRef = useRef<string | null>(null);
 
   // Pre-fill form when editing an existing transaction
   useEffect(() => {
@@ -53,6 +57,33 @@ export function useTransactionForm(transactionId?: string, initialDate?: string)
 
     setPrefilled(true);
   }, [existingTransaction, categories, prefilled]);
+
+  useEffect(() => {
+    if (isEditMode) return;
+    if (userPickedCategoryRef.current) return;
+
+    const trimmed = description.trim();
+    if (!trimmed) return;
+    if (trimmed === lastClassifiedDescriptionRef.current) return;
+    if (!categories.length) return;
+
+    const timer = setTimeout(() => {
+      lastClassifiedDescriptionRef.current = trimmed;
+      classifyDescription(trimmed, {
+        onSuccess: (result) => {
+          if (userPickedCategoryRef.current) return;
+          const matched = categories.find((c) => c.id === result.category_id);
+          if (!matched) return;
+          setSelectedCategory(matched);
+          if (matched.type === 'income' || matched.type === 'expense') {
+            setType(matched.type);
+          }
+        },
+      });
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [description, categories, isEditMode, classifyDescription]);
 
   function handleTypeChange(newType: 'income' | 'expense') {
     setType(newType);
@@ -180,6 +211,7 @@ export function useTransactionForm(transactionId?: string, initialDate?: string)
   }
 
   function selectCategory(category: Tables<'categories'>) {
+    userPickedCategoryRef.current = true;
     setSelectedCategory(category);
     setShowCategoryPicker(false);
   }
