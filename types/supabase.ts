@@ -10,6 +10,7 @@ export type Database = {
     Tables: {
       ai_usage: {
         Row: {
+          cost: number | null;
           created_at: string;
           id: string;
           input_tokens: number | null;
@@ -20,6 +21,7 @@ export type Database = {
           user_id: string;
         };
         Insert: {
+          cost?: number | null;
           created_at?: string;
           id?: string;
           input_tokens?: number | null;
@@ -30,6 +32,7 @@ export type Database = {
           user_id: string;
         };
         Update: {
+          cost?: number | null;
           created_at?: string;
           id?: string;
           input_tokens?: number | null;
@@ -131,6 +134,33 @@ export type Database = {
           },
         ];
       };
+      exchange_rates: {
+        Row: {
+          base_currency: string;
+          fetched_at: string;
+          id: string;
+          quote_currency: string;
+          rate: number;
+          rate_date: string;
+        };
+        Insert: {
+          base_currency: string;
+          fetched_at?: string;
+          id?: string;
+          quote_currency: string;
+          rate: number;
+          rate_date: string;
+        };
+        Update: {
+          base_currency?: string;
+          fetched_at?: string;
+          id?: string;
+          quote_currency?: string;
+          rate?: number;
+          rate_date?: string;
+        };
+        Relationships: [];
+      };
       feature_subscriptions: {
         Row: {
           feature_id: string;
@@ -198,18 +228,21 @@ export type Database = {
       };
       features: {
         Row: {
+          bypass: boolean;
           description: string | null;
           flag: string;
           id: string;
           name: string;
         };
         Insert: {
+          bypass?: boolean;
           description?: string | null;
           flag: string;
           id?: string;
           name: string;
         };
         Update: {
+          bypass?: boolean;
           description?: string | null;
           flag?: string;
           id?: string;
@@ -270,8 +303,11 @@ export type Database = {
           amount: number;
           category_id: string;
           created_at: string | null;
+          currency: string;
           date: string;
           description: string | null;
+          home_amount: number;
+          home_currency: string;
           id: string;
           type: string;
           updated_at: string | null;
@@ -281,8 +317,11 @@ export type Database = {
           amount: number;
           category_id: string;
           created_at?: string | null;
+          currency?: string;
           date: string;
           description?: string | null;
+          home_amount: number;
+          home_currency?: string;
           id?: string;
           type: string;
           updated_at?: string | null;
@@ -292,8 +331,11 @@ export type Database = {
           amount?: number;
           category_id?: string;
           created_at?: string | null;
+          currency?: string;
           date?: string;
           description?: string | null;
+          home_amount?: number;
+          home_currency?: string;
           id?: string;
           type?: string;
           updated_at?: string | null;
@@ -319,6 +361,7 @@ export type Database = {
       users: {
         Row: {
           created_at: string | null;
+          currency: string;
           display_name: string;
           email: string;
           id: string;
@@ -330,6 +373,7 @@ export type Database = {
         };
         Insert: {
           created_at?: string | null;
+          currency?: string;
           display_name: string;
           email: string;
           id?: string;
@@ -341,6 +385,7 @@ export type Database = {
         };
         Update: {
           created_at?: string | null;
+          currency?: string;
           display_name?: string;
           email?: string;
           id?: string;

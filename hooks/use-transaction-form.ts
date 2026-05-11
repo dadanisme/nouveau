@@ -136,6 +136,7 @@ export function useTransactionForm(transactionId?: string, initialDate?: string)
         {
           id: transactionId,
           amount,
+          home_amount: amount,
           category_id: selectedCategory.id,
           date: toLocalDateString(date),
           description: description.trim() || null,
@@ -158,6 +159,7 @@ export function useTransactionForm(transactionId?: string, initialDate?: string)
       addTransaction.mutate(
         {
           amount,
+          home_amount: amount,
           category_id: selectedCategory.id,
           date: toLocalDateString(date),
           description: description.trim() || null,
