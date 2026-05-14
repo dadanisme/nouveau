@@ -12,11 +12,12 @@ export function useMyWorkspaces() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('workspaces')
-        .select('*')
+        .select('*, workspace_members!inner(user_id)')
+        .eq('workspace_members.user_id', userId!)
         .order('is_personal', { ascending: false })
         .order('created_at', { ascending: true });
       if (error) throw error;
-      return data;
+      return data.map(({ workspace_members: _, ...workspace }) => workspace);
     },
     enabled: !!userId,
   });

@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { ShareIntentProvider, useShareIntentContext } from 'expo-share-intent';
 import * as SplashScreen from 'expo-splash-screen';
+import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { Platform, StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -67,6 +68,7 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={styles.root}>
+      <StatusBar style="dark" />
       <LanguageProvider>
         <QueryClientProvider client={queryClient}>
           <ShareIntentProvider
