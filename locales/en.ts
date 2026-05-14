@@ -15,6 +15,7 @@ const en = {
     morning: 'Good morning',
     afternoon: 'Good afternoon',
     evening: 'Good evening',
+    fallbackName: 'there',
   },
   transactions: {
     noTransactions: 'No transactions',
@@ -22,6 +23,8 @@ const en = {
     income: 'Income',
     expense: 'Expense',
     others: 'Others',
+    previousMonth: 'Previous month',
+    nextMonth: 'Next month',
   },
   addTransaction: {
     addTransaction: 'Add Transaction',

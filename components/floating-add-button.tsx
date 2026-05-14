@@ -6,6 +6,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/button';
 import { colors, design } from '@/constants/colors';
+import { useLanguage } from '@/contexts/language';
+import { k } from '@/locales/keys';
 
 const FAB_SIZE = 64;
 
@@ -14,6 +16,7 @@ export const FAB_HEIGHT = FAB_SIZE + design.spacing.md;
 export function FloatingAddButton() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { t } = useLanguage();
 
   return (
     <View
@@ -25,6 +28,8 @@ export function FloatingAddButton() {
     >
       <Button
         variant="primary"
+        accessibilityLabel={t(k.addTransaction.addTransaction)}
+        accessibilityRole="button"
         onPress={() => {
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
           router.push('/add-transaction');

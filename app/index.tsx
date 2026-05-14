@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -17,8 +17,8 @@ import { TransactionGroupSkeleton } from '@/components/transaction-group-skeleto
 import { TransactionItem } from '@/components/transaction-item';
 import { colors, design } from '@/constants/colors';
 import { useLanguage } from '@/contexts/language';
-import { useSession, useUserProfile } from '@/hooks/use-auth';
 import { useDeleteConfirmation } from '@/hooks/use-delete-confirmation';
+import { useProfileHeader } from '@/hooks/use-profile-header';
 import {
   useTransactionsScreen,
   type FilterType,
@@ -26,7 +26,6 @@ import {
 } from '@/hooks/use-transactions-screen';
 import { k } from '@/locales/keys';
 import { formatCompactAmount } from '@/utils/currency';
-import { getGreeting } from '@/utils/greeting';
 import { toTransactionItemData } from '@/utils/transaction';
 
 const SWIPE_DISTANCE_THRESHOLD = 60;
@@ -37,12 +36,7 @@ export default function TransactionsScreen() {
   const router = useRouter();
   const { t } = useLanguage();
 
-  const { session } = useSession();
-  const { data: user } = useUserProfile(session?.user.id);
-  const displayName = user?.display_name ?? session?.user.user_metadata?.full_name ?? '';
-  const firstName = displayName.split(' ')[0] || 'there';
-  const profileImage = user?.profile_image ?? session?.user.user_metadata?.avatar_url;
-  const greeting = getGreeting();
+  const { displayName, firstName, profileImage, greeting } = useProfileHeader();
 
   const {
     monthLabel,
@@ -80,15 +74,15 @@ export default function TransactionsScreen() {
     router.push({ pathname: '/proof-viewer', params: { transactionId } });
   }
 
-  function onSwipeNext() {
+  const onSwipeNext = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     goToNextMonth();
-  }
+  }, [goToNextMonth]);
 
-  function onSwipePrev() {
+  const onSwipePrev = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     goToPreviousMonth();
-  }
+  }, [goToPreviousMonth]);
 
   const panGesture = useMemo(
     () =>
@@ -111,9 +105,7 @@ export default function TransactionsScreen() {
             scheduleOnRN(onSwipePrev);
           }
         }),
-    // We intentionally rebuild the gesture only when month-nav handlers change.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [goToNextMonth, goToPreviousMonth],
+    [onSwipeNext, onSwipePrev],
   );
 
   return (
@@ -147,6 +139,8 @@ export default function TransactionsScreen() {
             </View>
             <Button
               variant="outline"
+              accessibilityLabel={t(k.settings.title)}
+              accessibilityRole="button"
               onPress={() => router.push('/settings')}
               style={styles.settingsButton}
             >
@@ -154,14 +148,24 @@ export default function TransactionsScreen() {
             </Button>
           </View>
 
-          {/* Sticky Month Nav */}
+          {/* Sticky Month Nav — index 1 in stickyHeaderIndices below; keep position aligned */}
           <View style={styles.stickyMonthNavOuter}>
             <View style={styles.stickyMonthNavInner}>
-              <Pressable onPress={goToPreviousMonth} hitSlop={12}>
+              <Pressable
+                onPress={goToPreviousMonth}
+                hitSlop={12}
+                accessibilityRole="button"
+                accessibilityLabel={t(k.transactions.previousMonth)}
+              >
                 <Ionicons name="chevron-back" size={24} color={colors.gray[900]} />
               </Pressable>
               <Text style={styles.monthLabel}>{monthLabel}</Text>
-              <Pressable onPress={goToNextMonth} hitSlop={12}>
+              <Pressable
+                onPress={goToNextMonth}
+                hitSlop={12}
+                accessibilityRole="button"
+                accessibilityLabel={t(k.transactions.nextMonth)}
+              >
                 <Ionicons name="chevron-forward" size={24} color={colors.gray[900]} />
               </Pressable>
             </View>

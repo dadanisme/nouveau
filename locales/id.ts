@@ -17,6 +17,7 @@ const id: Translations = {
     morning: 'Selamat pagi',
     afternoon: 'Selamat siang',
     evening: 'Selamat malam',
+    fallbackName: 'kamu',
   },
   transactions: {
     noTransactions: 'Tidak ada transaksi',
@@ -24,6 +25,8 @@ const id: Translations = {
     income: 'Pemasukan',
     expense: 'Pengeluaran',
     others: 'Lainnya',
+    previousMonth: 'Bulan sebelumnya',
+    nextMonth: 'Bulan berikutnya',
   },
   addTransaction: {
     addTransaction: 'Tambah Transaksi',
