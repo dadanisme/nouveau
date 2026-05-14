@@ -15,14 +15,7 @@ const en = {
     morning: 'Good morning',
     afternoon: 'Good afternoon',
     evening: 'Good evening',
-  },
-  home: {
-    yourBalance: 'Your Balance',
-    income: 'Income',
-    expenses: 'Expenses',
-    topSpending: 'Top Spending This Month',
-    seeAll: 'See All',
-    noSpending: 'No spending this month',
+    fallbackName: 'there',
   },
   transactions: {
     noTransactions: 'No transactions',
@@ -30,6 +23,8 @@ const en = {
     income: 'Income',
     expense: 'Expense',
     others: 'Others',
+    previousMonth: 'Previous month',
+    nextMonth: 'Next month',
   },
   addTransaction: {
     addTransaction: 'Add Transaction',
@@ -173,14 +168,6 @@ const en = {
     edit: 'Edit',
     viewProofs: 'View Proofs',
     delete: 'Delete',
-  },
-  tabBar: {
-    home: 'Home',
-    transactions: 'Transactions',
-    dashboard: 'Dashboard',
-  },
-  dashboard: {
-    placeholder: 'Hello World - Dashboard',
   },
   currency: {
     prefix: 'Rp',

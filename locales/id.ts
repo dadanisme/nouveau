@@ -17,14 +17,7 @@ const id: Translations = {
     morning: 'Selamat pagi',
     afternoon: 'Selamat siang',
     evening: 'Selamat malam',
-  },
-  home: {
-    yourBalance: 'Saldo Anda',
-    income: 'Pemasukan',
-    expenses: 'Pengeluaran',
-    topSpending: 'Pengeluaran Teratas Bulan Ini',
-    seeAll: 'Lihat Semua',
-    noSpending: 'Tidak ada pengeluaran bulan ini',
+    fallbackName: 'kamu',
   },
   transactions: {
     noTransactions: 'Tidak ada transaksi',
@@ -32,6 +25,8 @@ const id: Translations = {
     income: 'Pemasukan',
     expense: 'Pengeluaran',
     others: 'Lainnya',
+    previousMonth: 'Bulan sebelumnya',
+    nextMonth: 'Bulan berikutnya',
   },
   addTransaction: {
     addTransaction: 'Tambah Transaksi',
@@ -176,14 +171,6 @@ const id: Translations = {
     edit: 'Edit',
     viewProofs: 'Lihat Bukti',
     delete: 'Hapus',
-  },
-  tabBar: {
-    home: 'Beranda',
-    transactions: 'Transaksi',
-    dashboard: 'Dasbor',
-  },
-  dashboard: {
-    placeholder: 'Halo Dunia - Dasbor',
   },
   currency: {
     prefix: 'Rp',

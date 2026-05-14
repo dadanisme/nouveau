@@ -46,7 +46,7 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
     if (!session && !inAuthGroup && !inShareIntent) {
       router.replace('/login');
     } else if (session && inAuthGroup) {
-      router.replace('/(tabs)');
+      router.replace('/');
     }
 
     const timeout = setTimeout(() => setIsNavigationReady(true), 50);
@@ -82,15 +82,29 @@ export default function RootLayout() {
                   <Stack>
                     <Stack.Screen
                       name="login"
-                      options={{ headerShown: false, animation: 'flip', animationDuration: 300 }}
+                      options={{
+                        headerShown: false,
+                        animation: 'flip',
+                        animationDuration: 300,
+                        gestureEnabled: false,
+                      }}
                     />
                     <Stack.Screen
                       name="signup"
-                      options={{ headerShown: false, animationDuration: 300 }}
+                      options={{
+                        headerShown: false,
+                        animationDuration: 300,
+                        gestureEnabled: false,
+                      }}
                     />
                     <Stack.Screen
-                      name="(tabs)"
-                      options={{ headerShown: false, animation: 'flip', animationDuration: 300 }}
+                      name="index"
+                      options={{
+                        headerShown: false,
+                        animation: 'flip',
+                        animationDuration: 300,
+                        gestureEnabled: false,
+                      }}
                     />
                     <Stack.Screen
                       name="add-transaction"
