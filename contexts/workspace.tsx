@@ -64,8 +64,13 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (!resolved) {
-        const { data: workspaces } = await supabase.from('workspaces').select('id');
-        resolved = workspaces?.find((w) => !recoveredStaleIdsRef.current.has(w.id))?.id ?? null;
+        const { data: memberships } = await supabase
+          .from('workspace_members')
+          .select('workspace_id')
+          .eq('user_id', userId);
+        resolved =
+          memberships?.find((m) => !recoveredStaleIdsRef.current.has(m.workspace_id))
+            ?.workspace_id ?? null;
       }
 
       if (cancelled) return;

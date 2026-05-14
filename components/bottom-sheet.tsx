@@ -24,14 +24,22 @@ export function BottomSheet({
   stackBehavior,
 }: BottomSheetProps) {
   const ref = useRef<BottomSheetModal>(null);
+  const presentedRef = useRef(false);
 
   useEffect(() => {
-    if (visible) {
+    if (visible && !presentedRef.current) {
+      presentedRef.current = true;
       ref.current?.present();
-    } else {
+    } else if (!visible && presentedRef.current) {
+      presentedRef.current = false;
       ref.current?.dismiss();
     }
   }, [visible]);
+
+  const handleDismiss = useCallback(() => {
+    presentedRef.current = false;
+    onDismiss();
+  }, [onDismiss]);
 
   const renderBackdrop = useCallback(
     (props: BottomSheetBackdropProps) => (
@@ -50,7 +58,7 @@ export function BottomSheet({
       ref={ref}
       snapPoints={snapPoints}
       enableDynamicSizing={!snapPoints}
-      onDismiss={onDismiss}
+      onDismiss={handleDismiss}
       stackBehavior={stackBehavior ?? 'replace'}
       backdropComponent={renderBackdrop}
       backgroundStyle={styles.background}

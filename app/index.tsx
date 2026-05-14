@@ -223,7 +223,11 @@ export default function TransactionsScreen() {
 
         <FloatingAddButton />
 
-        <BottomSheet visible={filterSheetVisible} onDismiss={() => setFilterSheetVisible(false)}>
+        <BottomSheet
+          visible={filterSheetVisible}
+          onDismiss={() => setFilterSheetVisible(false)}
+          snapPoints={['33%']}
+        >
           <BottomSheetView style={styles.filterSheet}>
             <Text style={styles.filterSheetTitle}>{t(k.transactions.filter)}</Text>
             {FILTERS.map((filter, index) => {
