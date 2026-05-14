@@ -64,11 +64,10 @@ Uses **TanStack React Query** for all Supabase data operations. Hooks live in `h
 
 ### Utilities
 
-Pure functions live in `utils/`. Note: `greeting.ts`, `currency.ts`, and `date.ts` depend on `i18n` for locale-aware formatting.
+Pure functions live in `utils/`. Note: `currency.ts` and `date.ts` depend on `i18n` for locale-aware formatting.
 
 - `utils/date.ts` — `isSameDay`, `getDaysInMonth`, `getFirstDayOfWeek`, `formatShortDate` (locale-aware)
 - `utils/string.ts` — `getInitials`
-- `utils/greeting.ts` — `getGreeting` (returns localized greeting via `i18n`)
 - `utils/currency.ts` — `processAmountKeyPress`, `formatDisplayAmount`, `formatCompactAmount`, `formatCurrency` (use `i18n` for prefix/suffixes)
 
 Conventions:
