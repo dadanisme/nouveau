@@ -29,27 +29,21 @@ No test framework is configured yet.
 
 ### Routing
 
-File-based routing via Expo Router. Routes live in `app/`:
+File-based routing via Expo Router. The app is a single-screen experience (no tab bar). Routes live in `app/`:
 
 - `app/_layout.tsx` — Root Stack navigator
-- `app/(tabs)/_layout.tsx` — Custom tab bar via `Tabs` + `<TabBar>` component
-- `app/(tabs)/index.tsx` — Home tab
-- `app/(tabs)/transactions.tsx` — Transactions tab
-- `app/(tabs)/dashboard.tsx` — Dashboard tab
-- `app/add-transaction.tsx` — Add Transaction (Stack push from tab bar action button)
-- `app/settings.tsx` — Settings screen (Stack push from home)
+- `app/index.tsx` — Transactions screen (default landing route). Includes a profile header, a sticky month/period nav, filters, spend breakdown, transaction groups, and a floating Add button. Whole screen supports horizontal swipe for month navigation (swipe left → next month, swipe right → previous month).
+- `app/add-transaction.tsx` — Add/edit Transaction (Stack push)
+- `app/settings.tsx` — Settings screen (Stack push from the profile header)
+- `app/categories.tsx`, `app/subscriptions.tsx`, `app/proof-viewer.tsx`, `app/shareintent.tsx`, `app/login.tsx`, `app/signup.tsx`
 
-Route groups use parentheses `(tabs)` — they organize routes without affecting URL paths.
+`AuthGuard` (in `app/_layout.tsx`) redirects authenticated users to `/` and unauthenticated users to `/login`.
 
-### Tab Bar
+### Floating Add Button
 
-Custom floating tab bar (`components/tab-bar.tsx`) — black rounded bar with:
+`components/floating-add-button.tsx` — bottom-centered amber FAB used in place of a tab bar. Wraps the shared `<Button variant="primary">`, applies safe-area-aware `bottom` insets, and pushes `/add-transaction` on press.
 
-- Icon-only tabs for Home, Transactions, Dashboard (active = amber bg)
-- Always-expanded "Add" action tab with icon + label
-- Absolute positioning (floats over content)
-
-**Important**: The tab bar is `position: absolute`, so scrollable tab screens **must** include bottom padding using `TAB_BAR_HEIGHT` (exported from `@/components/tab-bar`) to prevent content from being hidden behind the bar. Example: `paddingBottom: TAB_BAR_HEIGHT + design.spacing.lg`
+**Important**: The FAB is `position: absolute`, so scrollable screens **must** include bottom padding using `FAB_HEIGHT` (exported from `@/components/floating-add-button`) to prevent content from being hidden behind it. Example: `paddingBottom: FAB_HEIGHT + insets.bottom + design.spacing.lg`
 
 ### State Management
 
@@ -64,7 +58,7 @@ Uses **TanStack React Query** for all Supabase data operations. Hooks live in `h
 
 **Screen/component hooks** (encapsulate business logic so components only render):
 
-- `hooks/use-home-screen.ts` — `useHomeScreen()` — user data derivation, greeting, dummy data
+- `hooks/use-transactions-screen.ts` — `useTransactionsScreen()` — month nav, totals, expense breakdown, grouped transactions, filter state
 - `hooks/use-transaction-form.ts` — `useTransactionForm()` — all form state, validation, key press handling, submission, picker toggling
 - `hooks/use-calendar.ts` — `useCalendar(opts)` — month navigation state, grid cell computation
 

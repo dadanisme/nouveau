@@ -18,14 +18,6 @@ const id: Translations = {
     afternoon: 'Selamat siang',
     evening: 'Selamat malam',
   },
-  home: {
-    yourBalance: 'Saldo Anda',
-    income: 'Pemasukan',
-    expenses: 'Pengeluaran',
-    topSpending: 'Pengeluaran Teratas Bulan Ini',
-    seeAll: 'Lihat Semua',
-    noSpending: 'Tidak ada pengeluaran bulan ini',
-  },
   transactions: {
     noTransactions: 'Tidak ada transaksi',
     all: 'Semua',
@@ -176,14 +168,6 @@ const id: Translations = {
     edit: 'Edit',
     viewProofs: 'Lihat Bukti',
     delete: 'Hapus',
-  },
-  tabBar: {
-    home: 'Beranda',
-    transactions: 'Transaksi',
-    dashboard: 'Dasbor',
-  },
-  dashboard: {
-    placeholder: 'Halo Dunia - Dasbor',
   },
   currency: {
     prefix: 'Rp',

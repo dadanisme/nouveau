@@ -61,17 +61,16 @@ A personal finance tracker built with Expo and React Native. Track your income a
 ```
 app/
   _layout.tsx              # Root Stack navigator
+  index.tsx                # Transactions (default landing screen)
   login.tsx                # Login screen
   signup.tsx               # Sign-up screen
   add-transaction.tsx      # Add/edit transaction screen
   categories.tsx           # Category management
+  subscriptions.tsx        # Subscriptions screen
+  proof-viewer.tsx         # Receipt proof viewer
   settings.tsx             # Settings screen
-  (tabs)/
-    _layout.tsx            # Tab bar layout
-    index.tsx              # Home tab
-    transactions.tsx       # Transactions tab
-    dashboard.tsx          # Dashboard tab
-components/                # Reusable UI components
+  shareintent.tsx          # Share-intent landing
+components/                # Reusable UI components (incl. floating-add-button)
 contexts/                  # React contexts (language provider)
 hooks/                     # React Query hooks & screen logic
 locales/                   # Translation files (en, id) + auto-generated key constants (keys.ts)
