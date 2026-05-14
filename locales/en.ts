@@ -11,12 +11,6 @@ const en = {
     income: 'Income',
     expense: 'Expense',
   },
-  greeting: {
-    morning: 'Good morning',
-    afternoon: 'Good afternoon',
-    evening: 'Good evening',
-    fallbackName: 'there',
-  },
   transactions: {
     noTransactions: 'No transactions',
     all: 'All',

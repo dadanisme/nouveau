@@ -13,12 +13,6 @@ const id: Translations = {
     income: 'Pemasukan',
     expense: 'Pengeluaran',
   },
-  greeting: {
-    morning: 'Selamat pagi',
-    afternoon: 'Selamat siang',
-    evening: 'Selamat malam',
-    fallbackName: 'kamu',
-  },
   transactions: {
     noTransactions: 'Tidak ada transaksi',
     all: 'Semua',

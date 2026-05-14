@@ -32,6 +32,7 @@ export function useTransactionsScreen() {
   const [view, setView] = useState({ year: now.getFullYear(), month: now.getMonth() });
   const { year: viewYear, month: viewMonth } = view;
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
+  const [filterSheetVisible, setFilterSheetVisible] = useState(false);
 
   // Unfiltered query for totals (deduplicated with filtered when activeFilter === 'all')
   const allQuery = useTransactions(userId, viewYear, viewMonth);
@@ -161,6 +162,8 @@ export function useTransactionsScreen() {
     monthLabel,
     activeFilter,
     setActiveFilter,
+    filterSheetVisible,
+    setFilterSheetVisible,
     totals,
     expenseCategoryBreakdown,
     groupedTransactions,

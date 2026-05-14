@@ -2,7 +2,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { BottomSheetView } from '@gorhom/bottom-sheet';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -40,6 +40,8 @@ export default function TransactionsScreen() {
     monthLabel,
     activeFilter,
     setActiveFilter,
+    filterSheetVisible,
+    setFilterSheetVisible,
     totals,
     expenseCategoryBreakdown,
     groupedTransactions,
@@ -50,8 +52,6 @@ export default function TransactionsScreen() {
     refetch,
   } = useTransactionsScreen();
   const { requestDelete, deleteConfirmAlert } = useDeleteConfirmation();
-
-  const [filterSheetVisible, setFilterSheetVisible] = useState(false);
 
   const FILTERS: { key: FilterType; label: string }[] = useMemo(
     () => [
@@ -231,6 +231,9 @@ export default function TransactionsScreen() {
               return (
                 <Pressable
                   key={filter.key}
+                  accessibilityRole="button"
+                  accessibilityLabel={filter.label}
+                  accessibilityState={{ selected: isActive }}
                   style={[
                     styles.filterSheetItem,
                     index < FILTERS.length - 1 && styles.filterSheetItemBorder,
