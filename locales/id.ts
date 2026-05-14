@@ -27,6 +27,7 @@ const id: Translations = {
     others: 'Lainnya',
     previousMonth: 'Bulan sebelumnya',
     nextMonth: 'Bulan berikutnya',
+    filter: 'Filter',
   },
   addTransaction: {
     addTransaction: 'Tambah Transaksi',

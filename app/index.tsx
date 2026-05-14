@@ -1,13 +1,14 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { BottomSheetView } from '@gorhom/bottom-sheet';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { scheduleOnRN } from 'react-native-worklets';
 
-import { Avatar } from '@/components/avatar';
+import { BottomSheet } from '@/components/bottom-sheet';
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
 import { FAB_HEIGHT, FloatingAddButton } from '@/components/floating-add-button';
@@ -18,7 +19,6 @@ import { TransactionItem } from '@/components/transaction-item';
 import { colors, design } from '@/constants/colors';
 import { useLanguage } from '@/contexts/language';
 import { useDeleteConfirmation } from '@/hooks/use-delete-confirmation';
-import { useProfileHeader } from '@/hooks/use-profile-header';
 import {
   useTransactionsScreen,
   type FilterType,
@@ -36,8 +36,6 @@ export default function TransactionsScreen() {
   const router = useRouter();
   const { t } = useLanguage();
 
-  const { displayName, firstName, profileImage, greeting } = useProfileHeader();
-
   const {
     monthLabel,
     activeFilter,
@@ -52,6 +50,8 @@ export default function TransactionsScreen() {
     refetch,
   } = useTransactionsScreen();
   const { requestDelete, deleteConfirmAlert } = useDeleteConfirmation();
+
+  const [filterSheetVisible, setFilterSheetVisible] = useState(false);
 
   const FILTERS: { key: FilterType; label: string }[] = useMemo(
     () => [
@@ -108,6 +108,8 @@ export default function TransactionsScreen() {
     [onSwipeNext, onSwipePrev],
   );
 
+  const isFilterActive = activeFilter !== 'all';
+
   return (
     <GestureDetector gesture={panGesture}>
       <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -117,7 +119,7 @@ export default function TransactionsScreen() {
             styles.contentContainer,
             { paddingBottom: FAB_HEIGHT + insets.bottom + design.spacing.lg },
           ]}
-          stickyHeaderIndices={[1]}
+          stickyHeaderIndices={[0]}
           showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl
@@ -128,66 +130,53 @@ export default function TransactionsScreen() {
             />
           }
         >
-          {/* Profile Header */}
-          <View style={styles.profileHeader}>
-            <View style={styles.profileLeft}>
-              <Avatar uri={profileImage} name={displayName} size={48} />
-              <View>
-                <Text style={styles.greeting}>{greeting},</Text>
-                <Text style={styles.name}>{firstName}</Text>
-              </View>
-            </View>
-            <Button
-              variant="outline"
-              accessibilityLabel={t(k.settings.title)}
-              accessibilityRole="button"
-              onPress={() => router.push('/settings')}
-              style={styles.settingsButton}
-            >
-              <Ionicons name="settings-outline" size={22} color={colors.gray[900]} />
-            </Button>
-          </View>
-
-          {/* Sticky Month Nav — index 1 in stickyHeaderIndices below; keep position aligned */}
-          <View style={styles.stickyMonthNavOuter}>
-            <View style={styles.stickyMonthNavInner}>
-              <Pressable
-                onPress={goToPreviousMonth}
-                hitSlop={12}
+          {/* Sticky Header — Filter | Month Nav | Settings */}
+          <View style={styles.stickyHeaderOuter}>
+            <View style={styles.stickyHeaderInner}>
+              <Button
+                variant="outline"
+                accessibilityLabel={t(k.transactions.filter)}
                 accessibilityRole="button"
-                accessibilityLabel={t(k.transactions.previousMonth)}
+                onPress={() => setFilterSheetVisible(true)}
+                style={styles.iconButton}
               >
-                <Ionicons name="chevron-back" size={24} color={colors.gray[900]} />
-              </Pressable>
-              <Text style={styles.monthLabel}>{monthLabel}</Text>
-              <Pressable
-                onPress={goToNextMonth}
-                hitSlop={12}
-                accessibilityRole="button"
-                accessibilityLabel={t(k.transactions.nextMonth)}
-              >
-                <Ionicons name="chevron-forward" size={24} color={colors.gray[900]} />
-              </Pressable>
-            </View>
-          </View>
+                <Ionicons
+                  name={isFilterActive ? 'funnel' : 'funnel-outline'}
+                  size={20}
+                  color={colors.gray[900]}
+                />
+              </Button>
 
-          {/* Filter Tabs */}
-          <View style={styles.filterRow}>
-            {FILTERS.map((filter) => {
-              const isActive = activeFilter === filter.key;
-              return (
-                <Button
-                  key={filter.key}
-                  variant={isActive ? 'primary' : 'outline'}
-                  onPress={() => setActiveFilter(filter.key)}
-                  style={styles.filterTab}
+              <View style={styles.monthNav}>
+                <Pressable
+                  onPress={goToPreviousMonth}
+                  hitSlop={12}
+                  accessibilityRole="button"
+                  accessibilityLabel={t(k.transactions.previousMonth)}
                 >
-                  <Text style={[styles.filterLabel, isActive && styles.filterLabelActive]}>
-                    {filter.label}
-                  </Text>
-                </Button>
-              );
-            })}
+                  <Ionicons name="chevron-back" size={24} color={colors.gray[900]} />
+                </Pressable>
+                <Text style={styles.monthLabel}>{monthLabel}</Text>
+                <Pressable
+                  onPress={goToNextMonth}
+                  hitSlop={12}
+                  accessibilityRole="button"
+                  accessibilityLabel={t(k.transactions.nextMonth)}
+                >
+                  <Ionicons name="chevron-forward" size={24} color={colors.gray[900]} />
+                </Pressable>
+              </View>
+
+              <Button
+                variant="outline"
+                accessibilityLabel={t(k.settings.title)}
+                accessibilityRole="button"
+                onPress={() => router.push('/settings')}
+                style={styles.iconButton}
+              >
+                <Ionicons name="settings-outline" size={22} color={colors.gray[900]} />
+              </Button>
+            </View>
           </View>
 
           {/* Summary + Spend Breakdown */}
@@ -233,6 +222,38 @@ export default function TransactionsScreen() {
         </ScrollView>
 
         <FloatingAddButton />
+
+        <BottomSheet visible={filterSheetVisible} onDismiss={() => setFilterSheetVisible(false)}>
+          <BottomSheetView style={styles.filterSheet}>
+            <Text style={styles.filterSheetTitle}>{t(k.transactions.filter)}</Text>
+            {FILTERS.map((filter, index) => {
+              const isActive = activeFilter === filter.key;
+              return (
+                <Pressable
+                  key={filter.key}
+                  style={[
+                    styles.filterSheetItem,
+                    index < FILTERS.length - 1 && styles.filterSheetItemBorder,
+                  ]}
+                  onPress={() => {
+                    setActiveFilter(filter.key);
+                    setFilterSheetVisible(false);
+                  }}
+                >
+                  <Text
+                    style={[styles.filterSheetLabel, isActive && styles.filterSheetLabelActive]}
+                  >
+                    {filter.label}
+                  </Text>
+                  {isActive && (
+                    <Ionicons name="checkmark" size={22} color={colors.primary.DEFAULT} />
+                  )}
+                </Pressable>
+              );
+            })}
+            <View style={styles.filterSheetBottomPad} />
+          </BottomSheetView>
+        </BottomSheet>
 
         {deleteConfirmAlert}
       </View>
@@ -305,42 +326,28 @@ const styles = StyleSheet.create({
     paddingHorizontal: design.spacing.lg,
     paddingTop: design.spacing.md,
   },
-  profileHeader: {
+  stickyHeaderOuter: {
+    backgroundColor: colors.background,
+    paddingVertical: design.spacing.sm,
+    paddingHorizontal: design.spacing.lg,
+    marginHorizontal: -design.spacing.lg,
+    marginBottom: design.spacing.lg,
+  },
+  stickyHeaderInner: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: design.spacing.lg,
+    gap: design.spacing.sm,
   },
-  profileLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: design.spacing.sm + 4,
-  },
-  greeting: {
-    fontSize: design.fontSize.sm,
-    color: colors.gray[500],
-    fontWeight: '500',
-  },
-  name: {
-    fontSize: design.fontSize.xl,
-    fontWeight: '800',
-    color: colors.gray[900],
-  },
-  settingsButton: {
+  iconButton: {
     width: 44,
     height: 44,
     paddingVertical: 0,
     paddingHorizontal: 0,
     borderRadius: design.radius.sm,
   },
-  stickyMonthNavOuter: {
-    backgroundColor: colors.background,
-    paddingVertical: design.spacing.sm,
-    paddingHorizontal: design.spacing.lg,
-    marginHorizontal: -design.spacing.lg,
-    marginBottom: design.spacing.md,
-  },
-  stickyMonthNavInner: {
+  monthNav: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -349,23 +356,6 @@ const styles = StyleSheet.create({
   monthLabel: {
     fontSize: design.fontSize.lg,
     fontWeight: '800',
-    color: colors.gray[900],
-  },
-  filterRow: {
-    flexDirection: 'row',
-    gap: design.spacing.sm,
-    marginBottom: design.spacing.lg,
-  },
-  filterTab: {
-    paddingHorizontal: design.spacing.md,
-    paddingVertical: design.spacing.sm,
-  },
-  filterLabel: {
-    fontSize: design.fontSize.sm,
-    fontWeight: '700',
-    color: colors.gray[500],
-  },
-  filterLabelActive: {
     color: colors.gray[900],
   },
   dateGroup: {
@@ -408,5 +398,36 @@ const styles = StyleSheet.create({
     fontSize: design.fontSize.md,
     fontWeight: '600',
     color: colors.gray[400],
+  },
+  filterSheet: {
+    paddingHorizontal: design.spacing.lg,
+    paddingTop: design.spacing.sm,
+  },
+  filterSheetTitle: {
+    fontSize: design.fontSize.lg,
+    fontWeight: '800',
+    color: colors.gray[900],
+    paddingVertical: design.spacing.sm,
+  },
+  filterSheetItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: design.spacing.md,
+  },
+  filterSheetItemBorder: {
+    borderBottomWidth: 1,
+    borderBottomColor: colors.gray[200],
+  },
+  filterSheetLabel: {
+    fontSize: design.fontSize.md,
+    fontWeight: '700',
+    color: colors.gray[700],
+  },
+  filterSheetLabelActive: {
+    color: colors.gray[900],
+  },
+  filterSheetBottomPad: {
+    height: design.spacing.lg,
   },
 });

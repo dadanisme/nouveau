@@ -25,6 +25,7 @@ const en = {
     others: 'Others',
     previousMonth: 'Previous month',
     nextMonth: 'Next month',
+    filter: 'Filter',
   },
   addTransaction: {
     addTransaction: 'Add Transaction',
