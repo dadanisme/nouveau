@@ -10,6 +10,8 @@
     "web": "expo start --web",
     "lint": "expo lint",
     "prebuild": "expo prebuild",
+    "apk:debug": "cd android && ./gradlew assembleDebug",
+    "apk:release": "cd android && ./gradlew assembleRelease",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "supabase:gen-types": "supabase gen types --project-id hsoxjmdfnnxyribqskjl > types/supabase.ts && prettier --write types/supabase.ts",
