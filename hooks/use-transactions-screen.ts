@@ -29,8 +29,8 @@ export function useTransactionsScreen() {
   const userId = session?.user.id;
 
   const now = new Date();
-  const [viewYear, setViewYear] = useState(now.getFullYear());
-  const [viewMonth, setViewMonth] = useState(now.getMonth());
+  const [view, setView] = useState({ year: now.getFullYear(), month: now.getMonth() });
+  const { year: viewYear, month: viewMonth } = view;
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
 
   // Unfiltered query for totals (deduplicated with filtered when activeFilter === 'all')
@@ -146,23 +146,15 @@ export function useTransactionsScreen() {
   }, [filteredTransactions]);
 
   const goToPreviousMonth = useCallback(() => {
-    setViewMonth((m) => {
-      if (m === 0) {
-        setViewYear((y) => y - 1);
-        return 11;
-      }
-      return m - 1;
-    });
+    setView(({ year, month }) =>
+      month === 0 ? { year: year - 1, month: 11 } : { year, month: month - 1 },
+    );
   }, []);
 
   const goToNextMonth = useCallback(() => {
-    setViewMonth((m) => {
-      if (m === 11) {
-        setViewYear((y) => y + 1);
-        return 0;
-      }
-      return m + 1;
-    });
+    setView(({ year, month }) =>
+      month === 11 ? { year: year + 1, month: 0 } : { year, month: month + 1 },
+    );
   }, []);
 
   return {
