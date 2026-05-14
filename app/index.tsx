@@ -332,6 +332,8 @@ const styles = StyleSheet.create({
   stickyMonthNavOuter: {
     backgroundColor: colors.background,
     paddingVertical: design.spacing.sm,
+    paddingHorizontal: design.spacing.lg,
+    marginHorizontal: -design.spacing.lg,
     marginBottom: design.spacing.md,
   },
   stickyMonthNavInner: {
