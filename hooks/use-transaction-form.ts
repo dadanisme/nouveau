@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { Keyboard } from 'react-native';
 
+import { useWorkspace } from '@/contexts/workspace';
 import { useAddTransaction } from '@/hooks/use-add-transaction';
 import { useSession } from '@/hooks/use-auth';
 import i18n from '@/lib/i18n';
@@ -19,8 +20,9 @@ import { toLocalDateString } from '@/utils/date';
 export function useTransactionForm(transactionId?: string, initialDate?: string) {
   const router = useRouter();
   const { session } = useSession();
+  const { currentWorkspaceId } = useWorkspace();
 
-  const { data: categories = [] } = useCategories(session?.user.id);
+  const { data: categories = [] } = useCategories(currentWorkspaceId);
   const addTransaction = useAddTransaction();
   const updateTransaction = useUpdateTransaction();
   const deleteTransaction = useDeleteTransaction();
@@ -129,7 +131,7 @@ export function useTransactionForm(transactionId?: string, initialDate?: string)
     }
 
     const userId = session?.user.id;
-    if (!userId) return;
+    if (!currentWorkspaceId || !userId) return;
 
     if (isEditMode) {
       updateTransaction.mutate(
@@ -165,6 +167,7 @@ export function useTransactionForm(transactionId?: string, initialDate?: string)
           description: description.trim() || null,
           type,
           user_id: userId,
+          workspace_id: currentWorkspaceId,
         },
         {
           onSuccess: () => {

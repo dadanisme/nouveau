@@ -8,6 +8,159 @@ export type Database = {
   };
   public: {
     Tables: {
+      _backup_categories_20260514: {
+        Row: {
+          color: string | null;
+          created_at: string | null;
+          icon: string | null;
+          id: string | null;
+          is_default: boolean | null;
+          name: string | null;
+          type: string | null;
+          updated_at: string | null;
+          user_id: string | null;
+        };
+        Insert: {
+          color?: string | null;
+          created_at?: string | null;
+          icon?: string | null;
+          id?: string | null;
+          is_default?: boolean | null;
+          name?: string | null;
+          type?: string | null;
+          updated_at?: string | null;
+          user_id?: string | null;
+        };
+        Update: {
+          color?: string | null;
+          created_at?: string | null;
+          icon?: string | null;
+          id?: string | null;
+          is_default?: boolean | null;
+          name?: string | null;
+          type?: string | null;
+          updated_at?: string | null;
+          user_id?: string | null;
+        };
+        Relationships: [];
+      };
+      _backup_receipt_proofs_20260514: {
+        Row: {
+          created_at: string | null;
+          filename: string | null;
+          id: string | null;
+          mime_type: string | null;
+          r2_key: string | null;
+          size_bytes: number | null;
+          transaction_id: string | null;
+          user_id: string | null;
+        };
+        Insert: {
+          created_at?: string | null;
+          filename?: string | null;
+          id?: string | null;
+          mime_type?: string | null;
+          r2_key?: string | null;
+          size_bytes?: number | null;
+          transaction_id?: string | null;
+          user_id?: string | null;
+        };
+        Update: {
+          created_at?: string | null;
+          filename?: string | null;
+          id?: string | null;
+          mime_type?: string | null;
+          r2_key?: string | null;
+          size_bytes?: number | null;
+          transaction_id?: string | null;
+          user_id?: string | null;
+        };
+        Relationships: [];
+      };
+      _backup_transactions_20260514: {
+        Row: {
+          amount: number | null;
+          category_id: string | null;
+          created_at: string | null;
+          currency: string | null;
+          date: string | null;
+          description: string | null;
+          home_amount: number | null;
+          home_currency: string | null;
+          id: string | null;
+          type: string | null;
+          updated_at: string | null;
+          user_id: string | null;
+        };
+        Insert: {
+          amount?: number | null;
+          category_id?: string | null;
+          created_at?: string | null;
+          currency?: string | null;
+          date?: string | null;
+          description?: string | null;
+          home_amount?: number | null;
+          home_currency?: string | null;
+          id?: string | null;
+          type?: string | null;
+          updated_at?: string | null;
+          user_id?: string | null;
+        };
+        Update: {
+          amount?: number | null;
+          category_id?: string | null;
+          created_at?: string | null;
+          currency?: string | null;
+          date?: string | null;
+          description?: string | null;
+          home_amount?: number | null;
+          home_currency?: string | null;
+          id?: string | null;
+          type?: string | null;
+          updated_at?: string | null;
+          user_id?: string | null;
+        };
+        Relationships: [];
+      };
+      _backup_users_20260514: {
+        Row: {
+          created_at: string | null;
+          currency: string | null;
+          display_name: string | null;
+          email: string | null;
+          id: string | null;
+          profile_image: string | null;
+          role: string | null;
+          role_updated_by: string | null;
+          theme: string | null;
+          updated_at: string | null;
+        };
+        Insert: {
+          created_at?: string | null;
+          currency?: string | null;
+          display_name?: string | null;
+          email?: string | null;
+          id?: string | null;
+          profile_image?: string | null;
+          role?: string | null;
+          role_updated_by?: string | null;
+          theme?: string | null;
+          updated_at?: string | null;
+        };
+        Update: {
+          created_at?: string | null;
+          currency?: string | null;
+          display_name?: string | null;
+          email?: string | null;
+          id?: string | null;
+          profile_image?: string | null;
+          role?: string | null;
+          role_updated_by?: string | null;
+          theme?: string | null;
+          updated_at?: string | null;
+        };
+        Relationships: [];
+      };
       ai_usage: {
         Row: {
           cost: number | null;
@@ -63,6 +216,7 @@ export type Database = {
           type: string;
           updated_at: string | null;
           user_id: string;
+          workspace_id: string;
         };
         Insert: {
           color: string;
@@ -74,6 +228,7 @@ export type Database = {
           type: string;
           updated_at?: string | null;
           user_id: string;
+          workspace_id: string;
         };
         Update: {
           color?: string;
@@ -85,6 +240,7 @@ export type Database = {
           type?: string;
           updated_at?: string | null;
           user_id?: string;
+          workspace_id?: string;
         };
         Relationships: [
           {
@@ -92,6 +248,13 @@ export type Database = {
             columns: ['user_id'];
             isOneToOne: false;
             referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'categories_workspace_id_fkey';
+            columns: ['workspace_id'];
+            isOneToOne: false;
+            referencedRelation: 'workspaces';
             referencedColumns: ['id'];
           },
         ];
@@ -260,6 +423,7 @@ export type Database = {
           size_bytes: number | null;
           transaction_id: string;
           user_id: string;
+          workspace_id: string;
         };
         Insert: {
           created_at?: string | null;
@@ -270,6 +434,7 @@ export type Database = {
           size_bytes?: number | null;
           transaction_id: string;
           user_id: string;
+          workspace_id: string;
         };
         Update: {
           created_at?: string | null;
@@ -280,6 +445,7 @@ export type Database = {
           size_bytes?: number | null;
           transaction_id?: string;
           user_id?: string;
+          workspace_id?: string;
         };
         Relationships: [
           {
@@ -294,6 +460,13 @@ export type Database = {
             columns: ['user_id'];
             isOneToOne: false;
             referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'receipt_proofs_workspace_id_fkey';
+            columns: ['workspace_id'];
+            isOneToOne: false;
+            referencedRelation: 'workspaces';
             referencedColumns: ['id'];
           },
         ];
@@ -312,6 +485,7 @@ export type Database = {
           type: string;
           updated_at: string | null;
           user_id: string;
+          workspace_id: string;
         };
         Insert: {
           amount: number;
@@ -326,6 +500,7 @@ export type Database = {
           type: string;
           updated_at?: string | null;
           user_id: string;
+          workspace_id: string;
         };
         Update: {
           amount?: number;
@@ -340,6 +515,7 @@ export type Database = {
           type?: string;
           updated_at?: string | null;
           user_id?: string;
+          workspace_id?: string;
         };
         Relationships: [
           {
@@ -356,10 +532,18 @@ export type Database = {
             referencedRelation: 'users';
             referencedColumns: ['id'];
           },
+          {
+            foreignKeyName: 'transactions_workspace_id_fkey';
+            columns: ['workspace_id'];
+            isOneToOne: false;
+            referencedRelation: 'workspaces';
+            referencedColumns: ['id'];
+          },
         ];
       };
       users: {
         Row: {
+          active_workspace_id: string | null;
           created_at: string | null;
           currency: string;
           display_name: string;
@@ -372,6 +556,7 @@ export type Database = {
           updated_at: string | null;
         };
         Insert: {
+          active_workspace_id?: string | null;
           created_at?: string | null;
           currency?: string;
           display_name: string;
@@ -384,6 +569,7 @@ export type Database = {
           updated_at?: string | null;
         };
         Update: {
+          active_workspace_id?: string | null;
           created_at?: string | null;
           currency?: string;
           display_name?: string;
@@ -396,6 +582,13 @@ export type Database = {
           updated_at?: string | null;
         };
         Relationships: [
+          {
+            foreignKeyName: 'users_active_workspace_id_fkey';
+            columns: ['active_workspace_id'];
+            isOneToOne: false;
+            referencedRelation: 'workspaces';
+            referencedColumns: ['id'];
+          },
           {
             foreignKeyName: 'users_role_updated_by_fkey';
             columns: ['role_updated_by'];
@@ -423,11 +616,159 @@ export type Database = {
         };
         Relationships: [];
       };
+      workspace_invites: {
+        Row: {
+          accepted_at: string | null;
+          accepted_by: string | null;
+          created_at: string;
+          email: string;
+          expires_at: string;
+          id: string;
+          invited_by: string;
+          status: string;
+          token: string;
+          workspace_id: string;
+        };
+        Insert: {
+          accepted_at?: string | null;
+          accepted_by?: string | null;
+          created_at?: string;
+          email: string;
+          expires_at: string;
+          id?: string;
+          invited_by: string;
+          status?: string;
+          token: string;
+          workspace_id: string;
+        };
+        Update: {
+          accepted_at?: string | null;
+          accepted_by?: string | null;
+          created_at?: string;
+          email?: string;
+          expires_at?: string;
+          id?: string;
+          invited_by?: string;
+          status?: string;
+          token?: string;
+          workspace_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'workspace_invites_accepted_by_fkey';
+            columns: ['accepted_by'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'workspace_invites_invited_by_fkey';
+            columns: ['invited_by'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'workspace_invites_workspace_id_fkey';
+            columns: ['workspace_id'];
+            isOneToOne: false;
+            referencedRelation: 'workspaces';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      workspace_members: {
+        Row: {
+          joined_at: string;
+          role: string;
+          user_id: string;
+          workspace_id: string;
+        };
+        Insert: {
+          joined_at?: string;
+          role?: string;
+          user_id: string;
+          workspace_id: string;
+        };
+        Update: {
+          joined_at?: string;
+          role?: string;
+          user_id?: string;
+          workspace_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'workspace_members_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'workspace_members_workspace_id_fkey';
+            columns: ['workspace_id'];
+            isOneToOne: false;
+            referencedRelation: 'workspaces';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      workspaces: {
+        Row: {
+          created_at: string;
+          home_currency: string;
+          id: string;
+          is_personal: boolean;
+          name: string;
+          owner_id: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          home_currency?: string;
+          id?: string;
+          is_personal?: boolean;
+          name: string;
+          owner_id: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          home_currency?: string;
+          id?: string;
+          is_personal?: boolean;
+          name?: string;
+          owner_id?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'workspaces_owner_id_fkey';
+            columns: ['owner_id'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
     };
     Views: {
       [_ in never]: never;
     };
     Functions: {
+      accept_workspace_invite: { Args: { token: string }; Returns: string };
+      create_workspace: {
+        Args: { home_currency?: string; name: string };
+        Returns: string;
+      };
+      create_workspace_invite: {
+        Args: { email: string; expires_in_hours?: number; workspace_id: string };
+        Returns: {
+          expires_at: string;
+          id: string;
+          token: string;
+        }[];
+      };
       get_balance: { Args: { uid: string }; Returns: number };
       get_monthly_totals: {
         Args: { end_date: string; start_date: string; uid: string };
@@ -436,7 +777,16 @@ export type Database = {
           income: number;
         }[];
       };
+      get_workspace_balance: { Args: { workspace: string }; Returns: number };
+      get_workspace_monthly_totals: {
+        Args: { end_date: string; start_date: string; workspace: string };
+        Returns: {
+          expense: number;
+          income: number;
+        }[];
+      };
       is_admin: { Args: never; Returns: boolean };
+      is_workspace_member: { Args: { workspace: string }; Returns: boolean };
     };
     Enums: {
       [_ in never]: never;

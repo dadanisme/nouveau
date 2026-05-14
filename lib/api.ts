@@ -1,3 +1,4 @@
+import { WORKSPACE_STORAGE_KEY } from '@/contexts/workspace';
 import { supabase } from '@/lib/supabase';
 
 export const API_BASE_URL = 'https://moneymail-api-1016548251938.asia-southeast2.run.app';
@@ -21,11 +22,15 @@ export async function authenticatedFetch<T>(url: string, options?: RequestInit):
     throw new Error('Not authenticated');
   }
 
+  const workspaceId =
+    typeof localStorage !== 'undefined' ? localStorage.getItem(WORKSPACE_STORAGE_KEY) : null;
+
   const response = await fetch(url, {
     ...options,
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${session.access_token}`,
+      ...(workspaceId ? { 'X-Workspace-Id': workspaceId } : {}),
       ...options?.headers,
     },
   });

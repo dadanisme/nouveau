@@ -1,14 +1,17 @@
 import { useCallback, useMemo, useState } from 'react';
 
-import { useSession } from '@/hooks/use-auth';
+import { useWorkspace } from '@/contexts/workspace';
 import { useCategories } from '@/hooks/use-categories';
 import { useDeleteCategory } from '@/hooks/use-category-mutations';
 import type { Tables } from '@/types/supabase';
 
 export function useCategoryManagement() {
-  const { session } = useSession();
-  const userId = session?.user.id;
-  const { data: categories = [], isLoading, refetch: queryRefetch } = useCategories(userId);
+  const { currentWorkspaceId } = useWorkspace();
+  const {
+    data: categories = [],
+    isLoading,
+    refetch: queryRefetch,
+  } = useCategories(currentWorkspaceId);
   const deleteCategory = useDeleteCategory();
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -56,10 +59,10 @@ export function useCategoryManagement() {
   }
 
   function executeDelete() {
-    if (!deletingCategory || !userId) return;
+    if (!deletingCategory) return;
 
     deleteCategory.mutate(
-      { id: deletingCategory.id, userId },
+      { id: deletingCategory.id },
       {
         onSuccess: () => {
           setDeletingCategory(null);
