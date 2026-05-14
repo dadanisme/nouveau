@@ -10,6 +10,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { AuthListener } from '@/components/auth-listener';
 import { SplashOverlay } from '@/components/splash-overlay';
 import { LanguageProvider } from '@/contexts/language';
+import { WorkspaceProvider } from '@/contexts/workspace';
 import { useSession } from '@/hooks/use-auth';
 
 SplashScreen.preventAutoHideAsync();
@@ -78,79 +79,109 @@ export default function RootLayout() {
             <ShareIntentNavigator />
             <BottomSheetModalProvider>
               <AuthListener>
-                <AuthGuard>
-                  <Stack>
-                    <Stack.Screen
-                      name="login"
-                      options={{
-                        headerShown: false,
-                        animation: 'flip',
-                        animationDuration: 300,
-                        gestureEnabled: false,
-                      }}
-                    />
-                    <Stack.Screen
-                      name="signup"
-                      options={{
-                        headerShown: false,
-                        animationDuration: 300,
-                        gestureEnabled: false,
-                      }}
-                    />
-                    <Stack.Screen
-                      name="index"
-                      options={{
-                        headerShown: false,
-                        animation: 'flip',
-                        animationDuration: 300,
-                        gestureEnabled: false,
-                      }}
-                    />
-                    <Stack.Screen
-                      name="add-transaction"
-                      options={{
-                        headerShown: false,
-                        animationDuration: 350,
-                      }}
-                    />
-                    <Stack.Screen
-                      name="settings"
-                      options={{
-                        headerShown: false,
-                        animationDuration: 350,
-                      }}
-                    />
-                    <Stack.Screen
-                      name="categories"
-                      options={{
-                        headerShown: false,
-                        animationDuration: 350,
-                      }}
-                    />
-                    <Stack.Screen
-                      name="subscriptions"
-                      options={{
-                        headerShown: false,
-                        animationDuration: 350,
-                      }}
-                    />
-                    <Stack.Screen
-                      name="proof-viewer"
-                      options={{
-                        headerShown: false,
-                        animationDuration: 350,
-                      }}
-                    />
-                    <Stack.Screen
-                      name="shareintent"
-                      options={{
-                        headerShown: false,
-                        animation: 'fade',
-                        animationDuration: 300,
-                      }}
-                    />
-                  </Stack>
-                </AuthGuard>
+                <WorkspaceProvider>
+                  <AuthGuard>
+                    <Stack>
+                      <Stack.Screen
+                        name="login"
+                        options={{
+                          headerShown: false,
+                          animation: 'flip',
+                          animationDuration: 300,
+                          gestureEnabled: false,
+                        }}
+                      />
+                      <Stack.Screen
+                        name="signup"
+                        options={{
+                          headerShown: false,
+                          animationDuration: 300,
+                          gestureEnabled: false,
+                        }}
+                      />
+                      <Stack.Screen
+                        name="index"
+                        options={{
+                          headerShown: false,
+                          animation: 'flip',
+                          animationDuration: 300,
+                          gestureEnabled: false,
+                        }}
+                      />
+                      <Stack.Screen
+                        name="add-transaction"
+                        options={{
+                          headerShown: false,
+                          animationDuration: 350,
+                        }}
+                      />
+                      <Stack.Screen
+                        name="settings"
+                        options={{
+                          headerShown: false,
+                          animationDuration: 350,
+                        }}
+                      />
+                      <Stack.Screen
+                        name="categories"
+                        options={{
+                          headerShown: false,
+                          animationDuration: 350,
+                        }}
+                      />
+                      <Stack.Screen
+                        name="subscriptions"
+                        options={{
+                          headerShown: false,
+                          animationDuration: 350,
+                        }}
+                      />
+                      <Stack.Screen
+                        name="proof-viewer"
+                        options={{
+                          headerShown: false,
+                          animationDuration: 350,
+                        }}
+                      />
+                      <Stack.Screen
+                        name="shareintent"
+                        options={{
+                          headerShown: false,
+                          animation: 'fade',
+                          animationDuration: 300,
+                        }}
+                      />
+                      <Stack.Screen
+                        name="create-workspace"
+                        options={{
+                          headerShown: false,
+                          animationDuration: 350,
+                        }}
+                      />
+                      <Stack.Screen
+                        name="workspace-settings"
+                        options={{
+                          headerShown: false,
+                          animationDuration: 350,
+                        }}
+                      />
+                      <Stack.Screen
+                        name="workspace-invites"
+                        options={{
+                          headerShown: false,
+                          animationDuration: 350,
+                        }}
+                      />
+                      <Stack.Screen
+                        name="workspaces"
+                        options={{
+                          headerShown: false,
+                          animationDuration: 350,
+                        }}
+                      />
+                    </Stack>
+                  </AuthGuard>
+                </WorkspaceProvider>
               </AuthListener>
             </BottomSheetModalProvider>
           </ShareIntentProvider>

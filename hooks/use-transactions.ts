@@ -10,13 +10,13 @@ export type TransactionWithCategory = Tables<'transactions'> & {
 };
 
 export function useTransactions(
-  userId: string | undefined,
+  workspaceId: string | null | undefined,
   year: number,
   month: number,
   type?: 'income' | 'expense',
 ) {
   return useQuery({
-    queryKey: ['transactions', userId, year, month, type ?? 'all'],
+    queryKey: ['transactions', workspaceId, year, month, type ?? 'all'],
     queryFn: async () => {
       const startDate = `${year}-${String(month + 1).padStart(2, '0')}-01`;
       const lastDay = new Date(year, month + 1, 0).getDate();
@@ -27,7 +27,7 @@ export function useTransactions(
         .select(
           '*, category:categories!category_id(id, name, type, color, icon), receipt_proofs(count)',
         )
-        .eq('user_id', userId!)
+        .eq('workspace_id', workspaceId!)
         .gte('date', startDate)
         .lte('date', endDate)
         .order('date', { ascending: false });
@@ -40,6 +40,6 @@ export function useTransactions(
       if (error) throw error;
       return data as TransactionWithCategory[];
     },
-    enabled: !!userId,
+    enabled: !!workspaceId,
   });
 }

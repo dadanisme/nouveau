@@ -11,9 +11,12 @@ import { Avatar } from '@/components/avatar';
 import { BottomSheet } from '@/components/bottom-sheet';
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
+import { WorkspaceSwitcherSheet } from '@/components/workspace-switcher-sheet';
 import { colors, design } from '@/constants/colors';
 import { useLanguage } from '@/contexts/language';
+import { useWorkspace } from '@/contexts/workspace';
 import { useSession, useSignOut, useUserProfile } from '@/hooks/use-auth';
+import { useMyPendingInvites } from '@/hooks/use-workspace-invites';
 import { k } from '@/locales/keys';
 
 export default function SettingsScreen() {
@@ -23,6 +26,10 @@ export default function SettingsScreen() {
   const { data: user, error: userError } = useUserProfile(session?.user.id);
   const signOut = useSignOut();
   const { t, locale, setLocale } = useLanguage();
+  const { currentWorkspace } = useWorkspace();
+  const { data: pendingInvites = [] } = useMyPendingInvites();
+  const pendingCount = pendingInvites.length;
+  const [showWorkspaceSwitcher, setShowWorkspaceSwitcher] = useState(false);
 
   const displayName = user?.display_name ?? session?.user.user_metadata?.full_name ?? '';
   const email = user?.email ?? session?.user.email ?? '';
@@ -34,6 +41,12 @@ export default function SettingsScreen() {
   const MENU_ITEMS = [
     { icon: 'grid-outline', label: t(k.settings.categories), route: '/categories' },
     { icon: 'star-outline', label: t(k.settings.subscriptions), route: '/subscriptions' },
+    {
+      icon: 'people-circle-outline',
+      label: t(k.workspace.workspaces),
+      action: 'workspaces' as const,
+      badge: pendingCount,
+    },
     { icon: 'language-outline', label: t(k.settings.language), action: 'language' },
     { icon: 'notifications-outline', label: t(k.settings.notifications), disabled: true },
     { icon: 'cash-outline', label: t(k.settings.currency), disabled: true },
@@ -57,6 +70,8 @@ export default function SettingsScreen() {
       router.push(item.route);
     } else if ('action' in item && item.action === 'language') {
       setShowLanguagePicker(true);
+    } else if ('action' in item && item.action === 'workspaces') {
+      router.push('/workspaces');
     }
   };
 
@@ -79,16 +94,41 @@ export default function SettingsScreen() {
         )}
 
         <Card style={styles.profileCard}>
-          <Avatar uri={profileImage} name={displayName} size={64} />
-          <View style={styles.profileInfo}>
-            <Text style={styles.profileName}>{displayName || t(k.settings.unknown)}</Text>
-            <Text style={styles.profileEmail}>{email || t(k.settings.noEmail)}</Text>
+          <View style={styles.profileTop}>
+            <Avatar uri={profileImage} name={displayName} size={64} />
+            <View style={styles.profileInfo}>
+              <Text style={styles.profileName}>{displayName || t(k.settings.unknown)}</Text>
+              <Text style={styles.profileEmail}>{email || t(k.settings.noEmail)}</Text>
+            </View>
           </View>
+
+          <Pressable
+            style={styles.switcherTrigger}
+            onPress={() => setShowWorkspaceSwitcher(true)}
+            accessibilityRole="button"
+            accessibilityLabel={t(k.workspace.switch)}
+          >
+            <View style={styles.switcherIcon}>
+              <Ionicons
+                name={currentWorkspace?.is_personal === false ? 'people-outline' : 'person-outline'}
+                size={16}
+                color={colors.gray[700]}
+              />
+            </View>
+            <View style={styles.switcherText}>
+              <Text style={styles.switcherLabel}>{t(k.workspace.current)}</Text>
+              <Text style={styles.switcherName}>
+                {currentWorkspace?.name ?? t(k.workspace.switch)}
+              </Text>
+            </View>
+            <Ionicons name="swap-horizontal-outline" size={20} color={colors.gray[500]} />
+          </Pressable>
         </Card>
 
         <Card style={styles.menuCard}>
           {MENU_ITEMS.map((item, index) => {
             const disabled = 'disabled' in item && item.disabled;
+            const badge = 'badge' in item ? item.badge : 0;
             return (
               <Pressable
                 key={item.label}
@@ -104,6 +144,11 @@ export default function SettingsScreen() {
                 <Text style={[styles.menuLabel, disabled && styles.menuLabelDisabled]}>
                   {item.label}
                 </Text>
+                {badge > 0 ? (
+                  <View style={styles.badge}>
+                    <Text style={styles.badgeText}>{badge}</Text>
+                  </View>
+                ) : null}
                 <Ionicons
                   name="chevron-forward"
                   size={18}
@@ -170,6 +215,11 @@ export default function SettingsScreen() {
         </BottomSheetView>
       </BottomSheet>
 
+      <WorkspaceSwitcherSheet
+        visible={showWorkspaceSwitcher}
+        onDismiss={() => setShowWorkspaceSwitcher(false)}
+      />
+
       <Alert
         visible={!!alert}
         title={alert?.title ?? ''}
@@ -227,6 +277,9 @@ const styles = StyleSheet.create({
     color: colors.expense,
   },
   profileCard: {
+    gap: design.spacing.md,
+  },
+  profileTop: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: design.spacing.md,
@@ -244,6 +297,38 @@ const styles = StyleSheet.create({
     fontSize: design.fontSize.sm,
     color: colors.gray[500],
     fontWeight: '500',
+  },
+  switcherTrigger: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: design.spacing.sm + 4,
+    paddingTop: design.spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: colors.gray[200],
+  },
+  switcherIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: colors.gray[100],
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  switcherText: {
+    flex: 1,
+    gap: 2,
+  },
+  switcherLabel: {
+    fontSize: design.fontSize.xs,
+    fontWeight: '700',
+    color: colors.gray[500],
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  switcherName: {
+    fontSize: design.fontSize.md,
+    fontWeight: '700',
+    color: colors.gray[900],
   },
   menuCard: {
     padding: 0,
@@ -268,6 +353,22 @@ const styles = StyleSheet.create({
   },
   menuLabelDisabled: {
     color: colors.gray[400],
+  },
+  badge: {
+    minWidth: 22,
+    height: 22,
+    paddingHorizontal: 6,
+    borderRadius: 11,
+    backgroundColor: colors.primary.DEFAULT,
+    borderWidth: design.borderWidth,
+    borderColor: colors.black,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  badgeText: {
+    fontSize: design.fontSize.xs,
+    fontWeight: '800',
+    color: colors.black,
   },
   signOutButton: {
     backgroundColor: colors.expense,

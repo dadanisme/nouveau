@@ -11,8 +11,8 @@ export function useAddCategory() {
       const { error } = await supabase.from('categories').insert(category);
       if (error) throw error;
     },
-    onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['categories', variables.user_id] });
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
     },
   });
 }
@@ -21,17 +21,12 @@ export function useUpdateCategory() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({
-      id,
-      userId,
-      ...updates
-    }: TablesUpdate<'categories'> & { id: string; userId: string }) => {
+    mutationFn: async ({ id, ...updates }: TablesUpdate<'categories'> & { id: string }) => {
       const { error } = await supabase.from('categories').update(updates).eq('id', id);
       if (error) throw error;
-      return userId;
     },
-    onSuccess: (userId) => {
-      queryClient.invalidateQueries({ queryKey: ['categories', userId] });
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
     },
   });
 }
@@ -40,13 +35,12 @@ export function useDeleteCategory() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, userId }: { id: string; userId: string }) => {
+    mutationFn: async ({ id }: { id: string }) => {
       const { error } = await supabase.from('categories').delete().eq('id', id);
       if (error) throw error;
-      return userId;
     },
-    onSuccess: (userId) => {
-      queryClient.invalidateQueries({ queryKey: ['categories', userId] });
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
     },
   });
 }

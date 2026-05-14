@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
 
 import { colors } from '@/constants/colors';
-import { useSession } from '@/hooks/use-auth';
+import { useWorkspace } from '@/contexts/workspace';
 import { useTransactions, type TransactionWithCategory } from '@/hooks/use-transactions';
 import i18n from '@/lib/i18n';
 import { getDateLocale } from '@/lib/i18n';
@@ -25,8 +25,7 @@ export interface CategorySpend {
 export type FilterType = 'all' | 'income' | 'expense';
 
 export function useTransactionsScreen() {
-  const { session } = useSession();
-  const userId = session?.user.id;
+  const { currentWorkspaceId } = useWorkspace();
 
   const now = new Date();
   const [view, setView] = useState({ year: now.getFullYear(), month: now.getMonth() });
@@ -35,11 +34,11 @@ export function useTransactionsScreen() {
   const [filterSheetVisible, setFilterSheetVisible] = useState(false);
 
   // Unfiltered query for totals (deduplicated with filtered when activeFilter === 'all')
-  const allQuery = useTransactions(userId, viewYear, viewMonth);
+  const allQuery = useTransactions(currentWorkspaceId, viewYear, viewMonth);
 
   // Filtered query for display list
   const filterType = activeFilter === 'all' ? undefined : activeFilter;
-  const filteredQuery = useTransactions(userId, viewYear, viewMonth, filterType);
+  const filteredQuery = useTransactions(currentWorkspaceId, viewYear, viewMonth, filterType);
 
   const allTransactions = allQuery.data;
   const filteredTransactions = filteredQuery.data;

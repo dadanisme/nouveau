@@ -2,8 +2,9 @@ import * as Haptics from 'expo-haptics';
 import { useEffect, useState } from 'react';
 
 import { CATEGORY_COLORS } from '@/constants/category-colors';
-import { useAddCategory, useUpdateCategory } from '@/hooks/use-category-mutations';
+import { useWorkspace } from '@/contexts/workspace';
 import { useSession } from '@/hooks/use-auth';
+import { useAddCategory, useUpdateCategory } from '@/hooks/use-category-mutations';
 import i18n from '@/lib/i18n';
 import { k } from '@/locales/keys';
 import type { Tables } from '@/types/supabase';
@@ -16,6 +17,7 @@ interface UseCategoryFormOptions {
 
 export function useCategoryForm({ editingCategory, onSuccess }: UseCategoryFormOptions) {
   const { session } = useSession();
+  const { currentWorkspaceId } = useWorkspace();
   const addCategory = useAddCategory();
   const updateCategory = useUpdateCategory();
 
@@ -55,7 +57,7 @@ export function useCategoryForm({ editingCategory, onSuccess }: UseCategoryFormO
     }
 
     const userId = session?.user.id;
-    if (!userId) return;
+    if (!currentWorkspaceId || !userId) return;
 
     const iconValue = icon ? `Ionicons/${icon}` : null;
 
@@ -63,7 +65,6 @@ export function useCategoryForm({ editingCategory, onSuccess }: UseCategoryFormO
       updateCategory.mutate(
         {
           id: editingCategory.id,
-          userId,
           name: trimmedName,
           type,
           color,
@@ -90,6 +91,7 @@ export function useCategoryForm({ editingCategory, onSuccess }: UseCategoryFormO
           color,
           icon: iconValue,
           user_id: userId,
+          workspace_id: currentWorkspaceId,
         },
         {
           onSuccess: () => {
