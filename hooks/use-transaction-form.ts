@@ -11,16 +11,17 @@ import { k } from '@/locales/keys';
 import { useCategories } from '@/hooks/use-categories';
 import { useClassifyDescription } from '@/hooks/use-classify-description';
 import { useDeleteTransaction } from '@/hooks/use-delete-transaction';
+import { useExchangeRate } from '@/hooks/use-exchange-rate';
 import { useTransaction } from '@/hooks/use-transaction';
 import { useUpdateTransaction } from '@/hooks/use-update-transaction';
 import type { Tables } from '@/types/supabase';
-import { formatDisplayAmount, processAmountKeyPress } from '@/utils/currency';
+import { currencyDecimals, formatDisplayAmount, processAmountKeyPress } from '@/utils/currency';
 import { toLocalDateString } from '@/utils/date';
 
 export function useTransactionForm(transactionId?: string, initialDate?: string) {
   const router = useRouter();
   const { session } = useSession();
-  const { currentWorkspaceId } = useWorkspace();
+  const { currentWorkspaceId, currentWorkspace } = useWorkspace();
 
   const { data: categories = [] } = useCategories(currentWorkspaceId);
   const addTransaction = useAddTransaction();
@@ -31,6 +32,12 @@ export function useTransactionForm(transactionId?: string, initialDate?: string)
     useTransaction(transactionId);
 
   const isEditMode = !!transactionId;
+
+  // New transactions are entered in the workspace's home currency; edits keep
+  // the transaction's original currency (amounts are re-converted on save).
+  const homeCurrency = existingTransaction?.home_currency ?? currentWorkspace?.home_currency;
+  const txCurrency = existingTransaction?.currency ?? homeCurrency;
+  const isForeignCurrency = !!txCurrency && !!homeCurrency && txCurrency !== homeCurrency;
 
   const [type, setType] = useState<'income' | 'expense'>('expense');
   const [amountString, setAmountString] = useState('');
@@ -44,6 +51,13 @@ export function useTransactionForm(transactionId?: string, initialDate?: string)
   const [prefilled, setPrefilled] = useState(false);
   const userPickedCategoryRef = useRef(false);
   const lastClassifiedDescriptionRef = useRef<string | null>(null);
+
+  // Prefetched so the rate is ready by the time a foreign-currency edit is saved
+  const { data: exchangeRate } = useExchangeRate(
+    isForeignCurrency ? txCurrency : undefined,
+    isForeignCurrency ? homeCurrency : undefined,
+    toLocalDateString(date),
+  );
 
   // Pre-fill form when editing an existing transaction
   useEffect(() => {
@@ -100,11 +114,13 @@ export function useTransactionForm(transactionId?: string, initialDate?: string)
       setAmountString((prev) => prev.slice(0, -1));
       return;
     }
-    setAmountString((prev) => processAmountKeyPress(prev, key));
+    setAmountString((prev) =>
+      processAmountKeyPress(prev, key, txCurrency ? currencyDecimals(txCurrency) : 0),
+    );
   }
 
   function getDisplayAmount(): string {
-    return formatDisplayAmount(amountString);
+    return formatDisplayAmount(amountString, isForeignCurrency ? txCurrency : undefined);
   }
 
   function resetForm() {
@@ -133,12 +149,32 @@ export function useTransactionForm(transactionId?: string, initialDate?: string)
     const userId = session?.user.id;
     if (!currentWorkspaceId || !userId) return;
 
+    // Foreign-currency edits keep the original currency and re-convert the
+    // home amount: prefer a stored exchange rate for the selected date, fall
+    // back to the rate implied by the existing conversion.
+    let homeAmount = amount;
+    if (isEditMode && isForeignCurrency && existingTransaction) {
+      const impliedRate =
+        existingTransaction.amount > 0
+          ? existingTransaction.home_amount / existingTransaction.amount
+          : null;
+      const rate = exchangeRate ?? impliedRate;
+      if (!rate) {
+        setAlertState({
+          title: i18n.t(k.addTransaction.rateUnavailable),
+          message: i18n.t(k.addTransaction.rateUnavailableMessage),
+        });
+        return;
+      }
+      homeAmount = amount * rate;
+    }
+
     if (isEditMode) {
       updateTransaction.mutate(
         {
           id: transactionId,
           amount,
-          home_amount: amount,
+          home_amount: homeAmount,
           category_id: selectedCategory.id,
           date: toLocalDateString(date),
           description: description.trim() || null,
@@ -162,6 +198,7 @@ export function useTransactionForm(transactionId?: string, initialDate?: string)
         {
           amount,
           home_amount: amount,
+          ...(homeCurrency ? { currency: homeCurrency, home_currency: homeCurrency } : {}),
           category_id: selectedCategory.id,
           date: toLocalDateString(date),
           description: description.trim() || null,

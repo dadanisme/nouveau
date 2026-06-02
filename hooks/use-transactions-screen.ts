@@ -86,8 +86,8 @@ export function useTransactionsScreen() {
           transactions: [],
         };
       }
-      if (tx.type === 'income') groups[dateKey].income += tx.amount;
-      else groups[dateKey].expense += tx.amount;
+      if (tx.type === 'income') groups[dateKey].income += tx.home_amount;
+      else groups[dateKey].expense += tx.home_amount;
       groups[dateKey].transactions.push(tx);
     }
     return Object.values(groups).sort((a, b) => b.dateKey.localeCompare(a.dateKey));

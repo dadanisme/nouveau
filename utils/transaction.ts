@@ -9,7 +9,9 @@ export function toTransactionItemData(tx: TransactionWithCategory): TransactionI
     categoryColor: tx.category.color,
     categoryIcon: tx.category.icon,
     date: tx.date.split('T')[0],
-    amount: tx.amount,
+    amount: tx.home_amount,
+    originalAmount: tx.currency !== tx.home_currency ? tx.amount : undefined,
+    originalCurrency: tx.currency !== tx.home_currency ? tx.currency : undefined,
     type: tx.type as 'income' | 'expense',
     hasProofs: (tx.receipt_proofs?.[0]?.count ?? 0) > 0,
   };

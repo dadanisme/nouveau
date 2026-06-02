@@ -54,6 +54,9 @@ const id: Translations = {
     failedToSave: 'Gagal Menyimpan',
     failedToUpdate: 'Gagal Memperbarui',
     failedToDelete: 'Gagal Menghapus',
+    rateUnavailable: 'Kurs Tidak Tersedia',
+    rateUnavailableMessage:
+      'Tidak dapat menemukan kurs untuk mengonversi jumlah ini. Silakan coba lagi nanti.',
     deleteTransaction: 'Hapus Transaksi',
     deleteTransactionMessage:
       'Apakah Anda yakin ingin menghapus transaksi ini? Tindakan ini tidak dapat dibatalkan.',

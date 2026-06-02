@@ -25,8 +25,8 @@ export function computeTotals(transactions: TransactionWithCategory[] | undefine
   if (!transactions) return { income: 0, expense: 0 };
   return transactions.reduce(
     (acc, tx) => {
-      if (tx.type === 'income') acc.income += tx.amount;
-      else acc.expense += tx.amount;
+      if (tx.type === 'income') acc.income += tx.home_amount;
+      else acc.expense += tx.home_amount;
       return acc;
     },
     { income: 0, expense: 0 },
@@ -39,7 +39,7 @@ export function computeExpenseBreakdown(
 ): CategorySpend[] {
   if (!transactions) return [];
   const expenseTotal = transactions.reduce(
-    (sum, tx) => (tx.type === 'expense' ? sum + tx.amount : sum),
+    (sum, tx) => (tx.type === 'expense' ? sum + tx.home_amount : sum),
     0,
   );
   if (expenseTotal === 0) return [];
@@ -58,7 +58,7 @@ export function computeExpenseBreakdown(
         amount: 0,
       };
     }
-    categoryMap[catId].amount += tx.amount;
+    categoryMap[catId].amount += tx.home_amount;
   }
 
   // Sort by amount descending
@@ -101,8 +101,8 @@ export function computeMonthlyTrend(
   for (const tx of transactions) {
     const dateKey = tx.date.split('T')[0];
     const month = new Date(dateKey + 'T00:00:00').getMonth();
-    if (tx.type === 'income') points[month].income += tx.amount;
-    else points[month].expense += tx.amount;
+    if (tx.type === 'income') points[month].income += tx.home_amount;
+    else points[month].expense += tx.home_amount;
   }
   return points;
 }

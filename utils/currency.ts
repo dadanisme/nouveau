@@ -1,12 +1,38 @@
-import i18n from '@/lib/i18n';
+import i18n, { getDateLocale } from '@/lib/i18n';
 import { k } from '@/locales/keys';
 
-export function processAmountKeyPress(prev: string, key: string): string {
+/** Currencies without minor units (no decimal input) */
+const ZERO_DECIMAL_CURRENCIES = new Set(['IDR', 'JPY', 'KRW', 'VND']);
+
+export function currencyDecimals(currency: string): number {
+  return ZERO_DECIMAL_CURRENCIES.has(currency) ? 0 : 2;
+}
+
+export function getCurrencySymbol(currency: string): string {
+  try {
+    const parts = new Intl.NumberFormat(getDateLocale(), {
+      style: 'currency',
+      currency,
+      currencyDisplay: 'narrowSymbol',
+    }).formatToParts(0);
+    return parts.find((part) => part.type === 'currency')?.value ?? currency;
+  } catch {
+    return currency;
+  }
+}
+
+export function processAmountKeyPress(prev: string, key: string, decimals = 0): string {
   if (key === 'backspace') {
     return prev.slice(0, -1);
   }
-  // IDR doesn't use decimals
-  if (key === '.') return prev;
+  if (key === '.') {
+    // Zero-decimal currencies (e.g. IDR) don't use decimals; only one separator allowed
+    if (decimals === 0 || prev.includes('.')) return prev;
+    return prev === '' ? '0.' : prev + '.';
+  }
+  // Cap fractional digits at the currency's minor units
+  const decimalPart = prev.split('.')[1];
+  if (decimalPart !== undefined && decimalPart.length >= decimals) return prev;
   // No leading zeros
   if (prev === '0') return key;
   // Limit length
@@ -51,9 +77,20 @@ export function formatCurrency(value: number): string {
   return `${prefix}${value.toLocaleString('id-ID', { maximumFractionDigits: 0 })}`;
 }
 
-export function formatDisplayAmount(amountString: string): string {
-  const prefix = i18n.t(k.currency.prefix);
+export function formatDisplayAmount(amountString: string, currency?: string): string {
+  // Default (home currency) input uses the locale prefix; foreign input uses its own symbol
+  const prefix = currency ? getCurrencySymbol(currency) : i18n.t(k.currency.prefix);
   if (!amountString) return `${prefix}0`;
-  const intPart = parseInt(amountString, 10).toLocaleString('id-ID');
-  return `${prefix}${intPart}`;
+  const [intString, decimalPart] = amountString.split('.');
+  const intPart = parseInt(intString || '0', 10).toLocaleString('id-ID');
+  return decimalPart !== undefined ? `${prefix}${intPart}.${decimalPart}` : `${prefix}${intPart}`;
+}
+
+/** Formats an amount in its original (non-home) currency, e.g. "$11,806.97" */
+export function formatForeignAmount(value: number, currency: string): string {
+  try {
+    return value.toLocaleString(getDateLocale(), { style: 'currency', currency });
+  } catch {
+    return `${currency} ${value.toLocaleString(getDateLocale())}`;
+  }
 }

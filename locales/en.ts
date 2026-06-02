@@ -52,6 +52,9 @@ const en = {
     failedToSave: 'Failed to Save',
     failedToUpdate: 'Failed to Update',
     failedToDelete: 'Failed to Delete',
+    rateUnavailable: 'Exchange Rate Unavailable',
+    rateUnavailableMessage:
+      'Could not find an exchange rate to convert this amount. Please try again later.',
     deleteTransaction: 'Delete Transaction',
     deleteTransactionMessage:
       'Are you sure you want to delete this transaction? This action cannot be undone.',

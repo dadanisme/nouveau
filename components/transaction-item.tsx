@@ -6,7 +6,7 @@ import ContextMenu from 'react-native-context-menu-view';
 import { colors, design } from '@/constants/colors';
 import i18n from '@/lib/i18n';
 import { k } from '@/locales/keys';
-import { formatCompactAmount } from '@/utils/currency';
+import { formatCompactAmount, formatForeignAmount } from '@/utils/currency';
 import { formatShortDate } from '@/utils/date';
 import { parseIcon } from '@/utils/icon';
 
@@ -17,7 +17,11 @@ export interface TransactionItemData {
   categoryColor: string;
   categoryIcon: string | null;
   date: string;
+  /** Amount in the workspace's home currency */
   amount: number;
+  /** Original amount/currency when the transaction was made in a foreign currency */
+  originalAmount?: number;
+  originalCurrency?: string;
   type: 'income' | 'expense';
   hasProofs?: boolean;
 }
@@ -105,10 +109,17 @@ export function TransactionItem({
         </View>
       </View>
 
-      <Text style={[styles.amount, { color: amountColor }]}>
-        {amountPrefix}
-        {formatCompactAmount(transaction.amount)}
-      </Text>
+      <View style={styles.amountColumn}>
+        <Text style={[styles.amount, { color: amountColor }]}>
+          {amountPrefix}
+          {formatCompactAmount(transaction.amount)}
+        </Text>
+        {transaction.originalAmount != null && transaction.originalCurrency && (
+          <Text style={styles.originalAmount}>
+            {formatForeignAmount(transaction.originalAmount, transaction.originalCurrency)}
+          </Text>
+        )}
+      </View>
     </View>
   );
 
@@ -190,8 +201,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 2,
   },
+  amountColumn: {
+    alignItems: 'flex-end',
+    gap: 2,
+  },
   amount: {
     fontSize: design.fontSize.md,
     fontWeight: '800',
+  },
+  originalAmount: {
+    fontSize: design.fontSize.xs,
+    color: colors.gray[400],
+    fontWeight: '500',
   },
 });
