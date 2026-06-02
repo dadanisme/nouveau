@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { useWorkspace } from '@/contexts/workspace';
 import { useCategories } from '@/hooks/use-categories';
@@ -25,6 +25,11 @@ export function useTransactionsScreen() {
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
   const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
   const [filterSheetVisible, setFilterSheetVisible] = useState(false);
+
+  // Category IDs are workspace-scoped — drop the filter when switching workspaces
+  useEffect(() => {
+    setCategoryFilter(null);
+  }, [currentWorkspaceId]);
 
   // Unfiltered query for totals (deduplicated with filtered when activeFilter === 'all')
   const allQuery = useTransactions(currentWorkspaceId, viewYear, viewMonth);

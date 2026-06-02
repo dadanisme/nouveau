@@ -18,6 +18,7 @@ import { useLanguage } from '@/contexts/language';
 import { useDeleteConfirmation } from '@/hooks/use-delete-confirmation';
 import { useInsightsScreen, type InsightsMode } from '@/hooks/use-insights-screen';
 import { k } from '@/locales/keys';
+import { parseIntParam } from '@/utils/params';
 import { toTransactionItemData } from '@/utils/transaction';
 
 export default function InsightsScreen() {
@@ -27,8 +28,8 @@ export default function InsightsScreen() {
 
   const params = useLocalSearchParams<{ year?: string; month?: string }>();
   const now = new Date();
-  const initialYear = Number(params.year) || now.getFullYear();
-  const initialMonth = Number.isNaN(Number(params.month)) ? now.getMonth() : Number(params.month);
+  const initialYear = parseIntParam(params.year) ?? now.getFullYear();
+  const initialMonth = parseIntParam(params.month) ?? now.getMonth();
 
   const {
     mode,

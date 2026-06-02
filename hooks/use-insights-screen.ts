@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { useWorkspace } from '@/contexts/workspace';
 import { useCategories } from '@/hooks/use-categories';
@@ -29,8 +29,10 @@ export function useInsightsScreen(initialYear: number, initialMonth: number) {
 
   // Month mode shares the home screen's query cache (same key) — opening
   // insights on the month already shown at home is an instant cache hit.
+  // The year query only fires in year mode (a full year of rows is not
+  // worth prefetching for users who never toggle).
   const monthQuery = useTransactions(currentWorkspaceId, viewYear, viewMonth);
-  const yearQuery = useTransactionsByYear(currentWorkspaceId, viewYear);
+  const yearQuery = useTransactionsByYear(currentWorkspaceId, viewYear, mode === 'year');
 
   const activeTransactions = mode === 'month' ? monthQuery.data : yearQuery.data;
 
@@ -54,6 +56,14 @@ export function useInsightsScreen(initialYear: number, initialMonth: number) {
     if (!selectedCategory?.id || !activeTransactions) return [];
     return activeTransactions.filter((tx) => tx.category.id === selectedCategory.id);
   }, [selectedCategory, activeTransactions]);
+
+  // Close the drill-down once its category has no transactions left
+  // (e.g. the last one was re-categorized or deleted)
+  useEffect(() => {
+    if (selectedCategory && activeTransactions && selectedCategoryTransactions.length === 0) {
+      setSelectedCategory(null);
+    }
+  }, [selectedCategory, activeTransactions, selectedCategoryTransactions]);
 
   // Quick re-categorize: tapping a transaction in the drill-down opens the category picker
   const { data: allCategories = [] } = useCategories(currentWorkspaceId);

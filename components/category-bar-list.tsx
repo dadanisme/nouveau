@@ -35,12 +35,13 @@ export function CategoryBarList({ categories, onPressCategory }: CategoryBarList
     <Card style={styles.card}>
       {categories.map((cat, index) => (
         <CategoryBarRow
-          key={cat.name}
+          key={cat.id ?? cat.name}
           category={cat}
           ratio={maxAmount > 0 ? cat.amount / maxAmount : 0}
           progress={progress}
           isLast={index === categories.length - 1}
-          onPress={onPressCategory ? () => onPressCategory(cat) : undefined}
+          // The synthetic "Others" bucket has no id and can't be drilled into
+          onPress={onPressCategory && cat.id ? () => onPressCategory(cat) : undefined}
         />
       ))}
     </Card>
