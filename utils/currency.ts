@@ -41,6 +41,11 @@ export function formatCompactAmount(value: number): string {
   return `${prefix}${Math.round(value)}`;
 }
 
+export function formatSignedCompactAmount(value: number): string {
+  const sign = value < 0 ? '-' : '';
+  return `${sign}${formatCompactAmount(Math.abs(value))}`;
+}
+
 export function formatCurrency(value: number): string {
   const prefix = i18n.t(k.currency.prefix);
   return `${prefix}${value.toLocaleString('id-ID', { maximumFractionDigits: 0 })}`;

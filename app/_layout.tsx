@@ -125,6 +125,13 @@ export default function RootLayout() {
                         }}
                       />
                       <Stack.Screen
+                        name="insights"
+                        options={{
+                          headerShown: false,
+                          animationDuration: 350,
+                        }}
+                      />
+                      <Stack.Screen
                         name="categories"
                         options={{
                           headerShown: false,

@@ -135,6 +135,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       }
 
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['transactions-year'] });
       queryClient.invalidateQueries({ queryKey: ['categories'] });
       queryClient.invalidateQueries({ queryKey: ['workspace-balance'] });
       queryClient.invalidateQueries({ queryKey: ['workspace-monthly-totals'] });

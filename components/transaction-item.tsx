@@ -29,6 +29,8 @@ interface TransactionItemProps {
   onPress?: () => void;
   onViewProofs?: () => void;
   onDelete?: () => void;
+  /** Include the Edit entry (mapped to onPress) in the long-press menu. Defaults to true. */
+  showEditMenuAction?: boolean;
 }
 
 export function TransactionItem({
@@ -38,6 +40,7 @@ export function TransactionItem({
   onPress,
   onViewProofs,
   onDelete,
+  showEditMenuAction = true,
 }: TransactionItemProps) {
   const isIncome = transaction.type === 'income';
   const amountColor = isIncome ? colors.income : colors.expense;
@@ -110,9 +113,13 @@ export function TransactionItem({
   );
 
   if (hasContextMenu) {
-    const handlers = [onPress, ...(transaction.hasProofs ? [onViewProofs] : []), onDelete];
+    const handlers = [
+      ...(showEditMenuAction ? [onPress] : []),
+      ...(transaction.hasProofs ? [onViewProofs] : []),
+      onDelete,
+    ];
     const menuActions = [
-      { title: i18n.t(k.contextMenu.edit), systemIcon: 'pencil' },
+      ...(showEditMenuAction ? [{ title: i18n.t(k.contextMenu.edit), systemIcon: 'pencil' }] : []),
       ...(transaction.hasProofs
         ? [{ title: i18n.t(k.contextMenu.viewProofs), systemIcon: 'doc.text.magnifyingglass' }]
         : []),
