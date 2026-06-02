@@ -27,15 +27,6 @@ export function SummaryCard({ income, expense, balance, onPress }: SummaryCardPr
       style={({ pressed }) => pressed && styles.pressed}
     >
       <Card style={styles.card}>
-        {onPress && (
-          <Ionicons
-            name="chevron-forward"
-            size={16}
-            color={colors.gray[400]}
-            style={styles.chevron}
-          />
-        )}
-
         <View style={styles.summaryRow}>
           <View style={styles.summaryItem}>
             <View style={styles.summaryLabelRow}>
@@ -102,11 +93,6 @@ const styles = StyleSheet.create({
     paddingVertical: design.spacing.md,
     paddingHorizontal: design.spacing.md,
   },
-  chevron: {
-    position: 'absolute',
-    top: design.spacing.sm + 2,
-    right: design.spacing.sm + 2,
-  },
   summaryRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -114,6 +100,7 @@ const styles = StyleSheet.create({
   summaryItem: {
     flex: 1,
     gap: 4,
+    alignItems: 'center',
   },
   summaryLabelRow: {
     flexDirection: 'row',
