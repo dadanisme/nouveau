@@ -1,5 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { BottomSheetView } from '@gorhom/bottom-sheet';
+import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { useCallback, useMemo } from 'react';
@@ -12,8 +12,8 @@ import { BottomSheet } from '@/components/bottom-sheet';
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
 import { FAB_HEIGHT, FloatingAddButton } from '@/components/floating-add-button';
-import { SpendBreakdown } from '@/components/spend-breakdown';
-import { SpendBreakdownSkeleton } from '@/components/spend-breakdown-skeleton';
+import { SummaryCard } from '@/components/summary-card';
+import { SummaryCardSkeleton } from '@/components/summary-card-skeleton';
 import { TransactionGroupSkeleton } from '@/components/transaction-group-skeleton';
 import { TransactionItem } from '@/components/transaction-item';
 import { colors, design } from '@/constants/colors';
@@ -37,13 +37,17 @@ export default function TransactionsScreen() {
   const { t } = useLanguage();
 
   const {
+    view,
     monthLabel,
     activeFilter,
     setActiveFilter,
+    categoryFilter,
+    setCategoryFilter,
+    categories,
     filterSheetVisible,
     setFilterSheetVisible,
     totals,
-    expenseCategoryBreakdown,
+    balance,
     groupedTransactions,
     goToPreviousMonth,
     goToNextMonth,
@@ -108,7 +112,7 @@ export default function TransactionsScreen() {
     [onSwipeNext, onSwipePrev],
   );
 
-  const isFilterActive = activeFilter !== 'all';
+  const isFilterActive = activeFilter !== 'all' || categoryFilter !== null;
 
   return (
     <GestureDetector gesture={panGesture}>
@@ -179,14 +183,20 @@ export default function TransactionsScreen() {
             </View>
           </View>
 
-          {/* Summary + Spend Breakdown */}
+          {/* Income / Expense / Balance summary */}
           {isLoading ? (
-            <SpendBreakdownSkeleton />
+            <SummaryCardSkeleton />
           ) : (
-            <SpendBreakdown
+            <SummaryCard
               income={totals.income}
               expense={totals.expense}
-              categories={expenseCategoryBreakdown}
+              balance={balance}
+              onPress={() =>
+                router.push({
+                  pathname: '/insights',
+                  params: { year: String(view.year), month: String(view.month) },
+                })
+              }
             />
           )}
 
@@ -226,10 +236,13 @@ export default function TransactionsScreen() {
         <BottomSheet
           visible={filterSheetVisible}
           onDismiss={() => setFilterSheetVisible(false)}
-          snapPoints={['33%']}
+          snapPoints={['60%']}
         >
-          <BottomSheetView style={styles.filterSheet}>
+          <BottomSheetScrollView contentContainerStyle={styles.filterSheet}>
             <Text style={styles.filterSheetTitle}>{t(k.transactions.filter)}</Text>
+
+            {/* Type */}
+            <Text style={styles.filterSheetSection}>{t(k.transactions.type)}</Text>
             {FILTERS.map((filter, index) => {
               const isActive = activeFilter === filter.key;
               return (
@@ -258,8 +271,66 @@ export default function TransactionsScreen() {
                 </Pressable>
               );
             })}
+
+            {/* Category */}
+            <Text style={styles.filterSheetSection}>{t(k.addTransaction.category)}</Text>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t(k.transactions.all)}
+              accessibilityState={{ selected: categoryFilter === null }}
+              style={[styles.filterSheetItem, styles.filterSheetItemBorder]}
+              onPress={() => {
+                setCategoryFilter(null);
+                setFilterSheetVisible(false);
+              }}
+            >
+              <Text
+                style={[
+                  styles.filterSheetLabel,
+                  categoryFilter === null && styles.filterSheetLabelActive,
+                ]}
+              >
+                {t(k.transactions.all)}
+              </Text>
+              {categoryFilter === null && (
+                <Ionicons name="checkmark" size={22} color={colors.primary.DEFAULT} />
+              )}
+            </Pressable>
+            {categories.map((category, index) => {
+              const isActive = categoryFilter === category.id;
+              return (
+                <Pressable
+                  key={category.id}
+                  accessibilityRole="button"
+                  accessibilityLabel={category.name}
+                  accessibilityState={{ selected: isActive }}
+                  style={[
+                    styles.filterSheetItem,
+                    index < categories.length - 1 && styles.filterSheetItemBorder,
+                  ]}
+                  onPress={() => {
+                    setCategoryFilter(category.id);
+                    setFilterSheetVisible(false);
+                  }}
+                >
+                  <View style={styles.filterSheetCategoryLeft}>
+                    <View
+                      style={[styles.filterSheetCategoryDot, { backgroundColor: category.color }]}
+                    />
+                    <Text
+                      style={[styles.filterSheetLabel, isActive && styles.filterSheetLabelActive]}
+                    >
+                      {category.name}
+                    </Text>
+                  </View>
+                  {isActive && (
+                    <Ionicons name="checkmark" size={22} color={colors.primary.DEFAULT} />
+                  )}
+                </Pressable>
+              );
+            })}
             <View style={styles.filterSheetBottomPad} />
-          </BottomSheetView>
+          </BottomSheetScrollView>
         </BottomSheet>
 
         {deleteConfirmAlert}
@@ -415,6 +486,24 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: colors.gray[900],
     paddingVertical: design.spacing.sm,
+  },
+  filterSheetSection: {
+    fontSize: design.fontSize.xs,
+    fontWeight: '700',
+    color: colors.gray[400],
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginTop: design.spacing.sm,
+  },
+  filterSheetCategoryLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: design.spacing.sm + 2,
+  },
+  filterSheetCategoryDot: {
+    width: 10,
+    height: 10,
+    borderRadius: design.radius.full,
   },
   filterSheetItem: {
     flexDirection: 'row',

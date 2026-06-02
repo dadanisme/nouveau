@@ -43,3 +43,28 @@ export function useTransactions(
     enabled: !!workspaceId,
   });
 }
+
+export function useTransactionsByYear(
+  workspaceId: string | null | undefined,
+  year: number,
+  enabled = true,
+) {
+  return useQuery({
+    queryKey: ['transactions-year', workspaceId, year],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('transactions')
+        .select(
+          '*, category:categories!category_id(id, name, type, color, icon), receipt_proofs(count)',
+        )
+        .eq('workspace_id', workspaceId!)
+        .gte('date', `${year}-01-01`)
+        .lt('date', `${year + 1}-01-01`)
+        .order('date', { ascending: false });
+
+      if (error) throw error;
+      return data as TransactionWithCategory[];
+    },
+    enabled: !!workspaceId && enabled,
+  });
+}

@@ -12,6 +12,7 @@ export function useDeleteTransaction() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['transactions-year'] });
       queryClient.invalidateQueries({ queryKey: ['balance'] });
       queryClient.invalidateQueries({ queryKey: ['monthly-totals'] });
       queryClient.invalidateQueries({ queryKey: ['recent-transactions'] });

@@ -16,6 +16,8 @@ interface CategoryPickerProps {
   selectedCategoryId: string | null;
   onSelect: (category: Tables<'categories'>) => void;
   onDismiss: () => void;
+  /** Use 'push' to stack on top of an already-open sheet instead of replacing it */
+  stackBehavior?: 'push' | 'replace';
 }
 
 const COLUMNS = 3;
@@ -26,6 +28,7 @@ export function CategoryPicker({
   selectedCategoryId,
   onSelect,
   onDismiss,
+  stackBehavior,
 }: CategoryPickerProps) {
   const rows: Tables<'categories'>[][] = [];
   for (let i = 0; i < categories.length; i += COLUMNS) {
@@ -33,7 +36,12 @@ export function CategoryPicker({
   }
 
   return (
-    <BottomSheet visible={visible} onDismiss={onDismiss} snapPoints={['60%']}>
+    <BottomSheet
+      visible={visible}
+      onDismiss={onDismiss}
+      snapPoints={['60%']}
+      stackBehavior={stackBehavior}
+    >
       <BottomSheetScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <Text style={styles.title}>{i18n.t(k.categoryPicker.title)}</Text>
         {rows.map((row, rowIndex) => (

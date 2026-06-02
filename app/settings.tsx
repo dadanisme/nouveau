@@ -3,7 +3,7 @@ import { BottomSheetView } from '@gorhom/bottom-sheet';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Alert } from '@/components/alert';
@@ -85,7 +85,14 @@ export default function SettingsScreen() {
         <View style={styles.headerSpacer} />
       </View>
 
-      <View style={styles.content}>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={[
+          styles.content,
+          { paddingBottom: insets.bottom + design.spacing.lg },
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
         {userError && (
           <Card style={styles.errorCard}>
             <Ionicons name="warning-outline" size={20} color={colors.expense} />
@@ -165,7 +172,7 @@ export default function SettingsScreen() {
             {signOut.isPending ? t(k.common.pleaseWait) : t(k.settings.signOut)}
           </Text>
         </Button>
-      </View>
+      </ScrollView>
 
       <BottomSheet
         visible={showLanguagePicker}
@@ -258,8 +265,10 @@ const styles = StyleSheet.create({
   headerSpacer: {
     width: 40,
   },
-  content: {
+  scroll: {
     flex: 1,
+  },
+  content: {
     paddingHorizontal: design.spacing.lg,
     paddingTop: design.spacing.lg,
     gap: design.spacing.lg,
