@@ -1,4 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { PdfView } from '@kishannareshpal/expo-pdf';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
@@ -38,6 +39,8 @@ export default function ProofViewerScreen() {
   const contentWidth = width - design.spacing.lg * 2 - design.borderWidth * 2;
   const [webviewHeights, setWebviewHeights] = useState<Record<string, number>>({});
   const [imageAspectRatios, setImageAspectRatios] = useState<Record<string, number>>({});
+  const [pdfLoaded, setPdfLoaded] = useState<Record<string, boolean>>({});
+  const [pdfErrors, setPdfErrors] = useState<Record<string, boolean>>({});
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -125,6 +128,28 @@ export default function ProofViewerScreen() {
                     }}
                   />
                 </View>
+              ) : proof.mimeType === 'application/pdf' ? (
+                pdfErrors[proof.id] ? (
+                  <View style={styles.unsupported}>
+                    <Ionicons name="alert-circle-outline" size={32} color={colors.expense} />
+                    <Text style={styles.unsupportedText}>{t(k.proofs.pdfFailed)}</Text>
+                  </View>
+                ) : (
+                  <View style={[styles.pdfContainer, { width: contentWidth }]}>
+                    <PdfView
+                      uri={proof.url}
+                      fitMode="width"
+                      style={styles.pdf}
+                      onLoadComplete={() => setPdfLoaded((prev) => ({ ...prev, [proof.id]: true }))}
+                      onError={() => setPdfErrors((prev) => ({ ...prev, [proof.id]: true }))}
+                    />
+                    {!pdfLoaded[proof.id] && (
+                      <View style={styles.pdfOverlay}>
+                        <ActivityIndicator size="large" color={colors.primary.DEFAULT} />
+                      </View>
+                    )}
+                  </View>
+                )
               ) : (
                 <View style={styles.unsupported}>
                   <Ionicons name="document-outline" size={32} color={colors.gray[400]} />
@@ -156,12 +181,18 @@ export default function ProofViewerScreen() {
               </Text>
             </Button>
           )}
-          <Button variant="outline" onPress={() => share(proofs)} disabled={isSaving || isSharing}>
+          <Button
+            variant="outline"
+            onPress={() => share(proofs)}
+            disabled={isSaving || isSharing}
+            style={[!hasImages && styles.shareButtonFull]}
+          >
             {isSharing ? (
               <ActivityIndicator size="small" color={colors.gray[900]} />
             ) : (
               <Ionicons name="share-outline" size={20} color={colors.gray[900]} />
             )}
+            {!hasImages && <Text style={styles.footerButtonText}>{t(k.proofs.share)}</Text>}
           </Button>
         </View>
       )}
@@ -238,6 +269,18 @@ const styles = StyleSheet.create({
   webview: {
     flex: 1,
   },
+  pdfContainer: {
+    height: 600,
+    overflow: 'hidden',
+  },
+  pdf: {
+    flex: 1,
+  },
+  pdfOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   unsupported: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -258,6 +301,9 @@ const styles = StyleSheet.create({
   saveButton: {
     flex: 1,
     backgroundColor: colors.primary.DEFAULT,
+  },
+  shareButtonFull: {
+    flex: 1,
   },
   footerButtonText: {
     fontSize: design.fontSize.md,

@@ -111,6 +111,17 @@ export function useInsightsScreen(initialYear: number, initialMonth: number) {
     });
   }, [mode]);
 
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const refetch = useCallback(async () => {
+    setIsRefreshing(true);
+    try {
+      await (mode === 'year' ? yearQuery.refetch() : monthQuery.refetch());
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [mode, monthQuery, yearQuery]);
+
   return {
     mode,
     setMode,
@@ -130,5 +141,7 @@ export function useInsightsScreen(initialYear: number, initialMonth: number) {
     goToPrevious,
     goToNext,
     isLoading: mode === 'month' ? monthQuery.isLoading : yearQuery.isLoading,
+    isRefreshing,
+    refetch,
   };
 }
