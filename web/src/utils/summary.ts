@@ -1,4 +1,4 @@
-import type { TransactionType, TransactionWithCategory } from '@/types/transaction';
+import type { TransactionType, TransactionWithCategory, TypeFilter } from '@/types/transaction';
 import { computeTotals } from '@/utils/transaction';
 
 export interface Summary {
@@ -77,6 +77,32 @@ export function computeCategoryBreakdown(
     percentage: (entry.amount / total) * 100,
     ratio: largest > 0 ? entry.amount / largest : 0,
   }));
+}
+
+export interface BreakdownGroup {
+  type: TransactionType;
+  /** Sum of the group's categories, in the home currency. */
+  total: number;
+  categories: CategorySpend[];
+}
+
+/**
+ * The breakdown the type filter asks for: one group for "expense" or "income", and for "all"
+ * both, expense first, each with shares of its own type's total. A type with nothing in it
+ * has no group, so the result is empty when there is nothing to break down.
+ */
+export function computeBreakdownGroups(
+  transactions: TransactionWithCategory[] | undefined,
+  typeFilter: TypeFilter,
+): BreakdownGroup[] {
+  const types: TransactionType[] = typeFilter === 'all' ? ['expense', 'income'] : [typeFilter];
+  return types
+    .map((type) => {
+      const categories = computeCategoryBreakdown(transactions, type);
+      const total = categories.reduce((sum, category) => sum + category.amount, 0);
+      return { type, total, categories };
+    })
+    .filter((group) => group.categories.length > 0);
 }
 
 /** Whole percent as mobile shows it, except that a non-zero share never reads "0%". */

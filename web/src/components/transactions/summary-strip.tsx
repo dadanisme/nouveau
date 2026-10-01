@@ -5,19 +5,15 @@ import { Skeleton } from '@/components/ui/skeleton';
 import type { SummaryStripState } from '@/hooks/use-summary-strip';
 import { cn } from '@/lib/utils';
 import { en } from '@/locales/en';
-import type { TransactionType } from '@/types/transaction';
 import { formatAmount, formatBalance } from '@/utils/currency';
-import { type CategorySpend, formatPercentage } from '@/utils/summary';
+import { type BreakdownGroup, type CategorySpend, formatPercentage } from '@/utils/summary';
 import { interpolate } from '@/utils/string';
 
 const t = en.summary;
 
 const BREAKDOWN_ID = 'summary-breakdown';
 
-const BREAKDOWN_TYPES: { value: TransactionType; label: string }[] = [
-  { value: 'expense', label: en.transactions.expense },
-  { value: 'income', label: en.transactions.income },
-];
+const EMPTY_MESSAGES = { all: t.noTransactions, expense: t.noExpense, income: t.noIncome };
 
 interface TotalProps {
   label: string;
@@ -73,6 +69,46 @@ function BreakdownRow({ entry, currency, isSelected, onToggle }: BreakdownRowPro
   );
 }
 
+interface BreakdownGroupListProps {
+  group: BreakdownGroup;
+  currency: string;
+  selectedCategoryId: string | null;
+  onToggleCategory: (categoryId: string) => void;
+}
+
+/** One type's categories under its own heading; shares are of that type's total. */
+function BreakdownGroupList({
+  group,
+  currency,
+  selectedCategoryId,
+  onToggleCategory,
+}: BreakdownGroupListProps) {
+  const isIncome = group.type === 'income';
+  const headingId = `${BREAKDOWN_ID}-${group.type}`;
+
+  return (
+    <section aria-labelledby={headingId} className="min-w-0">
+      <h3 id={headingId} className="flex items-baseline gap-2 pb-0.5 text-xs">
+        <span className="font-medium">{isIncome ? t.income : t.expense}</span>
+        <span className={cn('tabular-nums', isIncome ? 'text-income' : 'text-expense')}>
+          {formatAmount(group.total, currency)}
+        </span>
+      </h3>
+      <div className="-mx-2 grid max-h-44 grid-cols-[repeat(auto-fill,minmax(16rem,1fr))] gap-x-4 gap-y-0.5 overflow-y-auto">
+        {group.categories.map((entry) => (
+          <BreakdownRow
+            key={entry.id}
+            entry={entry}
+            currency={currency}
+            isSelected={entry.id === selectedCategoryId}
+            onToggle={() => onToggleCategory(entry.id)}
+          />
+        ))}
+      </div>
+    </section>
+  );
+}
+
 interface SummaryStripProps {
   state: SummaryStripState;
   /** The workspace's home currency; null while it is loading. */
@@ -82,10 +118,11 @@ interface SummaryStripProps {
 
 /**
  * Income, expense and net of the rows in the table, in the home currency, with a collapsible
- * per-category breakdown whose rows filter the table.
+ * per-category breakdown whose rows filter the table. The breakdown has no type switch of its
+ * own: it shows the types the toolbar's type filter lets through.
  */
 export function SummaryStrip({ state, currency, isLoading }: SummaryStripProps) {
-  const { summary, breakdown } = state;
+  const { summary, breakdownGroups } = state;
   const isReady = !isLoading && currency !== null;
 
   return (
@@ -121,48 +158,21 @@ export function SummaryStrip({ state, currency, isLoading }: SummaryStripProps) 
 
       {state.isBreakdownOpen && (
         <div id={BREAKDOWN_ID} className="pb-3">
-          <div className="flex items-center gap-2 pb-1">
-            <div
-              role="group"
-              aria-label={t.breakdownType}
-              className="flex h-6 rounded-md border p-0.5"
-            >
-              {BREAKDOWN_TYPES.map((option) => (
-                <button
-                  key={option.value}
-                  type="button"
-                  aria-pressed={state.breakdownType === option.value}
-                  disabled={!state.canChangeBreakdownType}
-                  onClick={() => state.setBreakdownType(option.value)}
-                  className={cn(
-                    'rounded-sm px-2 text-xs font-medium text-muted-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-60',
-                    state.breakdownType === option.value
-                      ? 'bg-primary-soft text-foreground'
-                      : 'enabled:hover:text-foreground',
-                  )}
-                >
-                  {option.label}
-                </button>
-              ))}
-            </div>
-            <p className="text-xs text-muted-foreground">{t.breakdownHint}</p>
-          </div>
+          <p className="pb-1.5 text-xs text-muted-foreground">{t.breakdownHint}</p>
 
           {!isReady ? (
             <Skeleton className="h-10 w-full" />
-          ) : breakdown.length === 0 ? (
-            <p className="px-2 py-2 text-muted-foreground">
-              {state.breakdownType === 'income' ? t.noIncome : t.noExpense}
-            </p>
+          ) : breakdownGroups.length === 0 ? (
+            <p className="py-2 text-muted-foreground">{EMPTY_MESSAGES[state.typeFilter]}</p>
           ) : (
-            <div className="-mx-2 grid max-h-44 grid-cols-[repeat(auto-fill,minmax(16rem,1fr))] gap-x-4 gap-y-0.5 overflow-y-auto">
-              {breakdown.map((entry) => (
-                <BreakdownRow
-                  key={entry.id}
-                  entry={entry}
+            <div className={cn('grid gap-x-10', breakdownGroups.length > 1 && 'grid-cols-2')}>
+              {breakdownGroups.map((group) => (
+                <BreakdownGroupList
+                  key={group.type}
+                  group={group}
                   currency={currency}
-                  isSelected={entry.id === state.selectedCategoryId}
-                  onToggle={() => state.toggleCategory(entry.id)}
+                  selectedCategoryId={state.selectedCategoryId}
+                  onToggleCategory={state.toggleCategory}
                 />
               ))}
             </div>

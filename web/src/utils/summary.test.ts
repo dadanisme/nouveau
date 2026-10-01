@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
 import type { TransactionCategory, TransactionWithCategory } from '@/types/transaction';
-import { computeCategoryBreakdown, computeSummary, formatPercentage } from '@/utils/summary';
+import {
+  computeBreakdownGroups,
+  computeCategoryBreakdown,
+  computeSummary,
+  formatPercentage,
+} from '@/utils/summary';
 import { filterTransactions } from '@/utils/transaction';
 
 const food: TransactionCategory = {
@@ -157,6 +162,44 @@ describe('computeCategoryBreakdown', () => {
     expect(computeCategoryBreakdown(undefined, 'expense')).toEqual([]);
     expect(computeCategoryBreakdown([], 'expense')).toEqual([]);
     expect(computeCategoryBreakdown([tx(salary, 5_000)], 'expense')).toEqual([]);
+  });
+});
+
+describe('computeBreakdownGroups', () => {
+  it('shows both types for "all", expense first, each with shares of its own total', () => {
+    const groups = computeBreakdownGroups(rows, 'all');
+    expect(groups.map((group) => [group.type, group.total])).toEqual([
+      ['expense', 260_000],
+      ['income', 1_000_000],
+    ]);
+    expect(groups[0].categories).toEqual(computeCategoryBreakdown(rows, 'expense'));
+    expect(groups[1].categories).toEqual(computeCategoryBreakdown(rows, 'income'));
+    // Income dwarfs the expenses, but each group adds up to 100% on its own.
+    for (const group of groups) {
+      const share = group.categories.reduce((sum, entry) => sum + entry.percentage, 0);
+      expect(share).toBeCloseTo(100);
+      expect(group.categories[0].ratio).toBe(1);
+    }
+  });
+
+  it('shows only the filtered type', () => {
+    expect(computeBreakdownGroups(rows, 'expense').map((group) => group.type)).toEqual(['expense']);
+    expect(computeBreakdownGroups(rows, 'income')).toEqual([
+      { type: 'income', total: 1_000_000, categories: computeCategoryBreakdown(rows, 'income') },
+    ]);
+  });
+
+  it('leaves out a type with no rows instead of an empty group', () => {
+    const onlyIncome = [tx(salary, 5_000)];
+    expect(computeBreakdownGroups(onlyIncome, 'all').map((group) => group.type)).toEqual([
+      'income',
+    ]);
+    expect(computeBreakdownGroups(onlyIncome, 'expense')).toEqual([]);
+  });
+
+  it('is empty when there is nothing to break down', () => {
+    expect(computeBreakdownGroups(undefined, 'all')).toEqual([]);
+    expect(computeBreakdownGroups([], 'all')).toEqual([]);
   });
 });
 

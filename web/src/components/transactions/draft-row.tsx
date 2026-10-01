@@ -1,6 +1,7 @@
 import { ArrowLeftRightIcon, XIcon } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 
+import { AmountInput } from '@/components/transactions/amount-input';
 import { CategoryCombobox } from '@/components/transactions/category-picker';
 import { DateField } from '@/components/transactions/date-field';
 import { CELL_CLASS } from '@/components/transactions/table-styles';
@@ -20,13 +21,18 @@ interface DraftRowProps {
   draft: DraftTransaction;
   state: DraftRowState;
   categories: Category[];
+  /** New rows are in the workspace's home currency. */
+  homeCurrency: string;
+  /** Changes when rows are added or removed around the draft. */
+  rowCount: number;
 }
 
 /**
  * The quick-add row. Tab runs date → description → category → amount (the type switch and
  * the discard button are skipped); Enter saves from any field and Escape discards.
  */
-export function DraftRow({ draft, state, categories }: DraftRowProps) {
+export function DraftRow({ draft, state, categories, homeCurrency, rowCount }: DraftRowProps) {
+  const rowRef = useRef<HTMLTableRowElement>(null);
   const dateRef = useRef<HTMLInputElement>(null);
   const descriptionRef = useRef<HTMLInputElement>(null);
   const categoryRef = useRef<HTMLInputElement>(null);
@@ -45,12 +51,20 @@ export function DraftRow({ draft, state, categories }: DraftRowProps) {
     input?.scrollIntoView({ block: 'nearest' });
   }, [focusRequest]);
 
+  // A saved row lands above a bottom draft a moment after the next draft was focused, which
+  // would push the draft out of view.
+  const isAtBottom = state.position === 'bottom';
+  useEffect(() => {
+    if (isAtBottom) rowRef.current?.scrollIntoView({ block: 'nearest' });
+  }, [isAtBottom, rowCount]);
+
   const cellClass = (field: DraftField) =>
     cn(CELL_CLASS, 'border-l', state.invalid.includes(field) ? INVALID_CLASS : FOCUS_CLASS);
   const otherType = draft.type === 'expense' ? t.income : t.expense;
 
   return (
     <tr
+      ref={rowRef}
       className="scroll-mt-8 bg-card"
       onKeyDown={(event) => {
         if (event.key === 'Escape') {
@@ -114,19 +128,19 @@ export function DraftRow({ draft, state, categories }: DraftRowProps) {
       </td>
 
       <td className={cellClass('amount')}>
-        <input
+        <AmountInput
           ref={amountRef}
           aria-label={t.columns.amount}
           aria-invalid={state.invalid.includes('amount') || undefined}
-          autoComplete="off"
-          inputMode="decimal"
           value={draft.amountText}
+          onValueChange={state.setAmountText}
+          currency={homeCurrency}
+          homeCurrency={homeCurrency}
           placeholder={t.amountPlaceholder}
           className={cn(
             'h-8 w-full bg-transparent px-2 text-right font-medium tabular-nums outline-none placeholder:font-normal placeholder:text-muted-foreground',
             draft.type === 'income' ? 'text-income' : 'text-expense',
           )}
-          onChange={(event) => state.setAmountText(event.target.value)}
         />
       </td>
 

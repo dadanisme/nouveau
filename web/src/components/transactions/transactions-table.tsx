@@ -1,4 +1,4 @@
-import { ArrowDownIcon, ArrowUpIcon } from 'lucide-react';
+import { ArrowDownIcon, ArrowUpIcon, PlusIcon } from 'lucide-react';
 
 import { DraftRow } from '@/components/transactions/draft-row';
 import { CELL_CLASS } from '@/components/transactions/table-styles';
@@ -38,9 +38,11 @@ interface TransactionsTableProps extends TransactionRowHandlers {
   /** Id of the transaction shown in the side panel. */
   openId: string | null;
   draftRow: DraftRowState;
+  homeCurrency: string | null;
   isLoading: boolean;
   error: Error | null;
   hasFilters: boolean;
+  canCreate: boolean;
   onRetry: () => void;
   onClearFilters: () => void;
 }
@@ -79,15 +81,44 @@ function MessageRow({ columnCount, children }: { columnCount: number; children: 
   );
 }
 
+interface NewRowProps {
+  columnCount: number;
+  disabled: boolean;
+  autoFocus: boolean;
+  onClick: () => void;
+}
+
+/** The last row of the table: opens the quick-add row in its place. */
+function NewRow({ columnCount, disabled, autoFocus, onClick }: NewRowProps) {
+  return (
+    <tr>
+      <td colSpan={columnCount} className={CELL_CLASS}>
+        <button
+          type="button"
+          disabled={disabled}
+          autoFocus={autoFocus}
+          onClick={onClick}
+          className="flex h-8 w-full items-center gap-1.5 px-2 text-left text-muted-foreground outline-none hover:bg-muted focus-visible:bg-muted focus-visible:shadow-[inset_0_0_0_2px_var(--ring)] disabled:pointer-events-none disabled:opacity-50"
+        >
+          <PlusIcon className="size-3.5" />
+          {t.newRow}
+        </button>
+      </td>
+    </tr>
+  );
+}
+
 export function TransactionsTable({
   table,
   categories,
   editingCell,
   openId,
   draftRow,
+  homeCurrency,
   isLoading,
   error,
   hasFilters,
+  canCreate,
   onRetry,
   onClearFilters,
   ...rowHandlers
@@ -96,6 +127,16 @@ export function TransactionsTable({
   const rows = table.getRowModel().rows;
   const isAllSelected = rows.length > 0 && table.getIsAllRowsSelected();
   const isSomeSelected = !isAllSelected && rows.some((row) => row.getIsSelected());
+  const draft = draftRow.draft && homeCurrency && !error && (
+    <DraftRow
+      draft={draftRow.draft}
+      state={draftRow}
+      categories={categories}
+      homeCurrency={homeCurrency}
+      rowCount={rows.length}
+    />
+  );
+  const isDraftAtBottom = draftRow.position === 'bottom';
 
   return (
     <table className="w-full min-w-[820px] table-fixed border-separate border-spacing-0">
@@ -160,9 +201,7 @@ export function TransactionsTable({
       </thead>
 
       <tbody>
-        {draftRow.draft && !error && (
-          <DraftRow draft={draftRow.draft} state={draftRow} categories={categories} />
-        )}
+        {!isDraftAtBottom && draft}
 
         {error ? (
           <MessageRow columnCount={headers.length}>
@@ -197,6 +236,17 @@ export function TransactionsTable({
               {...rowHandlers}
             />
           ))
+        )}
+
+        {/* The bottom draft takes the place of the "+ New" row until it is discarded. */}
+        {isDraftAtBottom && draft}
+        {!error && !(isDraftAtBottom && draftRow.isOpen) && (
+          <NewRow
+            columnCount={headers.length}
+            disabled={!canCreate}
+            autoFocus={draftRow.returnFocusToNewRow}
+            onClick={draftRow.openAtBottom}
+          />
         )}
       </tbody>
     </table>

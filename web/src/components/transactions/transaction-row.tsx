@@ -3,6 +3,7 @@ import { PanelRightOpenIcon, Trash2Icon } from 'lucide-react';
 
 import { CategoryLabel } from '@/components/transactions/category-label';
 import {
+  AmountCellEditor,
   CategoryCellEditor,
   DateCellEditor,
   TextCellEditor,
@@ -219,10 +220,11 @@ export function TransactionRow({
       <td className={cn(CELL_CLASS, 'border-l', editingField === 'amount' && EDITING_CLASS)}>
         {editingField === 'amount' ? (
           // Edits the amount in the transaction's own currency; the home amount follows.
-          <TextCellEditor
+          <AmountCellEditor
             label={t.columns.amount}
             align="right"
-            inputMode="decimal"
+            currency={transaction.currency}
+            homeCurrency={transaction.home_currency}
             initialValue={toAmountInput(transaction.amount, currencyDecimals(transaction.currency))}
             onCommit={(text) => {
               onEditAmount(transaction, text);
