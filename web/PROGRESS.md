@@ -14,12 +14,12 @@ Tick items as they land. Note the PR number next to each milestone when merged.
 
 ## M2 — Transactions table
 
-- [ ] Query hooks (transactions by range, categories), month nav, range filter, search, type/category filters
-- [ ] TanStack Table with inline cell editing
-- [ ] Quick-add row (`N`, Tab, Enter)
-- [ ] Multi-select, bulk delete, bulk change category
-- [ ] Undo toast for deletes
-- [ ] Vitest: amount parsing, totals, date ranges
+- [x] Query hooks (transactions by range, categories), month nav, range filter, search, type/category filters
+- [x] TanStack Table with inline cell editing
+- [x] Quick-add row (`N`, Tab, Enter)
+- [x] Multi-select, bulk delete, bulk change category
+- [x] Undo toast for deletes
+- [x] Vitest: amount parsing, totals, date ranges
 - [ ] Verified in Chrome, PR merged
 
 ## M3 — Side panel, currency, proofs, AI
