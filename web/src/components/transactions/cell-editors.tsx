@@ -26,9 +26,10 @@ interface TextCellEditorProps {
   onCancel: () => void;
   align?: 'left' | 'right';
   inputMode?: 'text' | 'decimal';
+  maxLength?: number;
 }
 
-/** Text editor for description and amount cells. */
+/** Text editor for description, amount and category name cells. */
 export function TextCellEditor({
   initialValue,
   label,
@@ -36,6 +37,7 @@ export function TextCellEditor({
   onCancel,
   align = 'left',
   inputMode = 'text',
+  maxLength,
 }: TextCellEditorProps) {
   const [text, setText] = useState(initialValue);
   const finishOnce = useFinishOnce();
@@ -46,6 +48,7 @@ export function TextCellEditor({
       aria-label={label}
       autoComplete="off"
       inputMode={inputMode}
+      maxLength={maxLength}
       value={text}
       className={cn(
         'h-8 w-full bg-transparent px-2 outline-none',

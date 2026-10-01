@@ -1,5 +1,6 @@
 import { queryOptions, useMutation, useQuery } from '@tanstack/react-query';
 
+import { pendingDeletes } from '@/lib/pending-deletes';
 import { supabase } from '@/lib/supabase';
 import { en } from '@/locales/en';
 
@@ -86,6 +87,8 @@ export function useSignOut() {
   // sign-outs that originate in another tab.
   return useMutation({
     mutationFn: async () => {
+      // Deletes still waiting behind an Undo toast need the session to go through.
+      await pendingDeletes.flush();
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
     },

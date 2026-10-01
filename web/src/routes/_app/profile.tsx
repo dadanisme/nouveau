@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router';
 
-import { ProfilePlaceholder } from '@/components/profile-placeholder';
+import { ProfilePage } from '@/components/profile/profile-page';
 
 export const Route = createFileRoute('/_app/profile')({
-  component: ProfilePlaceholder,
+  component: ProfilePage,
 });

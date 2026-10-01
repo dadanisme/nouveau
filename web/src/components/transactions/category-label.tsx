@@ -20,12 +20,12 @@ export function CategoryIcon({ icon, color, className }: CategoryIconProps) {
     >
       {svg ? (
         <span
-          className="size-3 [&>svg]:size-full [&>svg]:fill-current"
+          className="size-3/5 [&>svg]:size-full [&>svg]:fill-current"
           // Static markup from the `ionicons` package, looked up by name; never user input.
           dangerouslySetInnerHTML={{ __html: svg }}
         />
       ) : (
-        <span className="size-2 rounded-full bg-current" />
+        <span className="size-2/5 rounded-full bg-current" />
       )}
     </span>
   );

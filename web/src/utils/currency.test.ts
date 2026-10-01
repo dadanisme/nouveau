@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   currencyDecimals,
   formatAmount,
+  formatBalance,
   formatForeignAmount,
   formatRate,
   formatSignedAmount,
@@ -40,6 +41,12 @@ describe('formatting', () => {
   it('signs by transaction type', () => {
     expect(formatSignedAmount(15000, 'expense', 'IDR')).toBe('-Rp15.000');
     expect(formatSignedAmount(15000, 'income', 'IDR')).toBe('+Rp15.000');
+  });
+
+  it('puts the minus of a negative total before the symbol', () => {
+    expect(formatBalance(-25000, 'IDR')).toBe('-Rp25.000');
+    expect(formatBalance(740000, 'IDR')).toBe('Rp740.000');
+    expect(formatBalance(0, 'IDR')).toBe('Rp0');
   });
 
   it('formats foreign amounts in their own currency', () => {

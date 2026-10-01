@@ -22,3 +22,30 @@ export function filterCategories(
 export function categoryTint(color: string): string {
   return /^#[0-9a-f]{6}$/i.test(color) ? `${color}20` : 'transparent';
 }
+
+/** Same limit as the name field of mobile's category form. */
+export const CATEGORY_NAME_MAX_LENGTH = 50;
+
+/** The name as it is stored, or null when it is empty (mobile's only validation rule). */
+export function normalizeCategoryName(input: string): string | null {
+  const name = input.trim().slice(0, CATEGORY_NAME_MAX_LENGTH);
+  return name || null;
+}
+
+/** `categories.icon` holds "Library/name"; mobile only ever writes Ionicons. */
+export function toIconValue(name: string | null): string | null {
+  return name ? `Ionicons/${name}` : null;
+}
+
+export interface CategoryGroup {
+  type: TransactionType;
+  categories: Category[];
+}
+
+/** Expense first, then income, as on mobile's categories screen; each in the given order. */
+export function groupCategoriesByType(categories: Category[]): CategoryGroup[] {
+  return (['expense', 'income'] as const).map((type) => ({
+    type,
+    categories: categories.filter((category) => category.type === type),
+  }));
+}

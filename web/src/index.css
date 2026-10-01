@@ -140,3 +140,19 @@
     height: 100%;
   }
 }
+
+/*
+ * Category icons are raw SVGs from the `ionicons` package. These are the classes the
+ * `ion-icon` element would style: without them the icons drawn with strokes
+ * (trending-up, link, at, ...) come out as filled blobs.
+ */
+.ionicon {
+  fill: currentColor;
+  stroke: currentColor;
+}
+.ionicon-fill-none {
+  fill: none;
+}
+.ionicon-stroke-width {
+  stroke-width: 32px;
+}

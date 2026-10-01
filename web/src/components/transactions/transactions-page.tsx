@@ -1,11 +1,13 @@
 import { Page } from '@/components/page';
 import { BulkActionsBar, DeleteConfirmDialog } from '@/components/transactions/bulk-actions';
+import { SummaryStrip } from '@/components/transactions/summary-strip';
 import { TransactionPanel } from '@/components/transactions/transaction-panel';
 import { TransactionsTable } from '@/components/transactions/transactions-table';
 import { TransactionsToolbar } from '@/components/transactions/transactions-toolbar';
 import { useWorkspace } from '@/contexts/workspace-context';
 import { useDraftRow } from '@/hooks/use-draft-row';
 import { useHotkey } from '@/hooks/use-hotkey';
+import { useSummaryStrip } from '@/hooks/use-summary-strip';
 import { useTransactionActions } from '@/hooks/use-transaction-actions';
 import { useTransactionPanel } from '@/hooks/use-transaction-panel';
 import { useTransactionsPage } from '@/hooks/use-transactions-page';
@@ -46,6 +48,15 @@ function TransactionsView() {
     useTransactionsTable(page.transactions);
   const draftRow = useDraftRow({ categories: page.categories, onSubmit: actions.createFromDraft });
 
+  const summary = useSummaryStrip({
+    transactions: page.transactions,
+    breakdownTransactions: page.breakdownTransactions,
+    homeCurrency: page.homeCurrency,
+    typeFilter: page.typeFilter,
+    categoryFilter: page.categoryFilter,
+    onCategoryFilterChange: page.setCategoryFilter,
+  });
+
   const panel = useTransactionPanel(page.periodTransactions, page.isLoading);
 
   useHotkey('n', draftRow.open, actions.canCreate);
@@ -72,6 +83,10 @@ function TransactionsView() {
           canCreate={actions.canCreate}
           onNew={draftRow.open}
         />
+
+        {!page.error && (
+          <SummaryStrip state={summary} currency={page.homeCurrency} isLoading={page.isLoading} />
+        )}
 
         <div className="relative min-h-0 flex-1">
           <div className="h-full overflow-auto px-6">
@@ -130,7 +145,7 @@ function TransactionsView() {
           onEditCategory={actions.editCategory}
           onEditAmount={actions.editAmount}
           onEditCurrency={actions.editCurrency}
-          // Same immediate delete with Undo as the table; the panel has nothing left to show.
+          // Same delete with Undo as the table; the panel has nothing left to show.
           onDelete={(transaction) => {
             actions.requestDelete([transaction]);
             panel.close();

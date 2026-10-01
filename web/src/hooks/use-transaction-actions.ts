@@ -4,12 +4,9 @@ import { toast } from 'sonner';
 
 import { useWorkspace } from '@/contexts/workspace-context';
 import { useSession } from '@/hooks/use-auth';
+import { useDeferredDelete } from '@/hooks/use-deferred-delete';
 import { exchangeRateQueryOptions } from '@/hooks/use-exchange-rate';
-import {
-  useDeleteTransactions,
-  useInsertTransactions,
-  useUpdateTransactions,
-} from '@/hooks/use-transaction-mutations';
+import { useInsertTransactions, useUpdateTransactions } from '@/hooks/use-transaction-mutations';
 import { en } from '@/locales/en';
 import type {
   Category,
@@ -33,7 +30,6 @@ import {
 
 /** Bulk deletes above this many rows ask for confirmation first. */
 const CONFIRM_DELETE_ABOVE = 20;
-const UNDO_DURATION_MS = 6000;
 
 const t = en.transactions;
 
@@ -45,13 +41,9 @@ function showError(title: string) {
   };
 }
 
-function countLabel(count: number, one: string, many: string): string {
-  return count === 1 ? one : interpolate(many, { count });
-}
-
 /**
  * Everything the transactions page can do to data: inline edits, quick add, bulk category
- * change, and deletes with undo. Wraps the mutation hooks with validation and toasts.
+ * change, and deletes with undo (deferred; see `useDeferredDelete`). Wraps the mutation hooks with validation and toasts.
  */
 export function useTransactionActions(categories: Category[], visibleRange: DateRange) {
   const { session } = useSession();
@@ -63,7 +55,7 @@ export function useTransactionActions(categories: Category[], visibleRange: Date
   const queryClient = useQueryClient();
   const insertTransactions = useInsertTransactions();
   const updateTransactions = useUpdateTransactions();
-  const deleteTransactions = useDeleteTransactions();
+  const deleteWithUndo = useDeferredDelete();
 
   const [pendingDelete, setPendingDelete] = useState<TransactionWithCategory[] | null>(null);
 
@@ -161,33 +153,13 @@ export function useTransactionActions(categories: Category[], visibleRange: Date
     return result;
   };
 
-  const restore = (rows: TransactionWithCategory[]) => {
-    insertTransactions.mutate(rows, {
-      onSuccess: () => toast.success(countLabel(rows.length, t.restoredOne, t.restored)),
-      onError: showError(t.restoreFailed),
-    });
-  };
-
-  const deleteNow = (rows: TransactionWithCategory[]) => {
-    if (rows.length === 0) return;
-    deleteTransactions.mutate(
-      rows.map((row) => row.id),
-      {
-        onSuccess: () => {
-          toast(countLabel(rows.length, t.deletedOne, t.deleted), {
-            duration: UNDO_DURATION_MS,
-            action: { label: t.undo, onClick: () => restore(rows) },
-          });
-        },
-        onError: showError(t.deleteFailed),
-      },
-    );
-  };
-
-  /** Deletes immediately, or asks first when the selection is large. */
+  /**
+   * Removes the rows from view and queues the DELETE behind an Undo toast (see
+   * `useDeferredDelete`); asks first when the selection is large.
+   */
   const requestDelete = (rows: TransactionWithCategory[]) => {
     if (rows.length > CONFIRM_DELETE_ABOVE) setPendingDelete(rows);
-    else deleteNow(rows);
+    else deleteWithUndo(rows);
   };
 
   const showDraftErrors = (result: DraftResult) => {
@@ -217,7 +189,7 @@ export function useTransactionActions(categories: Category[], visibleRange: Date
     requestDelete,
     pendingDeleteCount: pendingDelete?.length ?? 0,
     confirmDelete: () => {
-      if (pendingDelete) deleteNow(pendingDelete);
+      if (pendingDelete) deleteWithUndo(pendingDelete);
       setPendingDelete(null);
     },
     cancelDelete: () => setPendingDelete(null),
