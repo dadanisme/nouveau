@@ -26,7 +26,7 @@ interface BulkActionsBarProps {
   onClear: () => void;
 }
 
-/** Floats over the bottom of the table while rows are selected. */
+/** Floats over the bottom of the table while rows are selected, centred in the content column. */
 export function BulkActionsBar({
   count,
   categories,
@@ -35,37 +35,39 @@ export function BulkActionsBar({
   onClear,
 }: BulkActionsBarProps) {
   return (
-    <div
-      role="toolbar"
-      aria-label={interpolate(t.selected, { count })}
-      className="absolute bottom-4 left-1/2 z-20 flex -translate-x-1/2 items-center gap-1 rounded-lg border bg-popover p-1 pl-3 shadow-md"
-    >
-      <span className="pr-2 font-medium tabular-nums">{interpolate(t.selected, { count })}</span>
-      <CategoryMenu
-        categories={categories}
-        selectedId={null}
-        onSelect={onChangeCategory}
-        side="top"
-        align="center"
+    <div className="page-container pointer-events-none absolute inset-x-0 bottom-4 z-20 flex justify-center">
+      <div
+        role="toolbar"
+        aria-label={interpolate(t.selected, { count })}
+        className="pointer-events-auto flex items-center gap-1 rounded-lg border bg-popover p-1 pl-3 shadow-md"
       >
-        <Button variant="ghost" size="sm">
-          <TagIcon />
-          {t.changeCategory}
+        <span className="pr-2 font-medium tabular-nums">{interpolate(t.selected, { count })}</span>
+        <CategoryMenu
+          categories={categories}
+          selectedId={null}
+          onSelect={onChangeCategory}
+          side="top"
+          align="center"
+        >
+          <Button variant="ghost" size="sm">
+            <TagIcon />
+            {t.changeCategory}
+          </Button>
+        </CategoryMenu>
+        <Button variant="ghost" size="sm" className="text-destructive" onClick={onDelete}>
+          <Trash2Icon />
+          {t.delete}
         </Button>
-      </CategoryMenu>
-      <Button variant="ghost" size="sm" className="text-destructive" onClick={onDelete}>
-        <Trash2Icon />
-        {t.delete}
-      </Button>
-      <Button
-        variant="ghost"
-        size="icon-sm"
-        aria-label={t.clearSelection}
-        title={t.clearSelection}
-        onClick={onClear}
-      >
-        <XIcon />
-      </Button>
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          aria-label={t.clearSelection}
+          title={t.clearSelection}
+          onClick={onClear}
+        >
+          <XIcon />
+        </Button>
+      </div>
     </div>
   );
 }
