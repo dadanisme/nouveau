@@ -38,7 +38,7 @@ Tick items as they land. Note the PR number next to each milestone when merged.
 - [x] Deferred delete (Undo cancels the DELETE instead of re-inserting)
 - [x] `vercel.json`, `DEPLOY.md` checklist, `README.md`
 - [x] Vercel project, `app.nouveau.my.id` DNS (see `DEPLOY.md`)
-- [ ] Supabase redirect URLs + Google OAuth origins
+- [x] Supabase redirect URLs + Google OAuth origins (done by the owner)
 - [ ] Production verified, PR merged, final report
 
 ## External changes log
@@ -48,5 +48,5 @@ Tick items as they land. Note the PR number next to each milestone when merged.
 - 2026-10-01 Vercel: first production deploy (prebuilt from local), live at https://nouveau-web-nine.vercel.app.
 - 2026-10-01 Vercel: attached domain `app.nouveau.my.id` to the project (needs DNS: `A app 76.76.21.21`).
 - 2026-10-01 Cloudflare (zone `nouveau.my.id`): added `A app 76.76.21.21`, DNS only, TTL Auto. https://app.nouveau.my.id serves the app over HTTPS.
-- Still to do by the owner: Supabase redirect URLs and Google OAuth web flow (see `DEPLOY.md`); sign-in on production not yet verified.
+- 2026-10-01 Supabase (by the owner): added redirect URLs `https://app.nouveau.my.id` and `http://localhost:5173`. Owner confirmed Google sign-in works on production.
 - Deploys are manual for now: from `web/`, `vercel build --yes --target production && vercel deploy --prebuilt --prod`. Git auto-deploy is not connected (it needs the project root directory set to `web` with files outside the root included, because the build type-imports `../types/supabase.ts`).
