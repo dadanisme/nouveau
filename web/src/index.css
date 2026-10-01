@@ -1,0 +1,142 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
+@import '@fontsource-variable/inter';
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-heading: var(--font-sans);
+  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  /* Nouveau semantic colours (not part of shadcn's token set) */
+  --color-income: var(--income);
+  --color-expense: var(--expense);
+  --color-primary-soft: var(--primary-soft);
+  --color-primary-strong: var(--primary-strong);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+/*
+ * Theme
+ *
+ * 1. Palette: raw values copied from the mobile app's `constants/colors.ts`.
+ * 2. Semantic tokens: shadcn's token names, expressed only in terms of the palette.
+ *
+ * Components must use the semantic tokens (bg-background, text-muted-foreground, ...),
+ * never the palette directly. To add dark mode later, add a `.dark { ... }` block that
+ * reassigns the semantic tokens; the `dark:` variant is already wired up above.
+ */
+:root {
+  /* 1. Palette */
+  --amber: #f59e0b;
+  --amber-light: #fef3c7;
+  --amber-dark: #d97706;
+  --cream: #fff9eb;
+  --white: #ffffff;
+  --green: #16a34a;
+  --red: #ef4444;
+  --gray-50: #f9fafb;
+  --gray-100: #f3f4f6;
+  --gray-200: #e5e7eb;
+  --gray-300: #d1d5db;
+  --gray-400: #9ca3af;
+  --gray-500: #6b7280;
+  --gray-600: #4b5563;
+  --gray-700: #374151;
+  --gray-800: #1f2937;
+  --gray-900: #111827;
+
+  /* 2. Semantic tokens */
+  --background: var(--cream);
+  --foreground: var(--gray-900);
+  --card: var(--white);
+  --card-foreground: var(--gray-900);
+  --popover: var(--white);
+  --popover-foreground: var(--gray-900);
+  --primary: var(--amber);
+  --primary-foreground: var(--gray-900);
+  --primary-soft: var(--amber-light);
+  --primary-strong: var(--amber-dark);
+  /* Hover/selected surfaces: a neutral tint so they stay warm on the cream background. */
+  --secondary: color-mix(in oklab, var(--gray-900) 6%, transparent);
+  --secondary-foreground: var(--gray-900);
+  --muted: color-mix(in oklab, var(--gray-900) 5%, transparent);
+  --muted-foreground: var(--gray-500);
+  --accent: color-mix(in oklab, var(--gray-900) 6%, transparent);
+  --accent-foreground: var(--gray-900);
+  --destructive: var(--red);
+  --income: var(--green);
+  --expense: var(--red);
+  /* Hairlines: translucent ink rather than gray-200, which reads cold on cream. */
+  --border: color-mix(in oklab, var(--gray-900) 12%, transparent);
+  --input: color-mix(in oklab, var(--gray-900) 18%, transparent);
+  --ring: var(--amber);
+  --chart-1: var(--amber);
+  --chart-2: var(--green);
+  --chart-3: var(--red);
+  --chart-4: var(--gray-500);
+  --chart-5: var(--amber-dark);
+  --radius: 0.375rem;
+  --sidebar: color-mix(in oklab, var(--amber) 5%, var(--cream));
+  --sidebar-foreground: var(--gray-700);
+  --sidebar-primary: var(--amber);
+  --sidebar-primary-foreground: var(--gray-900);
+  --sidebar-accent: color-mix(in oklab, var(--gray-900) 6%, transparent);
+  --sidebar-accent-foreground: var(--gray-900);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--amber);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    @apply font-sans;
+  }
+  body {
+    @apply bg-background text-foreground text-sm antialiased;
+  }
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+}

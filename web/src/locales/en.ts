@@ -1,0 +1,63 @@
+/** All user-facing copy. English only for v1; kept in one object so it can be swapped later. */
+export const en = {
+  common: {
+    appName: 'Nouveau',
+    pleaseWait: 'Please wait...',
+    unexpectedError: 'An unexpected error occurred.',
+    loading: 'Loading...',
+  },
+  login: {
+    heading: 'Your financial journey starts here',
+    subtitle: 'Manage your money, transactions, and finances seamlessly.',
+    email: 'Email',
+    password: 'Password',
+    signIn: 'Sign in',
+    noAccount: "Don't have an account?",
+    signUp: 'Sign up',
+    orContinueWith: 'or continue with',
+    signInWithGoogle: 'Sign in with Google',
+    missingFieldsMessage: 'Please enter both email and password.',
+    signInFailed: 'Sign-in failed',
+    showPassword: 'Show password',
+    hidePassword: 'Hide password',
+  },
+  signup: {
+    heading: 'Create your account',
+    subtitle: 'Sign up to start managing your finances with Nouveau.',
+    email: 'Email',
+    password: 'Password',
+    signUp: 'Sign up',
+    hasAccount: 'Already have an account?',
+    signIn: 'Sign in',
+    missingFieldsMessage: 'Please enter both email and password.',
+    signUpFailed: 'Sign-up failed',
+    alreadyRegistered: 'An account with this email already exists. Try signing in instead.',
+    checkEmail: 'Check your email',
+    checkEmailMessage: 'We sent you a confirmation link. Please verify your email to continue.',
+  },
+  nav: {
+    transactions: 'Transactions',
+    categories: 'Categories',
+    profile: 'Profile',
+  },
+  workspace: {
+    switch: 'Switch workspace',
+    personal: 'Personal',
+    shared: 'Shared',
+    none: 'No workspace',
+    noneMessage: 'This account has no workspace yet. Create one in the mobile app.',
+  },
+  transactions: {
+    title: 'Transactions',
+    placeholder: 'The transactions table arrives in the next milestone.',
+  },
+  categories: {
+    title: 'Categories',
+    placeholder: 'Category management arrives in a later milestone.',
+  },
+  profile: {
+    title: 'Profile',
+    signOut: 'Sign out',
+    signOutFailed: 'Sign-out failed',
+  },
+} as const;
