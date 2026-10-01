@@ -43,4 +43,8 @@ Tick items as they land. Note the PR number next to each milestone when merged.
 
 ## External changes log
 
-(none yet)
+- 2026-10-01 Vercel: created project `nouveau-web` (account `dadanisme`), linked from `web/`.
+- 2026-10-01 Vercel: added production env vars `VITE_SUPABASE_URL` and `VITE_SUPABASE_KEY` (publishable key, type config).
+- 2026-10-01 Vercel: first production deploy (prebuilt from local), live at https://nouveau-web-nine.vercel.app.
+- 2026-10-01 Vercel: attached domain `app.nouveau.my.id` to the project (needs DNS: `A app 76.76.21.21`).
+- Deploys are manual for now: from `web/`, `vercel build --yes --target production && vercel deploy --prebuilt --prod`. Git auto-deploy is not connected (it needs the project root directory set to `web` with files outside the root included, because the build type-imports `../types/supabase.ts`).

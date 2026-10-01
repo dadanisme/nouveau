@@ -32,3 +32,4 @@ dist-ssr
 
 # TanStack Router plugin cache
 .tanstack
+.vercel
