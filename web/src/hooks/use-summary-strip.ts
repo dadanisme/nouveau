@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react';
 
 import { readBreakdownOpen, writeBreakdownOpen } from '@/lib/summary-storage';
-import type { TransactionType, TransactionWithCategory, TypeFilter } from '@/types/transaction';
+import type { TransactionWithCategory, TypeFilter } from '@/types/transaction';
 import { currencyDecimals } from '@/utils/currency';
-import { computeCategoryBreakdown, computeSummary } from '@/utils/summary';
+import { computeBreakdownGroups, computeSummary } from '@/utils/summary';
 
 interface UseSummaryStripOptions {
   /** The rows the table shows (period, search and every filter applied). */
@@ -12,6 +12,7 @@ interface UseSummaryStripOptions {
   breakdownTransactions: TransactionWithCategory[];
   /** The workspace's home currency; totals are rounded to its decimals. */
   homeCurrency: string | null;
+  /** The toolbar's type filter, which also decides which types are broken down. */
   typeFilter: TypeFilter;
   categoryFilter: string | null;
   onCategoryFilterChange: (categoryId: string | null) => void;
@@ -27,26 +28,20 @@ export function useSummaryStrip({
   onCategoryFilterChange,
 }: UseSummaryStripOptions) {
   const [isBreakdownOpen, setIsBreakdownOpen] = useState(readBreakdownOpen);
-  const [chosenType, setChosenType] = useState<TransactionType>('expense');
-
-  // A type filter leaves only one type to break down.
-  const breakdownType = typeFilter === 'all' ? chosenType : typeFilter;
 
   const summary = useMemo(
     () => computeSummary(transactions, homeCurrency ? currencyDecimals(homeCurrency) : undefined),
     [transactions, homeCurrency],
   );
-  const breakdown = useMemo(
-    () => computeCategoryBreakdown(breakdownTransactions, breakdownType),
-    [breakdownTransactions, breakdownType],
+  const breakdownGroups = useMemo(
+    () => computeBreakdownGroups(breakdownTransactions, typeFilter),
+    [breakdownTransactions, typeFilter],
   );
 
   return {
     summary,
-    breakdown,
-    breakdownType,
-    canChangeBreakdownType: typeFilter === 'all',
-    setBreakdownType: setChosenType,
+    breakdownGroups,
+    typeFilter,
     isBreakdownOpen,
     toggleBreakdown: () => {
       writeBreakdownOpen(!isBreakdownOpen);

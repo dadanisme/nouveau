@@ -3,6 +3,7 @@ import { useState } from 'react';
 
 import { CategoryLabel } from '@/components/transactions/category-label';
 import {
+  AmountCellEditor,
   CategoryCellEditor,
   DateCellEditor,
   TextCellEditor,
@@ -172,9 +173,10 @@ function PanelBody({
 
         <Field label={t.fields.amount} isEditing={editing === 'amount'}>
           {editing === 'amount' ? (
-            <TextCellEditor
+            <AmountCellEditor
               label={en.transactions.columns.amount}
-              inputMode="decimal"
+              currency={transaction.currency}
+              homeCurrency={transaction.home_currency}
               initialValue={toAmountInput(
                 transaction.amount,
                 currencyDecimals(transaction.currency),

@@ -55,6 +55,31 @@ export function formatForeignAmount(value: number, currency: string): string {
   }
 }
 
+export interface AmountSeparators {
+  group: string;
+  decimal: string;
+}
+
+function separatorsOf(locale: string): AmountSeparators {
+  const parts = new Intl.NumberFormat(locale).formatToParts(1234567.5);
+  return {
+    group: parts.find((part) => part.type === 'group')?.value ?? ',',
+    decimal: parts.find((part) => part.type === 'decimal')?.value ?? '.',
+  };
+}
+
+const HOME_SEPARATORS = separatorsOf(NUMBER_LOCALE);
+const FOREIGN_SEPARATORS = separatorsOf(SYMBOL_LOCALE);
+
+/**
+ * The separators an amount is displayed with, so an amount field can group digits the same
+ * way while typing: `formatAmount`'s for amounts in the home currency ("2.000.000"),
+ * `formatForeignAmount`'s for amounts in another currency ("11,806.97").
+ */
+export function amountSeparators(currency: string, homeCurrency: string): AmountSeparators {
+  return currency === homeCurrency ? HOME_SEPARATORS : FOREIGN_SEPARATORS;
+}
+
 /** The plain string an amount input starts with when editing, e.g. 1250000 -> "1250000". */
 export function toAmountInput(value: number, decimals: number): string {
   return String(Number(value.toFixed(decimals)));

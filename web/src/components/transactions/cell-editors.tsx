@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 
+import { AmountInput } from '@/components/transactions/amount-input';
 import { CategoryCombobox } from '@/components/transactions/category-picker';
 import { DateField } from '@/components/transactions/date-field';
 import { cn } from '@/lib/utils';
@@ -24,19 +25,15 @@ interface TextCellEditorProps {
   label: string;
   onCommit: (text: string) => void;
   onCancel: () => void;
-  align?: 'left' | 'right';
-  inputMode?: 'text' | 'decimal';
   maxLength?: number;
 }
 
-/** Text editor for description, amount and category name cells. */
+/** Text editor for description and category name cells. */
 export function TextCellEditor({
   initialValue,
   label,
   onCommit,
   onCancel,
-  align = 'left',
-  inputMode = 'text',
   maxLength,
 }: TextCellEditorProps) {
   const [text, setText] = useState(initialValue);
@@ -47,18 +44,61 @@ export function TextCellEditor({
       autoFocus
       aria-label={label}
       autoComplete="off"
-      inputMode={inputMode}
       maxLength={maxLength}
       value={text}
-      className={cn(
-        'h-8 w-full bg-transparent px-2 outline-none',
-        align === 'right' && 'text-right tabular-nums',
-      )}
+      className="h-8 w-full bg-transparent px-2 outline-none"
       onChange={(event) => setText(event.target.value)}
       onFocus={(event) => event.target.select()}
       onBlur={() => finishOnce(() => onCommit(text))}
       onKeyDown={(event) => {
         if (event.key === 'Enter') finishOnce(() => onCommit(text));
+        else if (event.key === 'Escape') finishOnce(onCancel);
+      }}
+    />
+  );
+}
+
+interface AmountCellEditorProps {
+  /** The plain amount the editor starts with, e.g. "1250000". */
+  initialValue: string;
+  label: string;
+  /** The amount's own currency and the workspace's: they decide decimals and separators. */
+  currency: string;
+  homeCurrency: string;
+  onCommit: (text: string) => void;
+  onCancel: () => void;
+  align?: 'left' | 'right';
+}
+
+/** Amount editor: digits are grouped while typing, the committed text is the plain number. */
+export function AmountCellEditor({
+  initialValue,
+  label,
+  currency,
+  homeCurrency,
+  onCommit,
+  onCancel,
+  align = 'left',
+}: AmountCellEditorProps) {
+  const [value, setValue] = useState(initialValue);
+  const finishOnce = useFinishOnce();
+
+  return (
+    <AmountInput
+      autoFocus
+      aria-label={label}
+      value={value}
+      onValueChange={setValue}
+      currency={currency}
+      homeCurrency={homeCurrency}
+      className={cn(
+        'h-8 w-full bg-transparent px-2 tabular-nums outline-none',
+        align === 'right' && 'text-right',
+      )}
+      onFocus={(event) => event.target.select()}
+      onBlur={() => finishOnce(() => onCommit(value))}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter') finishOnce(() => onCommit(value));
         else if (event.key === 'Escape') finishOnce(onCancel);
       }}
     />

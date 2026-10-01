@@ -59,7 +59,7 @@ function TransactionsView() {
 
   const panel = useTransactionPanel(page.periodTransactions, page.isLoading);
 
-  useHotkey('n', draftRow.open, actions.canCreate);
+  useHotkey('n', draftRow.openAtTop, actions.canCreate);
 
   return (
     <div className="flex min-h-0 flex-1">
@@ -81,7 +81,7 @@ function TransactionsView() {
           categoryFilter={page.categoryFilter}
           onCategoryFilterChange={page.setCategoryFilter}
           canCreate={actions.canCreate}
-          onNew={draftRow.open}
+          onNew={draftRow.openAtTop}
         />
 
         {!page.error && (
@@ -96,9 +96,11 @@ function TransactionsView() {
               editingCell={editingCell}
               openId={panel.openId}
               draftRow={draftRow}
+              homeCurrency={page.homeCurrency}
               isLoading={page.isLoading}
               error={page.error}
               hasFilters={page.hasFilters}
+              canCreate={actions.canCreate}
               onRetry={page.retry}
               onClearFilters={page.clearFilters}
               onStartEdit={startEditing}
