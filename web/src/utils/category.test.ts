@@ -6,7 +6,6 @@ import { getCategoryIconSvg } from '@/lib/category-icons';
 import type { Category } from '@/types/transaction';
 import {
   CATEGORY_NAME_MAX_LENGTH,
-  categoryTint,
   groupCategoriesByType,
   normalizeCategoryName,
   toIconValue,
@@ -68,8 +67,8 @@ describe('category pickers', () => {
     expect(missing).toEqual([]);
   });
 
-  it('offers colours the tint helper understands', () => {
+  it('offers colours as #RRGGBB, the form categories are stored in', () => {
     expect(CATEGORY_COLORS.length).toBeGreaterThan(0);
-    for (const color of CATEGORY_COLORS) expect(categoryTint(color)).toBe(`${color}20`);
+    for (const color of CATEGORY_COLORS) expect(color).toMatch(/^#[0-9A-F]{6}$/i);
   });
 });

@@ -7,12 +7,15 @@ import {
 } from 'lucide-react';
 import { Toaster as Sonner, type ToasterProps } from 'sonner';
 
-// Light mode only for v1, so the theme is fixed (the generated component read it from
-// next-themes, which this app does not use).
+import { useTheme } from '@/hooks/use-theme';
+
+// The generated component read the theme from next-themes, which this app does not use.
 const Toaster = ({ ...props }: ToasterProps) => {
+  const { theme } = useTheme();
+
   return (
     <Sonner
-      theme="light"
+      theme={theme}
       className="toaster group"
       icons={{
         success: <CircleCheckIcon className="size-4" />,

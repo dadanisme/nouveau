@@ -41,6 +41,16 @@ Tick items as they land. Note the PR number next to each milestone when merged.
 - [x] Supabase redirect URLs + Google OAuth origins (done by the owner)
 - [ ] Production verified, PR merged, final report
 
+## Dark mode (branch `web/dark-mode`)
+
+- [x] Dark palette as a `.dark` block over the existing tokens, `color-scheme` per theme
+- [x] System / Light / Dark preference (`theme_preference` in localStorage), live OS follow, Vitest for the resolve logic
+- [x] Inline script in `index.html` so the wrong theme never paints first
+- [x] Appearance section on the Profile page (segmented control)
+- [x] Sweep for colours that bypass tokens; category colours kept legible on dark
+- [x] Verified in Chrome on the test account (gaps listed in `SPEC.md`)
+- [ ] PR merged
+
 ## External changes log
 
 - 2026-10-01 Vercel: created project `nouveau-web` (account `dadanisme`), linked from `web/`.

@@ -34,7 +34,7 @@ export function ColorPicker({ color, categoryName, onSelect }: ColorPickerProps)
         >
           <span
             aria-hidden
-            className="size-3.5 shrink-0 rounded-full ring-1 ring-foreground/10"
+            className="size-3.5 shrink-0 rounded-full ring-1 ring-foreground/10 dark:ring-foreground/25"
             style={{ backgroundColor: color }}
           />
           <span className="truncate text-xs text-muted-foreground tabular-nums">
@@ -58,7 +58,7 @@ export function ColorPicker({ color, categoryName, onSelect }: ColorPickerProps)
                   onSelect(option);
                   setIsOpen(false);
                 }}
-                className="flex size-6 items-center justify-center rounded-full text-white ring-1 ring-foreground/10 outline-none hover:scale-110 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
+                className="flex size-6 items-center justify-center rounded-full text-white ring-1 ring-foreground/10 outline-none dark:ring-foreground/25 hover:scale-110 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
                 style={{ backgroundColor: option }}
               >
                 {isSelected && <CheckIcon className="size-3.5" strokeWidth={3} />}

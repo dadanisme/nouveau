@@ -10,6 +10,7 @@ import {
 import { useState } from 'react';
 import type { DateRange as PickerRange } from 'react-day-picker';
 
+import { SegmentedControl, type SegmentedOption } from '@/components/segmented-control';
 import { CategoryLabel } from '@/components/transactions/category-label';
 import { CategoryMenu } from '@/components/transactions/category-picker';
 import { Button } from '@/components/ui/button';
@@ -28,7 +29,7 @@ import {
 
 const t = en.transactions;
 
-const TYPE_OPTIONS: { value: TypeFilter; label: string }[] = [
+const TYPE_OPTIONS: SegmentedOption<TypeFilter>[] = [
   { value: 'all', label: t.allTypes },
   { value: 'income', label: t.income },
   { value: 'expense', label: t.expense },
@@ -211,24 +212,12 @@ export function TransactionsToolbar({
         />
       </div>
 
-      <div role="group" aria-label={t.typeFilter} className="flex h-7 rounded-lg border p-0.5">
-        {TYPE_OPTIONS.map((option) => (
-          <button
-            key={option.value}
-            type="button"
-            aria-pressed={typeFilter === option.value}
-            onClick={() => onTypeFilterChange(option.value)}
-            className={cn(
-              'rounded-md px-2 text-[0.8rem] font-medium text-muted-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring',
-              typeFilter === option.value
-                ? 'bg-primary-soft text-foreground'
-                : 'hover:text-foreground',
-            )}
-          >
-            {option.label}
-          </button>
-        ))}
-      </div>
+      <SegmentedControl
+        label={t.typeFilter}
+        options={TYPE_OPTIONS}
+        value={typeFilter}
+        onChange={onTypeFilterChange}
+      />
 
       <div className="flex items-center">
         <CategoryMenu

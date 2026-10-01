@@ -162,7 +162,7 @@ export function TransactionsTable({
                 scope="col"
                 aria-sort={sorted ? (sorted === 'asc' ? 'ascending' : 'descending') : undefined}
                 className={cn(
-                  'sticky top-0 z-10 h-8 border-y bg-background p-0 text-left text-xs font-medium text-muted-foreground',
+                  'sticky top-0 z-10 h-8 border-y bg-surface p-0 text-left text-xs font-medium text-muted-foreground',
                   column.id !== 'select' && column.id !== 'actions' && 'border-l',
                 )}
               >
