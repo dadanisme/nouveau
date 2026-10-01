@@ -71,6 +71,8 @@ interface CategoryComboboxProps {
   selectedId: string | null;
   preferredType?: TransactionType;
   onSelect: (category: Category) => void;
+  /** An option was chosen with the mouse (after `onSelect`). */
+  onOptionClick?: () => void;
   /** Keys the combobox did not consume (see `useCategoryCombobox`). */
   onKeyDown?: (event: React.KeyboardEvent<HTMLInputElement>) => void;
   onBlur?: () => void;
@@ -88,6 +90,7 @@ export function CategoryCombobox({
   selectedId,
   preferredType,
   onSelect,
+  onOptionClick,
   onKeyDown,
   onBlur,
   autoFocus,
@@ -146,7 +149,10 @@ export function CategoryCombobox({
           activeId={combobox.activeId}
           selectedId={selectedId}
           onHighlight={combobox.highlight}
-          onChoose={combobox.choose}
+          onChoose={(category) => {
+            combobox.choose(category);
+            onOptionClick?.();
+          }}
         />
       </PopoverContent>
     </Popover>

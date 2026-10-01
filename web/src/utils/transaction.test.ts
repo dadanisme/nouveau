@@ -299,6 +299,22 @@ describe('optimistic list updates', () => {
     expect(inserted.map((row) => row.id)).toEqual(['a', 'new', 'b', 'c']);
   });
 
+  it('puts a new unsaved row above an earlier unsaved row of the same date', () => {
+    const first = insertIntoTransactionList(
+      [],
+      [tx({ id: 'first', date: '2026-10-10', created_at: null })],
+      'ws-1',
+      october,
+    );
+    const second = insertIntoTransactionList(
+      first,
+      [tx({ id: 'second', date: '2026-10-10', created_at: null })],
+      'ws-1',
+      october,
+    );
+    expect(second.map((row) => row.id)).toEqual(['second', 'first']);
+  });
+
   it('returns the same list when nothing is added', () => {
     expect(
       insertIntoTransactionList(list, [tx({ id: 'x', date: '2027-01-01' })], 'ws-1', october),

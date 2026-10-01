@@ -137,7 +137,8 @@ export function TransactionsTable({
                     onClick={column.getToggleSortingHandler()}
                     className={cn(
                       'group/sort flex h-8 w-full items-center gap-1 px-2 outline-none hover:bg-muted focus-visible:bg-muted',
-                      column.id === 'amount' && 'justify-end',
+                      // Icon on the inside, so the label lines up with the amounts below.
+                      column.id === 'amount' && 'flex-row-reverse',
                       sorted && 'text-foreground',
                     )}
                   >

@@ -221,7 +221,9 @@ export function insertIntoTransactionList(
       tx.workspace_id === workspaceId && isDateInRange(tx.date, range) && !existing.has(tx.id),
   );
   if (additions.length === 0) return list;
-  return [...list, ...additions].sort(compareNewestFirst);
+  // Additions go first: the sort is stable, so rows that tie (two unsaved rows on the same
+  // date) keep the newest on top, as the server will order them.
+  return [...additions, ...list].sort(compareNewestFirst);
 }
 
 /** Splits ids into batches so `id=in.(...)` filters stay well under URL length limits. */

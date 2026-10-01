@@ -69,6 +69,8 @@ export function DraftRow({ draft, state, categories }: DraftRowProps) {
           inputRef={dateRef}
           text={draft.dateText}
           onTextChange={state.setDateText}
+          // A day picked with the mouse is final, so move on (and close the calendar).
+          onPick={() => state.focus('description')}
           invalid={state.invalid.includes('date')}
         />
       </td>
@@ -92,6 +94,8 @@ export function DraftRow({ draft, state, categories }: DraftRowProps) {
           selectedId={draft.categoryId}
           preferredType={draft.type}
           onSelect={state.selectCategory}
+          // Same for a category picked with the mouse.
+          onOptionClick={() => state.focus('amount')}
           invalid={state.invalid.includes('category')}
         />
       </td>

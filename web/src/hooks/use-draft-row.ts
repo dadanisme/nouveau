@@ -85,6 +85,7 @@ export function useDraftRow({ categories, onSubmit }: UseDraftRowOptions) {
     isOpen: draft !== null,
     invalid,
     focusRequest,
+    focus,
     open,
     discard,
     submit,

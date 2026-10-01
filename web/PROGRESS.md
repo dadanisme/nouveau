@@ -9,8 +9,8 @@ Tick items as they land. Note the PR number next to each milestone when merged.
 - [x] Supabase client + typed `Database`, API client (`authenticatedFetch`)
 - [x] Auth hooks, login, signup, Google OAuth, auth guard
 - [x] App shell: sidebar, workspace switcher, routes (transactions, categories, profile placeholders)
-- [ ] Test account created, creds in `web/.env.local`
-- [ ] Verified in Chrome, PR merged
+- [x] Test account created (by the owner, by hand; display name "testaccount", workspace "Personal"). Credentials are NOT stored in the repo or in `web/.env.local`; verification uses the session already signed in in the owner's Chrome
+- [x] Verified in Chrome, PR merged (PR #12)
 
 ## M2 — Transactions table
 
