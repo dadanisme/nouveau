@@ -160,7 +160,7 @@ export function TransactionsToolbar({
   const filteredCategory = categories.find((category) => category.id === categoryFilter);
 
   return (
-    <div className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-2 px-6 py-3">
+    <div className="page-container flex shrink-0 flex-wrap items-center gap-x-3 gap-y-2 py-3">
       <div className="flex items-center gap-1">
         <Button
           variant="ghost"

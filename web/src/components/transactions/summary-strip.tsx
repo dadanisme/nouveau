@@ -126,7 +126,7 @@ export function SummaryStrip({ state, currency, isLoading }: SummaryStripProps) 
   const isReady = !isLoading && currency !== null;
 
   return (
-    <section aria-label={t.label} className="shrink-0 border-t px-6">
+    <section aria-label={t.label} className="page-container shrink-0 border-t">
       <div className="flex h-10 items-center gap-6">
         <dl className="flex min-w-0 flex-wrap items-baseline gap-x-6">
           <Total

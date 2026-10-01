@@ -51,6 +51,13 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+  /*
+   * Page layout: the content column of the authenticated pages (padding included) and the
+   * side panel that docks against it. Used through `.page-container` below, `w-page-aside`
+   * and `PageAsideSpacer`; change the widths here only.
+   */
+  --container-page: 75rem;
+  --container-page-aside: 26rem;
 }
 
 /*
@@ -138,6 +145,39 @@
   body,
   #root {
     height: 100%;
+  }
+}
+
+/*
+ * The shared content column. Every band of a page (title bar, toolbar, summary, table,
+ * footer) spans the main area, so hairlines and scrolling stay full width, and pads itself
+ * in to a centred column of at most `--container-page`. Below that width the padding is the
+ * plain 1.5rem gutter.
+ *
+ * Beside an open side panel (`data-page-aside` on the page, see `Page`) the column is pushed
+ * against the panel instead, which is where it sits when centred on a wide window and what
+ * gives up width first on a narrow one. `page-container-full` is the same column for a band
+ * that still spans the whole main area (the title bar above the panel).
+ */
+@layer components {
+  .page-container {
+    padding-inline: calc(max(0px, (100% - var(--container-page)) / 2) + 1.5rem);
+  }
+  [data-page-aside] .page-container {
+    padding-inline: calc(max(0px, 100% - var(--container-page)) + 1.5rem) 1.5rem;
+  }
+  [data-page-aside] .page-container-full {
+    padding-inline: calc(
+        max(
+            0px,
+            min(
+              (100% - var(--container-page)) / 2,
+              100% - var(--container-page) - var(--container-page-aside)
+            )
+          ) +
+          1.5rem
+      )
+      1.5rem;
   }
 }
 
