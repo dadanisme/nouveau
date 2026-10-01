@@ -1,0 +1,120 @@
+import { Page } from '@/components/page';
+import { BulkActionsBar, DeleteConfirmDialog } from '@/components/transactions/bulk-actions';
+import { TransactionsTable } from '@/components/transactions/transactions-table';
+import { TransactionsToolbar } from '@/components/transactions/transactions-toolbar';
+import { useWorkspace } from '@/contexts/workspace-context';
+import { useDraftRow } from '@/hooks/use-draft-row';
+import { useHotkey } from '@/hooks/use-hotkey';
+import { useTransactionActions } from '@/hooks/use-transaction-actions';
+import { useTransactionsPage } from '@/hooks/use-transactions-page';
+import { useTransactionsTable } from '@/hooks/use-transactions-table';
+import { en } from '@/locales/en';
+import { interpolate } from '@/utils/string';
+
+const t = en.transactions;
+
+function countLabel(shown: number, total: number): string {
+  if (shown !== total) return interpolate(t.countFiltered, { count: shown, total });
+  return total === 1 ? t.countOne : interpolate(t.count, { count: total });
+}
+
+export function TransactionsPage() {
+  const { currentWorkspaceId, isLoading } = useWorkspace();
+
+  return (
+    <Page title={t.title} fill>
+      {currentWorkspaceId || isLoading ? (
+        // Filters, selection and the draft row are all workspace-specific (category ids
+        // differ per workspace), so switching workspace starts the page afresh.
+        <TransactionsView key={currentWorkspaceId ?? 'loading'} />
+      ) : (
+        <div className="px-6 py-16 text-center">
+          <p className="font-medium">{t.noWorkspace}</p>
+          <p className="text-muted-foreground">{en.workspace.noneMessage}</p>
+        </div>
+      )}
+    </Page>
+  );
+}
+
+function TransactionsView() {
+  const page = useTransactionsPage();
+  const actions = useTransactionActions(page.categories, page.range);
+  const { table, selectedTransactions, clearSelection, editingCell, startEditing, stopEditing } =
+    useTransactionsTable(page.transactions);
+  const draftRow = useDraftRow({ categories: page.categories, onSubmit: actions.createFromDraft });
+
+  useHotkey('n', draftRow.open, actions.canCreate);
+
+  return (
+    <>
+      <TransactionsToolbar
+        periodLabel={page.periodLabel}
+        isCurrentMonth={page.isCurrentMonth}
+        onPreviousMonth={page.goToPreviousMonth}
+        onNextMonth={page.goToNextMonth}
+        onCurrentMonth={page.goToCurrentMonth}
+        visibleRange={page.range}
+        customRange={page.customRange}
+        onCustomRangeChange={page.setCustomRange}
+        search={page.search}
+        onSearchChange={page.setSearch}
+        typeFilter={page.typeFilter}
+        onTypeFilterChange={page.setTypeFilter}
+        categories={page.categories}
+        categoryFilter={page.categoryFilter}
+        onCategoryFilterChange={page.setCategoryFilter}
+        canCreate={actions.canCreate}
+        onNew={draftRow.open}
+      />
+
+      <div className="relative min-h-0 flex-1">
+        <div className="h-full overflow-auto px-6">
+          <TransactionsTable
+            table={table}
+            categories={page.categories}
+            editingCell={editingCell}
+            draftRow={draftRow}
+            isLoading={page.isLoading}
+            error={page.error}
+            hasFilters={page.hasFilters}
+            onRetry={page.retry}
+            onClearFilters={page.clearFilters}
+            onStartEdit={startEditing}
+            onStopEdit={stopEditing}
+            onEditDate={actions.editDate}
+            onEditDescription={actions.editDescription}
+            onEditCategory={actions.editCategory}
+            onEditAmount={actions.editAmount}
+            onDelete={(transaction) => actions.requestDelete([transaction])}
+          />
+        </div>
+
+        {selectedTransactions.length > 0 && (
+          <BulkActionsBar
+            count={selectedTransactions.length}
+            categories={page.categories}
+            onChangeCategory={(category) => {
+              actions.changeCategory(selectedTransactions, category);
+              clearSelection();
+            }}
+            onDelete={() => actions.requestDelete(selectedTransactions)}
+            onClear={clearSelection}
+          />
+        )}
+      </div>
+
+      {!page.isLoading && !page.error && (
+        <footer className="flex h-8 shrink-0 items-center border-t px-6 text-xs text-muted-foreground">
+          {countLabel(page.transactions.length, page.totalCount)}
+        </footer>
+      )}
+
+      <DeleteConfirmDialog
+        count={actions.pendingDeleteCount}
+        onConfirm={actions.confirmDelete}
+        onCancel={actions.cancelDelete}
+      />
+    </>
+  );
+}

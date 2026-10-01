@@ -1,6 +1,7 @@
 import { Outlet } from '@tanstack/react-router';
 
 import { AppSidebar } from '@/components/shell/app-sidebar';
+import { Toaster } from '@/components/ui/sonner';
 import { WorkspaceProvider } from '@/contexts/workspace';
 
 export function AppShell() {
@@ -12,6 +13,7 @@ export function AppShell() {
           <Outlet />
         </main>
       </div>
+      <Toaster position="bottom-right" />
     </WorkspaceProvider>
   );
 }
