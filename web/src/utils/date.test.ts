@@ -12,6 +12,7 @@ import {
   parseDateInput,
   parseDateKey,
   shiftMonth,
+  startOfPreviousMonth,
   toDateKey,
   toLocalDateString,
 } from '@/utils/date';
@@ -138,5 +139,17 @@ describe('labels', () => {
       'Sep 1, 2026 – Oct 15, 2026',
     );
     expect(formatRangeLabel({ from: '2026-09-01', to: '2026-09-01' })).toBe('Sep 1, 2026');
+  });
+});
+
+describe('startOfPreviousMonth', () => {
+  it('is the first day of the month before', () => {
+    expect(toLocalDateString(startOfPreviousMonth('2026-10-31')!)).toBe('2026-09-01');
+    expect(toLocalDateString(startOfPreviousMonth('2026-01-15')!)).toBe('2025-12-01');
+    expect(toLocalDateString(startOfPreviousMonth('2026-03-31')!)).toBe('2026-02-01');
+  });
+
+  it('is null for an invalid date', () => {
+    expect(startOfPreviousMonth('nope')).toBeNull();
   });
 });

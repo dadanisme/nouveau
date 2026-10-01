@@ -1,8 +1,10 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
 import { useWorkspace } from '@/contexts/workspace-context';
 import { useSession } from '@/hooks/use-auth';
+import { exchangeRateQueryOptions } from '@/hooks/use-exchange-rate';
 import {
   useDeleteTransactions,
   useInsertTransactions,
@@ -25,6 +27,8 @@ import {
   buildCellPatch,
   buildTransactionFromDraft,
   type DraftResult,
+  RATE_UNAVAILABLE,
+  rateNeededFor,
 } from '@/utils/transaction';
 
 /** Bulk deletes above this many rows ask for confirmation first. */
@@ -56,15 +60,40 @@ export function useTransactionActions(categories: Category[], visibleRange: Date
   // New transactions are entered in the workspace's home currency, as on mobile.
   const homeCurrency = currentWorkspace?.home_currency;
 
+  const queryClient = useQueryClient();
   const insertTransactions = useInsertTransactions();
   const updateTransactions = useUpdateTransactions();
   const deleteTransactions = useDeleteTransactions();
 
   const [pendingDelete, setPendingDelete] = useState<TransactionWithCategory[] | null>(null);
 
-  const editCell = (transaction: TransactionWithCategory, edit: CellEdit) => {
-    const change = buildCellPatch(transaction, edit);
+  /**
+   * The stored exchange rate an edit needs, if any. A failed lookup counts as "no rate", so
+   * the edit falls back to the implied rate exactly as when the table has no rate (mobile
+   * does the same: its rate query's error leaves the rate undefined).
+   */
+  const lookUpRate = async (
+    transaction: TransactionWithCategory,
+    edit: CellEdit,
+  ): Promise<number | null> => {
+    const needed = rateNeededFor(transaction, edit);
+    if (!needed) return null;
+    try {
+      return await queryClient.fetchQuery(
+        exchangeRateQueryOptions(needed.from, needed.to, needed.date),
+      );
+    } catch {
+      return null;
+    }
+  };
+
+  const editCell = async (transaction: TransactionWithCategory, edit: CellEdit) => {
+    const change = buildCellPatch(transaction, edit, await lookUpRate(transaction, edit));
     if (!change) return;
+    if (change === RATE_UNAVAILABLE) {
+      toast.error(t.rateUnavailable, { description: t.rateUnavailableMessage });
+      return;
+    }
     updateTransactions.mutate(
       { ids: [transaction.id], ...change },
       { onError: showError(t.updateFailed) },
@@ -77,10 +106,10 @@ export function useTransactionActions(categories: Category[], visibleRange: Date
       toast.error(t.invalidDate);
       return;
     }
-    editCell(transaction, { field: 'date', value });
+    void editCell(transaction, { field: 'date', value });
   };
 
-  /** Only reached for home-currency rows; foreign-currency amounts are read-only for now. */
+  /** The amount is typed in the transaction's own currency; the home amount follows. */
   const editAmount = (transaction: TransactionWithCategory, text: string) => {
     const decimals = currencyDecimals(transaction.currency);
     const value = parseAmountInput(text, decimals);
@@ -92,7 +121,7 @@ export function useTransactionActions(categories: Category[], visibleRange: Date
       );
       return;
     }
-    editCell(transaction, { field: 'amount', value });
+    void editCell(transaction, { field: 'amount', value });
   };
 
   const changeCategory = (rows: TransactionWithCategory[], category: TransactionCategory) => {
@@ -177,10 +206,12 @@ export function useTransactionActions(categories: Category[], visibleRange: Date
     canCreate: !!userId && !!currentWorkspaceId && !!homeCurrency,
     editDate,
     editDescription: (transaction: TransactionWithCategory, text: string) =>
-      editCell(transaction, { field: 'description', value: text }),
+      void editCell(transaction, { field: 'description', value: text }),
     editCategory: (transaction: TransactionWithCategory, category: TransactionCategory) =>
-      editCell(transaction, { field: 'category', value: category }),
+      void editCell(transaction, { field: 'category', value: category }),
     editAmount,
+    editCurrency: (transaction: TransactionWithCategory, currency: string) =>
+      void editCell(transaction, { field: 'currency', value: currency }),
     changeCategory,
     createFromDraft,
     requestDelete,

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 
+import { useCategorySuggestion } from '@/hooks/use-category-suggestion';
 import type {
   Category,
   DraftField,
@@ -19,12 +20,16 @@ export type DraftRow = ReturnType<typeof useDraftRow>;
 
 /**
  * State of the quick-add row. It opens with today's date, or the last date saved in this
- * session, and after a save it immediately starts the next row on the same date.
+ * session, and after a save it immediately starts the next row on the same date. While the
+ * description is typed, the category is suggested by the classifier until the user picks one.
  */
 export function useDraftRow({ categories, onSubmit }: UseDraftRowOptions) {
   const [draft, setDraft] = useState<DraftTransaction | null>(null);
   const [invalid, setInvalid] = useState<DraftField[]>([]);
   const [lastDate, setLastDate] = useState<string | null>(null);
+  // Once the user picks a category for this row, a suggestion must not replace it (as on
+  // mobile). Every new row starts unpicked.
+  const [hasPickedCategory, setHasPickedCategory] = useState(false);
   // Bumping `token` asks the row to move focus to `field`.
   const [focusRequest, setFocusRequest] = useState<{ field: DraftField; token: number }>({
     field: 'description',
@@ -42,6 +47,7 @@ export function useDraftRow({ categories, onSubmit }: UseDraftRowOptions) {
   const discard = () => {
     setDraft(null);
     setInvalid([]);
+    setHasPickedCategory(false);
   };
 
   const update = (changes: Partial<DraftTransaction>, cleared: DraftField) => {
@@ -49,10 +55,26 @@ export function useDraftRow({ categories, onSubmit }: UseDraftRowOptions) {
     setInvalid((fields) => fields.filter((field) => field !== cleared));
   };
 
-  const selectCategory = (category: TransactionCategory) => {
+  const applyCategory = (category: TransactionCategory) => {
     const type = category.type === 'income' || category.type === 'expense' ? category.type : null;
     update({ categoryId: category.id, ...(type ? { type } : {}) }, 'category');
   };
+
+  const selectCategory = (category: TransactionCategory) => {
+    setHasPickedCategory(true);
+    applyCategory(category);
+  };
+
+  useCategorySuggestion({
+    description: draft?.description ?? '',
+    categories,
+    enabled: draft !== null && !hasPickedCategory,
+    onSuggest: (category, description) => {
+      // The answer can arrive after the row was saved or its description changed again.
+      if (hasPickedCategory || draft?.description.trim() !== description) return;
+      applyCategory(category);
+    },
+  });
 
   /** Flips expense/income. A category of the other type no longer fits, so it is cleared. */
   const toggleType = () => {
@@ -76,6 +98,7 @@ export function useDraftRow({ categories, onSubmit }: UseDraftRowOptions) {
     const { date } = result.transaction;
     setLastDate(date);
     setInvalid([]);
+    setHasPickedCategory(false);
     setDraft(emptyDraft(date));
     focus('description');
   };

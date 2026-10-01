@@ -12,6 +12,7 @@ import type {
 } from '@/types/transaction';
 import { currencyDecimals, parseAmountInput } from '@/utils/currency';
 import { isDateInRange, parseDateInput, toDateKey } from '@/utils/date';
+import { impliedRate, toHomeAmount } from '@/utils/exchange-rate';
 
 /** Income and expense sums in the home currency (same as mobile's `computeTotals`). */
 export function computeTotals(transactions: TransactionWithCategory[] | undefined): {
@@ -66,21 +67,51 @@ function createdAtKey(tx: TransactionWithCategory): string {
   return tx.created_at ?? '\uffff';
 }
 
+/** A foreign-currency edit that cannot be converted because no exchange rate is available. */
+export const RATE_UNAVAILABLE = 'rate-unavailable';
+
+export type CellPatch = { patch: TablesUpdate<'transactions'>; category?: TransactionCategory };
+
+/** Which currency pair and date an edit needs an exchange rate for, or null when it needs none. */
+export function rateNeededFor(
+  tx: TransactionWithCategory,
+  edit: CellEdit,
+): { from: string; to: string; date: string } | null {
+  if (edit.field !== 'date' && edit.field !== 'amount' && edit.field !== 'currency') return null;
+  const currency = edit.field === 'currency' ? edit.value : tx.currency;
+  if (currency === tx.home_currency) return null;
+  return {
+    from: currency,
+    to: tx.home_currency,
+    date: edit.field === 'date' ? edit.value : toDateKey(tx.date),
+  };
+}
+
 /**
- * Turns one inline cell edit into the columns to update, or null when nothing changes.
+ * Turns one edit of an existing transaction into the columns to update: null when nothing
+ * changes, `RATE_UNAVAILABLE` when a foreign amount cannot be converted.
  *
  * - Picking a category also moves the transaction to that category's type, because mobile
  *   only ever offers categories of the transaction's type.
- * - An amount edit keeps `home_amount` equal to `amount`. That is only correct when the
- *   transaction is in the home currency, so foreign-currency amounts are not editable here.
+ * - Home-currency amounts keep `home_amount` equal to `amount`.
+ * - Foreign-currency amounts are re-converted as mobile's edit form does: with `storedRate`
+ *   (the `exchange_rates` cross rate for the transaction's date, see `rateNeededFor`) and
+ *   otherwise with the rate implied by the existing conversion. A date edit re-converts only
+ *   when the new date has a stored rate.
+ * - A currency change (web only) has no existing conversion to fall back on, so it needs a
+ *   stored rate. The amount is kept, rounded to the new currency's decimals.
  */
 export function buildCellPatch(
   tx: TransactionWithCategory,
   edit: CellEdit,
-): { patch: TablesUpdate<'transactions'>; category?: TransactionCategory } | null {
+  storedRate: number | null = null,
+): CellPatch | typeof RATE_UNAVAILABLE | null {
   switch (edit.field) {
-    case 'date':
-      return edit.value === toDateKey(tx.date) ? null : { patch: { date: edit.value } };
+    case 'date': {
+      if (edit.value === toDateKey(tx.date)) return null;
+      if (!isForeignCurrency(tx) || !storedRate) return { patch: { date: edit.value } };
+      return { patch: { date: edit.value, home_amount: tx.amount * storedRate } };
+    }
     case 'description': {
       const description = edit.value.trim() || null;
       return description === (tx.description ?? null) ? null : { patch: { description } };
@@ -93,9 +124,25 @@ export function buildCellPatch(
         category: edit.value,
       };
     }
-    case 'amount':
-      if (isForeignCurrency(tx) || !(edit.value > 0) || edit.value === tx.amount) return null;
-      return { patch: { amount: edit.value, home_amount: edit.value } };
+    case 'amount': {
+      if (!(edit.value > 0) || edit.value === tx.amount) return null;
+      const homeAmount = toHomeAmount(
+        edit.value,
+        tx.currency,
+        tx.home_currency,
+        storedRate ?? impliedRate(tx),
+      );
+      if (homeAmount === null) return RATE_UNAVAILABLE;
+      return { patch: { amount: edit.value, home_amount: homeAmount } };
+    }
+    case 'currency': {
+      if (edit.value === tx.currency) return null;
+      const rounded = Number(tx.amount.toFixed(currencyDecimals(edit.value)));
+      const amount = rounded > 0 ? rounded : tx.amount;
+      const homeAmount = toHomeAmount(amount, edit.value, tx.home_currency, storedRate);
+      if (homeAmount === null) return RATE_UNAVAILABLE;
+      return { patch: { currency: edit.value, amount, home_amount: homeAmount } };
+    }
   }
 }
 

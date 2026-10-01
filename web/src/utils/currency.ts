@@ -106,3 +106,12 @@ export function parseAmountInput(input: string, decimals: number): number | null
   const value = Number(Number(normalized).toFixed(decimals));
   return Number.isFinite(value) && value > 0 ? value : null;
 }
+
+/** An exchange rate for display, e.g. "1 USD = Rp16.250" or "1 IDR = $0.000062". */
+export function formatRate(rate: number, from: string, to: string): string {
+  const number = rate.toLocaleString(NUMBER_LOCALE, {
+    maximumFractionDigits: rate >= 100 ? 0 : rate >= 1 ? 2 : undefined,
+    maximumSignificantDigits: rate >= 1 ? undefined : 2,
+  });
+  return `1 ${from} = ${getCurrencySymbol(to)}${number}`;
+}

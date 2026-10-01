@@ -4,6 +4,7 @@ import {
   currencyDecimals,
   formatAmount,
   formatForeignAmount,
+  formatRate,
   formatSignedAmount,
   getCurrencySymbol,
   parseAmountInput,
@@ -104,5 +105,13 @@ describe('parseAmountInput', () => {
     expect(parseAmountInput('1.2,3.4', 2)).toBeNull();
     expect(parseAmountInput('1.25,50', 2)).toBeNull();
     expect(parseAmountInput('1,2,3', 2)).toBeNull();
+  });
+});
+
+describe('formatRate', () => {
+  it('shows large rates without decimals and small ones with two significant digits', () => {
+    expect(formatRate(16250.4, 'USD', 'IDR')).toBe('1 USD = Rp16.250');
+    expect(formatRate(1.2345, 'EUR', 'USD')).toBe('1 EUR = $1,23');
+    expect(formatRate(0.0000615, 'IDR', 'USD')).toBe('1 IDR = $0,000062');
   });
 });

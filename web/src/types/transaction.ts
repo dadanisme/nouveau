@@ -31,14 +31,16 @@ export interface TransactionFilters {
   categoryId: string | null;
 }
 
-/** A single inline edit to one cell of an existing transaction. */
+/** A single edit to one field of an existing transaction (table cell or side panel). */
 export type CellEdit =
   | { field: 'date'; value: string }
   | { field: 'description'; value: string }
   | { field: 'category'; value: TransactionCategory }
-  | { field: 'amount'; value: number };
+  | { field: 'amount'; value: number }
+  | { field: 'currency'; value: string };
 
-export type EditableField = CellEdit['field'];
+/** Fields edited in place with a cell editor (currency is picked from a menu instead). */
+export type EditableField = Exclude<CellEdit['field'], 'currency'>;
 
 /** What the quick-add row holds while it is being typed. */
 export interface DraftTransaction {

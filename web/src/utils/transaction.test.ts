@@ -13,6 +13,8 @@ import {
   insertIntoTransactionList,
   isForeignCurrency,
   patchTransactionList,
+  RATE_UNAVAILABLE,
+  rateNeededFor,
   removeFromTransactionList,
   toInsertPayload,
 } from '@/utils/transaction';
@@ -143,13 +145,94 @@ describe('buildCellPatch', () => {
     });
   });
 
-  it('refuses amount edits on foreign-currency transactions and non-positive amounts', () => {
-    const foreign = tx({ amount: 10, currency: 'USD', home_amount: 160000 });
-    expect(isForeignCurrency(foreign)).toBe(true);
-    expect(isForeignCurrency(tx())).toBe(false);
-    expect(buildCellPatch(foreign, { field: 'amount', value: 12 })).toBeNull();
+  it('ignores non-positive amounts', () => {
     expect(buildCellPatch(tx(), { field: 'amount', value: 0 })).toBeNull();
     expect(buildCellPatch(tx(), { field: 'amount', value: Number.NaN })).toBeNull();
+  });
+});
+
+describe('buildCellPatch for foreign-currency transactions', () => {
+  // 10 USD stored as Rp160.000: an implied rate of 16.000.
+  const foreign = tx({ amount: 10, currency: 'USD', home_amount: 160000 });
+
+  it('tells foreign from home currency', () => {
+    expect(isForeignCurrency(foreign)).toBe(true);
+    expect(isForeignCurrency(tx())).toBe(false);
+  });
+
+  it('asks for a rate only when the home amount has to be converted', () => {
+    expect(rateNeededFor(tx(), { field: 'amount', value: 1 })).toBeNull();
+    expect(rateNeededFor(foreign, { field: 'description', value: 'x' })).toBeNull();
+    expect(rateNeededFor(foreign, { field: 'category', value: salary })).toBeNull();
+    expect(rateNeededFor(foreign, { field: 'amount', value: 12 })).toEqual({
+      from: 'USD',
+      to: 'IDR',
+      date: '2026-10-05',
+    });
+    expect(rateNeededFor(foreign, { field: 'date', value: '2026-10-09' })).toEqual({
+      from: 'USD',
+      to: 'IDR',
+      date: '2026-10-09',
+    });
+    expect(rateNeededFor(tx(), { field: 'currency', value: 'EUR' })).toEqual({
+      from: 'EUR',
+      to: 'IDR',
+      date: '2026-10-05',
+    });
+    expect(rateNeededFor(foreign, { field: 'currency', value: 'IDR' })).toBeNull();
+  });
+
+  it('converts an amount edit with the stored rate', () => {
+    expect(buildCellPatch(foreign, { field: 'amount', value: 12 }, 16500)).toEqual({
+      patch: { amount: 12, home_amount: 198000 },
+    });
+  });
+
+  it('falls back to the rate implied by the existing conversion', () => {
+    expect(buildCellPatch(foreign, { field: 'amount', value: 12 })).toEqual({
+      patch: { amount: 12, home_amount: 192000 },
+    });
+    expect(buildCellPatch(foreign, { field: 'amount', value: 12 }, null)).toEqual({
+      patch: { amount: 12, home_amount: 192000 },
+    });
+  });
+
+  it('reports when there is neither a stored nor an implied rate', () => {
+    const broken = tx({ amount: 0, currency: 'USD', home_amount: 0 });
+    expect(buildCellPatch(broken, { field: 'amount', value: 12 })).toBe(RATE_UNAVAILABLE);
+  });
+
+  it('re-converts on a date edit only when the new date has a stored rate', () => {
+    expect(buildCellPatch(foreign, { field: 'date', value: '2026-10-09' }, 17000)).toEqual({
+      patch: { date: '2026-10-09', home_amount: 170000 },
+    });
+    expect(buildCellPatch(foreign, { field: 'date', value: '2026-10-09' })).toEqual({
+      patch: { date: '2026-10-09' },
+    });
+    // Home-currency rows never touch the home amount on a date edit.
+    expect(buildCellPatch(tx(), { field: 'date', value: '2026-10-09' }, 17000)).toEqual({
+      patch: { date: '2026-10-09' },
+    });
+  });
+
+  it('switches a home-currency transaction to a foreign currency with the stored rate', () => {
+    expect(buildCellPatch(tx({ amount: 25 }), { field: 'currency', value: 'USD' }, 16500)).toEqual({
+      patch: { currency: 'USD', amount: 25, home_amount: 412500 },
+    });
+  });
+
+  it('refuses a switch to a foreign currency without a stored rate', () => {
+    expect(buildCellPatch(tx(), { field: 'currency', value: 'USD' })).toBe(RATE_UNAVAILABLE);
+    // The old conversion says nothing about the new currency.
+    expect(buildCellPatch(foreign, { field: 'currency', value: 'EUR' })).toBe(RATE_UNAVAILABLE);
+  });
+
+  it('switches back to the home currency without a rate, rounding to its decimals', () => {
+    const cents = tx({ amount: 12.5, currency: 'USD', home_amount: 200000 });
+    expect(buildCellPatch(cents, { field: 'currency', value: 'IDR' })).toEqual({
+      patch: { currency: 'IDR', amount: 13, home_amount: 13 },
+    });
+    expect(buildCellPatch(foreign, { field: 'currency', value: 'USD' })).toBeNull();
   });
 });
 

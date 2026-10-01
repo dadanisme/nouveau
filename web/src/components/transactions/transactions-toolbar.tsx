@@ -19,7 +19,12 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { cn } from '@/lib/utils';
 import { en } from '@/locales/en';
 import type { Category, DateRange, TypeFilter } from '@/types/transaction';
-import { normalizeRange, parseDateKey, toLocalDateString } from '@/utils/date';
+import {
+  normalizeRange,
+  parseDateKey,
+  startOfPreviousMonth,
+  toLocalDateString,
+} from '@/utils/date';
 
 const t = en.transactions;
 
@@ -103,7 +108,9 @@ function DateRangeFilter({ visibleRange, customRange, onChange }: DateRangeFilte
             numberOfMonths={2}
             selected={picked}
             onSelect={setPicked}
-            defaultMonth={parseDateKey(visibleRange.from) ?? undefined}
+            // Two months ending on the period shown: previous month on the left, current
+            // on the right.
+            defaultMonth={startOfPreviousMonth(visibleRange.to) ?? undefined}
           />
           <div className="flex justify-end gap-2 border-t p-2">
             <Button variant="ghost" size="sm" onClick={() => setIsOpen(false)}>
