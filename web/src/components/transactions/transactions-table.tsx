@@ -35,6 +35,8 @@ interface TransactionsTableProps extends TransactionRowHandlers {
   table: TableModel;
   categories: Category[];
   editingCell: EditingCell | null;
+  /** Id of the transaction shown in the side panel. */
+  openId: string | null;
   draftRow: DraftRowState;
   isLoading: boolean;
   error: Error | null;
@@ -81,6 +83,7 @@ export function TransactionsTable({
   table,
   categories,
   editingCell,
+  openId,
   draftRow,
   isLoading,
   error,
@@ -188,6 +191,7 @@ export function TransactionsTable({
               key={row.id}
               row={row}
               isSelected={row.getIsSelected()}
+              isOpen={row.id === openId}
               editingField={editingCell?.rowId === row.id ? editingCell.field : null}
               categories={categories}
               {...rowHandlers}

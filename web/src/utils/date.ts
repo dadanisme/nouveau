@@ -67,6 +67,12 @@ export function shiftMonth({ year, month }: YearMonth, delta: number): YearMonth
   return { year: Math.floor(index / 12), month: ((index % 12) + 12) % 12 };
 }
 
+/** First day of the month before the one `dateKey` falls in, or null for an invalid key. */
+export function startOfPreviousMonth(dateKey: string): Date | null {
+  const date = parseDateKey(dateKey);
+  return date ? new Date(date.getFullYear(), date.getMonth() - 1, 1) : null;
+}
+
 export function isSameMonth(a: YearMonth, b: YearMonth): boolean {
   return a.year === b.year && a.month === b.month;
 }
@@ -105,4 +111,17 @@ export function formatDate(value: string): string {
 export function formatRangeLabel(range: DateRange): string {
   if (range.from === range.to) return formatDate(range.from);
   return `${formatDate(range.from)} – ${formatDate(range.to)}`;
+}
+
+/** e.g. "Oct 1, 2026, 2:05 PM" in the local timezone, for created/updated timestamps. */
+export function formatDateTime(value: string): string {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleString(DATE_LOCALE, {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  });
 }

@@ -1,11 +1,13 @@
 import { Page } from '@/components/page';
 import { BulkActionsBar, DeleteConfirmDialog } from '@/components/transactions/bulk-actions';
+import { TransactionPanel } from '@/components/transactions/transaction-panel';
 import { TransactionsTable } from '@/components/transactions/transactions-table';
 import { TransactionsToolbar } from '@/components/transactions/transactions-toolbar';
 import { useWorkspace } from '@/contexts/workspace-context';
 import { useDraftRow } from '@/hooks/use-draft-row';
 import { useHotkey } from '@/hooks/use-hotkey';
 import { useTransactionActions } from '@/hooks/use-transaction-actions';
+import { useTransactionPanel } from '@/hooks/use-transaction-panel';
 import { useTransactionsPage } from '@/hooks/use-transactions-page';
 import { useTransactionsTable } from '@/hooks/use-transactions-table';
 import { en } from '@/locales/en';
@@ -44,70 +46,96 @@ function TransactionsView() {
     useTransactionsTable(page.transactions);
   const draftRow = useDraftRow({ categories: page.categories, onSubmit: actions.createFromDraft });
 
+  const panel = useTransactionPanel(page.periodTransactions, page.isLoading);
+
   useHotkey('n', draftRow.open, actions.canCreate);
 
   return (
-    <>
-      <TransactionsToolbar
-        periodLabel={page.periodLabel}
-        isCurrentMonth={page.isCurrentMonth}
-        onPreviousMonth={page.goToPreviousMonth}
-        onNextMonth={page.goToNextMonth}
-        onCurrentMonth={page.goToCurrentMonth}
-        visibleRange={page.range}
-        customRange={page.customRange}
-        onCustomRangeChange={page.setCustomRange}
-        search={page.search}
-        onSearchChange={page.setSearch}
-        typeFilter={page.typeFilter}
-        onTypeFilterChange={page.setTypeFilter}
-        categories={page.categories}
-        categoryFilter={page.categoryFilter}
-        onCategoryFilterChange={page.setCategoryFilter}
-        canCreate={actions.canCreate}
-        onNew={draftRow.open}
-      />
+    <div className="flex min-h-0 flex-1">
+      <div className="flex min-w-0 flex-1 flex-col">
+        <TransactionsToolbar
+          periodLabel={page.periodLabel}
+          isCurrentMonth={page.isCurrentMonth}
+          onPreviousMonth={page.goToPreviousMonth}
+          onNextMonth={page.goToNextMonth}
+          onCurrentMonth={page.goToCurrentMonth}
+          visibleRange={page.range}
+          customRange={page.customRange}
+          onCustomRangeChange={page.setCustomRange}
+          search={page.search}
+          onSearchChange={page.setSearch}
+          typeFilter={page.typeFilter}
+          onTypeFilterChange={page.setTypeFilter}
+          categories={page.categories}
+          categoryFilter={page.categoryFilter}
+          onCategoryFilterChange={page.setCategoryFilter}
+          canCreate={actions.canCreate}
+          onNew={draftRow.open}
+        />
 
-      <div className="relative min-h-0 flex-1">
-        <div className="h-full overflow-auto px-6">
-          <TransactionsTable
-            table={table}
-            categories={page.categories}
-            editingCell={editingCell}
-            draftRow={draftRow}
-            isLoading={page.isLoading}
-            error={page.error}
-            hasFilters={page.hasFilters}
-            onRetry={page.retry}
-            onClearFilters={page.clearFilters}
-            onStartEdit={startEditing}
-            onStopEdit={stopEditing}
-            onEditDate={actions.editDate}
-            onEditDescription={actions.editDescription}
-            onEditCategory={actions.editCategory}
-            onEditAmount={actions.editAmount}
-            onDelete={(transaction) => actions.requestDelete([transaction])}
-          />
+        <div className="relative min-h-0 flex-1">
+          <div className="h-full overflow-auto px-6">
+            <TransactionsTable
+              table={table}
+              categories={page.categories}
+              editingCell={editingCell}
+              openId={panel.openId}
+              draftRow={draftRow}
+              isLoading={page.isLoading}
+              error={page.error}
+              hasFilters={page.hasFilters}
+              onRetry={page.retry}
+              onClearFilters={page.clearFilters}
+              onStartEdit={startEditing}
+              onStopEdit={stopEditing}
+              onEditDate={actions.editDate}
+              onEditDescription={actions.editDescription}
+              onEditCategory={actions.editCategory}
+              onEditAmount={actions.editAmount}
+              onDelete={(transaction) => actions.requestDelete([transaction])}
+              onOpen={(transaction) => panel.open(transaction.id)}
+            />
+          </div>
+
+          {selectedTransactions.length > 0 && (
+            <BulkActionsBar
+              count={selectedTransactions.length}
+              categories={page.categories}
+              onChangeCategory={(category) => {
+                actions.changeCategory(selectedTransactions, category);
+                clearSelection();
+              }}
+              onDelete={() => actions.requestDelete(selectedTransactions)}
+              onClear={clearSelection}
+            />
+          )}
         </div>
 
-        {selectedTransactions.length > 0 && (
-          <BulkActionsBar
-            count={selectedTransactions.length}
-            categories={page.categories}
-            onChangeCategory={(category) => {
-              actions.changeCategory(selectedTransactions, category);
-              clearSelection();
-            }}
-            onDelete={() => actions.requestDelete(selectedTransactions)}
-            onClear={clearSelection}
-          />
+        {!page.isLoading && !page.error && (
+          <footer className="flex h-8 shrink-0 items-center border-t px-6 text-xs text-muted-foreground">
+            {countLabel(page.transactions.length, page.totalCount)}
+          </footer>
         )}
       </div>
 
-      {!page.isLoading && !page.error && (
-        <footer className="flex h-8 shrink-0 items-center border-t px-6 text-xs text-muted-foreground">
-          {countLabel(page.transactions.length, page.totalCount)}
-        </footer>
+      {panel.isOpen && (
+        <TransactionPanel
+          transaction={panel.transaction}
+          isLoading={panel.isLoading}
+          error={panel.error}
+          categories={page.categories}
+          onClose={panel.close}
+          onEditDate={actions.editDate}
+          onEditDescription={actions.editDescription}
+          onEditCategory={actions.editCategory}
+          onEditAmount={actions.editAmount}
+          onEditCurrency={actions.editCurrency}
+          // Same immediate delete with Undo as the table; the panel has nothing left to show.
+          onDelete={(transaction) => {
+            actions.requestDelete([transaction]);
+            panel.close();
+          }}
+        />
       )}
 
       <DeleteConfirmDialog
@@ -115,6 +143,6 @@ function TransactionsView() {
         onConfirm={actions.confirmDelete}
         onCancel={actions.cancelDelete}
       />
-    </>
+    </div>
   );
 }

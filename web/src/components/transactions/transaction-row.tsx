@@ -1,5 +1,5 @@
 import type { Row } from '@tanstack/react-table';
-import { Trash2Icon } from 'lucide-react';
+import { PanelRightOpenIcon, Trash2Icon } from 'lucide-react';
 
 import { CategoryLabel } from '@/components/transactions/category-label';
 import {
@@ -40,11 +40,15 @@ export interface TransactionRowHandlers {
   onEditCategory: (transaction: TransactionWithCategory, category: Category) => void;
   onEditAmount: (transaction: TransactionWithCategory, text: string) => void;
   onDelete: (transaction: TransactionWithCategory) => void;
+  /** Opens the transaction in the side panel. */
+  onOpen: (transaction: TransactionWithCategory) => void;
 }
 
 interface TransactionRowProps extends TransactionRowHandlers {
   row: Row<TransactionsTableFeatures, TransactionWithCategory>;
   isSelected: boolean;
+  /** This row's transaction is the one shown in the side panel. */
+  isOpen: boolean;
   /** The cell of this row being edited, if any. */
   editingField: EditableField | null;
   categories: Category[];
@@ -53,14 +57,16 @@ interface TransactionRowProps extends TransactionRowHandlers {
 interface CellButtonProps {
   onClick: () => void;
   className?: string;
+  title?: string;
   children: React.ReactNode;
 }
 
 /** A cell in display mode: click (or Enter when focused) to edit. */
-function CellButton({ onClick, className, children }: CellButtonProps) {
+export function CellButton({ onClick, className, title, children }: CellButtonProps) {
   return (
     <button
       type="button"
+      title={title}
       onClick={onClick}
       className={cn(
         'flex h-8 w-full cursor-text items-center px-2 text-left outline-none focus-visible:shadow-[inset_0_0_0_2px_var(--ring)]',
@@ -88,6 +94,7 @@ export function TypeLabel({ type }: { type: TransactionType | string }) {
 export function TransactionRow({
   row,
   isSelected,
+  isOpen,
   editingField,
   categories,
   onStartEdit,
@@ -97,6 +104,7 @@ export function TransactionRow({
   onEditCategory,
   onEditAmount,
   onDelete,
+  onOpen,
 }: TransactionRowProps) {
   const transaction = row.original;
   const isIncome = transaction.type === 'income';
@@ -106,7 +114,8 @@ export function TransactionRow({
   return (
     <tr
       data-selected={isSelected || undefined}
-      className="group hover:bg-muted data-selected:bg-primary-soft/60"
+      data-open={isOpen || undefined}
+      className="group hover:bg-muted data-open:bg-muted data-selected:bg-primary-soft/60"
     >
       <td className={cn(CELL_CLASS, 'text-center')}>
         <Checkbox
@@ -144,7 +153,13 @@ export function TransactionRow({
         )}
       </td>
 
-      <td className={cn(CELL_CLASS, 'border-l', editingField === 'description' && EDITING_CLASS)}>
+      <td
+        className={cn(
+          CELL_CLASS,
+          'relative border-l',
+          editingField === 'description' && EDITING_CLASS,
+        )}
+      >
         {editingField === 'description' ? (
           <TextCellEditor
             label={t.columns.description}
@@ -163,6 +178,18 @@ export function TransactionRow({
               <span className="truncate text-muted-foreground">{t.noDescription}</span>
             )}
           </CellButton>
+        )}
+        {editingField !== 'description' && (
+          // Appears on row hover, on top of the right edge of the description.
+          <button
+            type="button"
+            title={t.openHint}
+            onClick={() => onOpen(transaction)}
+            className="absolute top-1/2 right-1 flex h-6 -translate-y-1/2 items-center gap-1 rounded-sm border bg-card px-1.5 text-xs font-medium text-muted-foreground uppercase opacity-0 outline-none group-hover:opacity-100 hover:text-foreground focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <PanelRightOpenIcon className="size-3.5" />
+            {t.open}
+          </button>
         )}
       </td>
 
@@ -190,24 +217,8 @@ export function TransactionRow({
       </td>
 
       <td className={cn(CELL_CLASS, 'border-l', editingField === 'amount' && EDITING_CLASS)}>
-        {isForeign ? (
-          // Milestone 2: amounts in a foreign currency are read-only (no rate conversion yet).
-          <div
-            title={interpolate(t.foreignAmountHint, { currency: transaction.currency })}
-            className="flex h-8 items-center justify-end gap-2 px-2 tabular-nums"
-          >
-            <span className="truncate text-xs text-muted-foreground">
-              {formatForeignAmount(transaction.amount, transaction.currency)}
-            </span>
-            <span className={cn('font-medium', isIncome ? 'text-income' : 'text-expense')}>
-              {formatSignedAmount(
-                transaction.home_amount,
-                transaction.type,
-                transaction.home_currency,
-              )}
-            </span>
-          </div>
-        ) : editingField === 'amount' ? (
+        {editingField === 'amount' ? (
+          // Edits the amount in the transaction's own currency; the home amount follows.
           <TextCellEditor
             label={t.columns.amount}
             align="right"
@@ -222,16 +233,25 @@ export function TransactionRow({
         ) : (
           <CellButton
             onClick={startEdit('amount')}
-            className={cn(
-              'justify-end font-medium tabular-nums',
-              isIncome ? 'text-income' : 'text-expense',
-            )}
+            title={
+              isForeign
+                ? interpolate(t.foreignAmountHint, { currency: transaction.currency })
+                : undefined
+            }
+            className="justify-end gap-2 tabular-nums"
           >
-            {formatSignedAmount(
-              transaction.home_amount,
-              transaction.type,
-              transaction.home_currency,
+            {isForeign && (
+              <span className="truncate text-xs text-muted-foreground">
+                {formatForeignAmount(transaction.amount, transaction.currency)}
+              </span>
             )}
+            <span className={cn('font-medium', isIncome ? 'text-income' : 'text-expense')}>
+              {formatSignedAmount(
+                transaction.home_amount,
+                transaction.type,
+                transaction.home_currency,
+              )}
+            </span>
           </CellButton>
         )}
       </td>

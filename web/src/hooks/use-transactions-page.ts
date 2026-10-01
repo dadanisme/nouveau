@@ -95,6 +95,8 @@ export function useTransactionsPage() {
 
     categories,
     transactions,
+    /** Every transaction of the period, before search and filters. */
+    periodTransactions: allTransactions,
     totalCount: allTransactions.length,
     // `isPending` stays true while the query is disabled (no workspace yet).
     isLoading: isWorkspaceLoading || (!!currentWorkspaceId && transactionsQuery.isPending),

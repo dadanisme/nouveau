@@ -5,6 +5,7 @@ import {
   useQueryClient,
 } from '@tanstack/react-query';
 
+import { TRANSACTION_QUERY_KEY } from '@/hooks/use-transaction';
 import { TRANSACTIONS_QUERY_KEY } from '@/hooks/use-transactions';
 import { supabase } from '@/lib/supabase';
 import type { TablesUpdate } from '@/types/supabase';
@@ -18,6 +19,7 @@ import {
 } from '@/utils/transaction';
 
 const LIST_KEY = [TRANSACTIONS_QUERY_KEY] as const;
+const SINGLE_KEY = [TRANSACTION_QUERY_KEY] as const;
 const MUTATION_KEY = ['transactions-mutation'] as const;
 /** Ids per request for `id=in.(...)` filters. */
 const ID_BATCH_SIZE = 100;
@@ -53,6 +55,22 @@ function refetchWhenIdle(queryClient: QueryClient) {
   // Same keys mobile invalidates that exist on web so far.
   void queryClient.invalidateQueries({ queryKey: LIST_KEY });
   void queryClient.invalidateQueries({ queryKey: ['transactions-year'] });
+  void queryClient.invalidateQueries({ queryKey: SINGLE_KEY });
+}
+
+/**
+ * Applies an edit to the single-transaction queries the side panel reads when its transaction
+ * is outside the loaded period. No snapshot: the refetch after the mutation corrects them.
+ */
+function patchSingles(
+  queryClient: QueryClient,
+  ids: ReadonlySet<string>,
+  patch: TablesUpdate<'transactions'>,
+  category: TransactionCategory | undefined,
+) {
+  queryClient.setQueriesData<TransactionWithCategory | null>({ queryKey: SINGLE_KEY }, (tx) =>
+    tx && ids.has(tx.id) ? { ...tx, ...patch, category: category ?? tx.category } : tx,
+  );
 }
 
 /** Inserts one or many rows. Rows carry their own ids, so an undo restores the originals. */
@@ -99,6 +117,7 @@ export function useUpdateTransactions() {
     },
     onMutate: ({ ids, patch, category }) => {
       const idSet = new Set(ids);
+      patchSingles(queryClient, idSet, patch, category);
       return updateLists(queryClient, (list, { range }) =>
         patchTransactionList(list, idSet, patch, category, range),
       );

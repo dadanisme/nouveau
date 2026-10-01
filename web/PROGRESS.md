@@ -24,10 +24,10 @@ Tick items as they land. Note the PR number next to each milestone when merged.
 
 ## M3 — Side panel, currency, proofs, AI
 
-- [ ] Side panel with full record
-- [ ] Multi-currency parity (exchange rates, home amount) + tests
-- [ ] Proofs view/download
-- [ ] AI classify on description
+- [x] Side panel with full record
+- [x] Multi-currency parity (exchange rates, home amount) + tests
+- [x] Proofs view/download
+- [x] AI classify on description
 - [ ] Verified in Chrome, PR merged
 
 ## M4 — Categories, summary, profile, deploy
