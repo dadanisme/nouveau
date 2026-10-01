@@ -18,11 +18,6 @@ export function filterCategories(
     });
 }
 
-/** Category colours are stored as `#RRGGBB`; mobile tints with a `20` alpha suffix. */
-export function categoryTint(color: string): string {
-  return /^#[0-9a-f]{6}$/i.test(color) ? `${color}20` : 'transparent';
-}
-
 /** Same limit as the name field of mobile's category form. */
 export const CATEGORY_NAME_MAX_LENGTH = 50;
 

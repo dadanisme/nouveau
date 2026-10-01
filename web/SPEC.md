@@ -25,6 +25,7 @@ Desktop web client for Nouveau. Agreed with the owner on 2026-10-01. This file i
 - Summary strip above the table: income, expense, net, plus a collapsible category breakdown. Clicking a category filters the table. Totals follow the active filters.
 - Category management (create, edit, delete, icon, colour).
 - Profile and sign out.
+- Dark mode (added after v1): System, Light or Dark, chosen on the Profile page.
 
 ### Behaviour
 
@@ -33,13 +34,13 @@ Desktop web client for Nouveau. Agreed with the owner on 2026-10-01. This file i
 
 ### Out of v1
 
-Separate insights page, receipt scanning/upload, attaching proofs, workspace admin (members, invites, settings, create), subscriptions, Indonesian, dark mode, CSV import/export, command palette.
+Separate insights page, receipt scanning/upload, attaching proofs, workspace admin (members, invites, settings, create), subscriptions, Indonesian, CSV import/export, command palette.
 
 ## Design
 
 - Notion's layout: left sidebar, dense rows, thin 1px borders, no hard shadows.
 - Nouveau palette: warm off-white background (`#FFF9EB`) and amber (`#F59E0B`) throughout. Source tokens: `../constants/colors.ts`.
-- Light mode only, all colours as CSS variables so dark mode can be added later.
+- Light and dark themes. All colours are CSS variables; the dark theme only reassigns them (see Decisions, dark mode).
 
 ## Tech
 
@@ -163,3 +164,14 @@ Record non-obvious choices made during the build here, with the reason.
 - **The side panel docks against the column**, not the window's right edge, so the open row and the panel stay next to each other. On a window wide enough for both (main area of 2032px or more) the column does not move when the panel opens; on narrower windows the panel is at the window's edge and the column gives up the width, as before. The panel's width is the token `--container-page-aside` (416px, unchanged). The page's `aside` slot (`Page`) does the layout.
 - The sidebar stays at the window's left edge and toasts stay bottom-right of the window.
 - **Browser verification** ran on the test account at a 2447px-wide viewport only: the extension's window resize had no effect on the viewport, so laptop widths (1280, 1440) were not checked in a browser.
+
+### Post-v1: dark mode
+
+- **Palette** (`.dark` block in `src/index.css`, semantic tokens only): page `#1C1814` (warm charcoal), raised chrome `#25201A` (sidebar, table header, side panel, cards and edited cells), overlays `#2D2720` (popovers, menus, dialogs, toasts). Text `#F3ECDF`, sidebar text `#D9D1C4`, muted text `#A89F91`. Borders and hover surfaces are translucent ivory (12% borders, 20% inputs, 7 to 8% hover), mirroring the translucent ink in light. Amber `#F59E0B` stays the accent with dark text on it; `primary-soft` is amber mixed 22% into the page colour and `primary-strong` is `#FBBF24`. Income `#4ADE80`, expense and destructive `#F87171`: both above 4.5:1 on all three levels (calculated, not measured in a browser).
+- **One new token, `--surface`**, for the table header and the side panel: equal to the background in light (so light is unchanged), raised in dark.
+- **Preference**: System (default), Light or Dark, in localStorage under `theme_preference` (nothing stored means System). System follows `prefers-color-scheme` and changes with the OS while the page is open; a change in another tab is picked up through the `storage` event. It belongs to the browser, not the account, so it survives sign-out. Logic: `utils/theme.ts` (pure, tested), `lib/theme-storage.ts` (try/catch around storage), `hooks/use-theme.ts`.
+- **No flash**: an inline script in `index.html` puts `.dark` on `<html>` before first paint, duplicating the resolve rule and the storage key; `useThemeSync` (root layout) takes over afterwards. `color-scheme` is set per theme so scrollbars and native controls follow. There is no `<meta name="theme-color">`, and none was added.
+- **The control** is a segmented control in an Appearance section on the Profile page. The toolbar's type filter was the same markup, so both now use `components/segmented-control.tsx`.
+- **Category colours are user data and are not changed**, but in dark they are drawn through `--category-ink`, which raises the lightness of a colour to a floor (OKLCH L 0.62, same hue and chroma) so near-black colours stay visible on charcoal. Lighter colours are untouched. This applies to icon tiles and breakdown bars; picker swatches show the stored colour as it is, with a stronger outline in dark. It uses CSS relative colour syntax; a browser without it falls back to the inherited text colour. `categoryTint` was replaced by the `.category-chip` class (same 12.5% tint).
+- **shadcn's own `dark:` fills on the outline button and the input were removed**: they overrode token classes such as `bg-primary-soft` (active filter buttons) and `bg-card` in dark. Dialog scrims are darker in dark (`black/60`, alert dialog `black/50`). The Google logo keeps its brand colours, and the white tick on a colour swatch stays white in both themes.
+- **Browser verification** ran on the test account with the OS in dark mode: System resolved to dark, Light and Dark were switched on the Profile page, and Dark survived a reload. Not exercised: the OS changing while the page is open (the OS setting was not touched), the Undo toast (it needs a delete), the login and signup screens (the session was signed in), and whether a flash is visible on load (only the class being set by the inline script was confirmed).

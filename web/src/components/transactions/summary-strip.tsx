@@ -61,8 +61,13 @@ function BreakdownRow({ entry, currency, isSelected, onToggle }: BreakdownRowPro
       </span>
       <span aria-hidden className="block h-1.5 w-full overflow-hidden rounded-full bg-muted">
         <span
-          className="block h-full rounded-full"
-          style={{ width: `${entry.ratio * 100}%`, backgroundColor: entry.color }}
+          className="category-ink block h-full rounded-full bg-(--category-ink)"
+          style={
+            {
+              width: `${entry.ratio * 100}%`,
+              '--category-color': entry.color,
+            } as React.CSSProperties
+          }
         />
       </span>
     </button>

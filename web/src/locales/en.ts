@@ -227,5 +227,11 @@ export const en = {
     loadFailed: 'Failed to load profile',
     signOut: 'Sign out',
     signOutFailed: 'Sign-out failed',
+    appearance: 'Appearance',
+    appearanceHint: 'System follows your device setting.',
+    theme: 'Theme',
+    themeSystem: 'System',
+    themeLight: 'Light',
+    themeDark: 'Dark',
   },
 } as const;

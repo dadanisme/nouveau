@@ -280,7 +280,7 @@ export function TransactionPanel({
   return (
     <aside
       aria-label={t.label}
-      className="flex w-page-aside shrink-0 animate-in flex-col border-l bg-background duration-200 slide-in-from-right-8 fade-in-0"
+      className="flex w-page-aside shrink-0 animate-in flex-col border-l bg-surface duration-200 slide-in-from-right-8 fade-in-0"
     >
       <header className="flex h-12 shrink-0 items-center gap-1 border-b pr-2 pl-6">
         <h2 className="flex-1 font-semibold">{t.title}</h2>

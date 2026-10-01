@@ -1,3 +1,5 @@
+import type { Theme } from '@/utils/theme';
+
 /** True when keystrokes on this element are text input, so global shortcuts must not fire. */
 export function isEditableTarget(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) return false;
@@ -19,4 +21,9 @@ export function saveBlob(blob: Blob, filename: string): void {
   link.click();
   link.remove();
   URL.revokeObjectURL(url);
+}
+
+/** Switches the page's theme: the `.dark` class on `<html>` reassigns the colour tokens. */
+export function applyTheme(theme: Theme): void {
+  document.documentElement.classList.toggle('dark', theme === 'dark');
 }

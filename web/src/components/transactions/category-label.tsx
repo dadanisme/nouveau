@@ -1,7 +1,6 @@
 import { cn } from '@/lib/utils';
 import { getCategoryIconSvg } from '@/lib/category-icons';
 import type { TransactionCategory } from '@/types/transaction';
-import { categoryTint } from '@/utils/category';
 
 interface CategoryIconProps {
   icon: string | null;
@@ -15,8 +14,11 @@ export function CategoryIcon({ icon, color, className }: CategoryIconProps) {
   return (
     <span
       aria-hidden
-      className={cn('flex size-5 shrink-0 items-center justify-center rounded-sm', className)}
-      style={{ backgroundColor: categoryTint(color), color }}
+      className={cn(
+        'category-chip flex size-5 shrink-0 items-center justify-center rounded-sm',
+        className,
+      )}
+      style={{ '--category-color': color } as React.CSSProperties}
     >
       {svg ? (
         <span

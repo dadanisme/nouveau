@@ -39,6 +39,7 @@
   --color-card: var(--card);
   --color-foreground: var(--foreground);
   --color-background: var(--background);
+  --color-surface: var(--surface);
   /* Nouveau semantic colours (not part of shadcn's token set) */
   --color-income: var(--income);
   --color-expense: var(--expense);
@@ -67,10 +68,13 @@
  * 2. Semantic tokens: shadcn's token names, expressed only in terms of the palette.
  *
  * Components must use the semantic tokens (bg-background, text-muted-foreground, ...),
- * never the palette directly. To add dark mode later, add a `.dark { ... }` block that
- * reassigns the semantic tokens; the `dark:` variant is already wired up above.
+ * never the palette directly. Dark mode is the `.dark` block below, which only reassigns the
+ * semantic tokens. The class is put on `<html>` by the inline script in `index.html` (before
+ * first paint) and kept in step by `useThemeSync`.
  */
 :root {
+  color-scheme: light;
+
   /* 1. Palette */
   --amber: #f59e0b;
   --amber-light: #fef3c7;
@@ -89,10 +93,22 @@
   --gray-700: #374151;
   --gray-800: #1f2937;
   --gray-900: #111827;
+  /* Dark theme: warm charcoal surfaces and ivory ink (no mobile counterpart yet). */
+  --charcoal: #1c1814;
+  --charcoal-raised: #25201a;
+  --charcoal-overlay: #2d2720;
+  --ivory: #f3ecdf;
+  --ivory-soft: #d9d1c4;
+  --ivory-muted: #a89f91;
+  --amber-bright: #fbbf24;
+  --green-light: #4ade80;
+  --red-light: #f87171;
 
   /* 2. Semantic tokens */
   --background: var(--cream);
   --foreground: var(--gray-900);
+  /* Raised chrome (table header, side panel). Level with the page in light, lifted in dark. */
+  --surface: var(--cream);
   --card: var(--white);
   --card-foreground: var(--gray-900);
   --popover: var(--white);
@@ -129,6 +145,45 @@
   --sidebar-accent-foreground: var(--gray-900);
   --sidebar-border: var(--border);
   --sidebar-ring: var(--amber);
+}
+
+/*
+ * Dark theme. Three warm levels: page (charcoal), raised chrome (sidebar, table header, side
+ * panel, cards and edited cells), overlays (popovers, menus, dialogs, toasts). Amber stays the
+ * accent with dark text on it; income, expense and destructive use lighter variants that keep
+ * at least 4.5:1 on all three levels. Tokens not listed here keep their light value.
+ */
+.dark {
+  color-scheme: dark;
+
+  --background: var(--charcoal);
+  --foreground: var(--ivory);
+  --surface: var(--charcoal-raised);
+  --card: var(--charcoal-raised);
+  --card-foreground: var(--ivory);
+  --popover: var(--charcoal-overlay);
+  --popover-foreground: var(--ivory);
+  --primary-soft: color-mix(in oklab, var(--amber) 22%, var(--charcoal));
+  --primary-strong: var(--amber-bright);
+  --secondary: color-mix(in oklab, var(--ivory) 8%, transparent);
+  --secondary-foreground: var(--ivory);
+  --muted: color-mix(in oklab, var(--ivory) 7%, transparent);
+  --muted-foreground: var(--ivory-muted);
+  --accent: color-mix(in oklab, var(--ivory) 8%, transparent);
+  --accent-foreground: var(--ivory);
+  --destructive: var(--red-light);
+  --income: var(--green-light);
+  --expense: var(--red-light);
+  --border: color-mix(in oklab, var(--ivory) 12%, transparent);
+  --input: color-mix(in oklab, var(--ivory) 20%, transparent);
+  --chart-2: var(--green-light);
+  --chart-3: var(--red-light);
+  --chart-4: var(--ivory-muted);
+  --chart-5: var(--amber-bright);
+  --sidebar: var(--charcoal-raised);
+  --sidebar-foreground: var(--ivory-soft);
+  --sidebar-accent: color-mix(in oklab, var(--ivory) 8%, transparent);
+  --sidebar-accent-foreground: var(--ivory);
 }
 
 @layer base {
@@ -178,6 +233,27 @@
           1.5rem
       )
       1.5rem;
+  }
+}
+
+/*
+ * Category colours are user data (`--category-color`, set inline), not theme tokens. They are
+ * drawn through `--category-ink`: the colour itself in light, and in dark the same hue and
+ * chroma with its lightness raised to a floor, so only colours too dark to see on charcoal
+ * change. `.category-chip` is the tinted icon tile (mobile's `20` alpha suffix).
+ */
+@layer components {
+  .category-ink,
+  .category-chip {
+    --category-ink: var(--category-color);
+  }
+  .dark .category-ink,
+  .dark .category-chip {
+    --category-ink: oklch(from var(--category-color) max(l, 0.62) c h);
+  }
+  .category-chip {
+    color: var(--category-ink);
+    background-color: color-mix(in srgb, var(--category-ink) 12.5%, transparent);
   }
 }
 
