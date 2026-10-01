@@ -80,6 +80,20 @@
           "savePhotosPermission": "Allow Nouveau to save receipt photos to your library.",
           "isAccessMediaLocationEnabled": true
         }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "deploymentTarget": "16.0"
+          }
+        }
+      ],
+      [
+        "./plugins/with-ios-deployment-target",
+        {
+          "deploymentTarget": "16.0"
+        }
       ]
     ],
     "experiments": {
