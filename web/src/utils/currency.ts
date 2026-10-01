@@ -41,6 +41,11 @@ export function formatSignedAmount(value: number, type: string, currency: string
   return `${type === 'income' ? '+' : '-'}${formatAmount(value, currency)}`;
 }
 
+/** A total that can be negative (net), with the minus in front of the symbol: "-Rp25.000". */
+export function formatBalance(value: number, currency: string): string {
+  return `${value < 0 ? '-' : ''}${formatAmount(Math.abs(value), currency)}`;
+}
+
 /** Formats an amount in its original (non-home) currency, e.g. "$11,806.97" */
 export function formatForeignAmount(value: number, currency: string): string {
   try {

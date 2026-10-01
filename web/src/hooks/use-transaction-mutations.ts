@@ -146,3 +146,34 @@ export function useDeleteTransactions() {
     onSettled: () => refetchWhenIdle(queryClient),
   });
 }
+
+/**
+ * The same DELETE as `useDeleteTransactions`, for the moment the page is going away
+ * (`pagehide`). It is a plain `keepalive` request to the REST endpoint because supabase-js
+ * looks up the session asynchronously before it sends anything, which a closing page never
+ * gets to finish. The only Supabase call outside a React Query hook; RLS applies as usual.
+ */
+export async function deleteTransactionsOnUnload(
+  ids: string[],
+  accessToken: string,
+): Promise<void> {
+  const requests = chunk(ids, ID_BATCH_SIZE).map((batch) =>
+    fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/transactions?id=in.(${batch.join(',')})`, {
+      method: 'DELETE',
+      keepalive: true,
+      headers: {
+        apikey: import.meta.env.VITE_SUPABASE_KEY,
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }),
+  );
+  const responses = await Promise.all(requests);
+  const failed = responses.find((response) => !response.ok);
+  if (failed) throw new Error(`Delete failed with status ${failed.status}`);
+}
+
+/** Refetches every transactions query (after a delete that bypassed the mutation hooks). */
+export function invalidateTransactions(queryClient: QueryClient) {
+  void queryClient.invalidateQueries({ queryKey: LIST_KEY });
+  void queryClient.invalidateQueries({ queryKey: SINGLE_KEY });
+}

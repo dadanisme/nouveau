@@ -32,10 +32,12 @@ Tick items as they land. Note the PR number next to each milestone when merged.
 
 ## M4 — Categories, summary, profile, deploy
 
-- [ ] Category management
-- [ ] Summary strip with category breakdown filter
-- [ ] Profile + sign out
-- [ ] `vercel.json`, Vercel project, `app.nouveau.my.id` DNS
+- [x] Category management
+- [x] Summary strip with category breakdown filter
+- [x] Profile + sign out
+- [x] Deferred delete (Undo cancels the DELETE instead of re-inserting)
+- [x] `vercel.json`, `DEPLOY.md` checklist, `README.md`
+- [ ] Vercel project, `app.nouveau.my.id` DNS (see `DEPLOY.md`)
 - [ ] Supabase redirect URLs + Google OAuth origins
 - [ ] Production verified, PR merged, final report
 
