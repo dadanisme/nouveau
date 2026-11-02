@@ -1,162 +1,200 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Guidance for Claude Code in this repo. The app is migrating from a custom neo-brutalist UI to native platform UI (SwiftUI / Material 3), epic #40. This file states the **target** conventions. Code that contradicts them is listed under [Legacy](#legacy-being-removed-dont-extend). Don't copy its patterns.
 
 ## Commands
 
 ```bash
-bunx expo start              # Start dev server (press i for iOS, a for Android, w for Web)
+bunx expo start              # Dev server (press i for iOS, a for Android)
 bunx expo run:ios            # Build and run on iOS
 bunx expo run:android        # Build and run on Android
-bunx expo start --web        # Start web dev server
-bunx expo lint               # Run ESLint
-bun run format               # Run Prettier
+bunx expo lint               # ESLint
+bun run format               # Prettier
 bun run supabase:gen-types   # Regenerate DB types from remote schema
 bun add <pkg>                # Install a package
 ```
 
-No test framework is configured yet.
+No test framework is configured. The web app in `web/` has its own scripts (`cd web && bun run dev`).
 
 ## Workflow
 
-- **Always ask the user before making changes** — never assume intent. When instructions are ambiguous, ask clarifying questions first.
-- Always run `bun run format` after finishing a task (before committing).
-- **Always check Context7 for up-to-date documentation** before using any library API. Use the `Resolve Context7 Library ID` tool followed by `Query Documentation` to look up current APIs, usage patterns, and examples — never rely solely on training data for library-specific code.
+- **Always ask the user before making changes.** Never assume intent; ask when instructions are ambiguous.
+- Run `bun run format` when a task is finished (before committing).
+- **Check Context7 before using any library API** (`Resolve Context7 Library ID`, then `Query Documentation`). This matters most for `@expo/ui`, expo-router native tabs and sheet options, which change between SDKs.
+- Plugins: Context7 (docs), Expo App Design (native UI, Expo Router, SwiftUI / Jetpack Compose), Expo Deployment (EAS, store submission, OTA), Feature Dev.
+
+## Agent workflow
+
+- The main session orchestrates and keeps its context thin: it plans, decides, makes small known edits, and does git/PR bookkeeping.
+- Sub-agents do the bulky work in parallel, each with a narrow brief: device-loop runs (one per device/appearance), screenshot comparisons, per-screen builds, research, long file or log reads.
+- Each sub-agent returns a digest of ≤30 lines: result, file paths, open issues. No raw logs, HTML or screenshots.
+- The main window reads only digests, diffs and the lines it is about to edit.
+
+## Branching
+
+- Epic #40 records every decision. Read the relevant sub-issue before starting.
+- UI work goes in per-issue PRs into the `native-ui` integration branch. `native-ui` merges to `main` once, in #39, so no release mixes old and new UI.
+- The SDK upgrade (#24) merges to `main` on its own and is then brought into `native-ui`.
+
+## Platform and stack
+
+- **Installed now:** Expo SDK 55, React Native 0.83, React 19.2, New Architecture, React Compiler (`experiments.reactCompiler`), Expo Router with typed routes.
+- **Pending, #24:** SDK 58 (RN 0.88) for stable `@expo/ui` (`@expo/ui/swift-ui`, `@expo/ui/jetpack-compose`), stable native tabs, the iOS 27 scene lifecycle and iPhone Duo. Native-shell work (phase 2+) builds on it. Local Swift/Kotlin Expo modules only for gaps (Swift Charts, #37).
+- **Targets:** iOS 17+ and Android, both first-class. `app.json` still sets the iOS deployment target to 16.0.
+- **Web:** the web app is a separate Vite app in `web/` (app.nouveau.my.id) that reads the same Supabase data. The RN web build (`react-native-web`, the `web` script and `app.json` `web` block) is unused and will be removed. Don't maintain it.
 
 ## Architecture
 
-**Expo SDK 55 + React Native 0.83 app** using file-based routing (Expo Router), New Architecture, and React Compiler.
-
 ### Routing
 
-File-based routing via Expo Router. The app is a single-screen experience (no tab bar). Routes live in `app/`:
+Routes live in `app/`. **Current** state: one root `Stack` in `app/_layout.tsx`, every screen `headerShown: false` with a custom header.
 
-- `app/_layout.tsx` — Root Stack navigator
-- `app/index.tsx` — Transactions screen (default landing route). Includes a profile header, a sticky month/period nav, filters, spend breakdown, transaction groups, and a floating Add button. Whole screen supports horizontal swipe for month navigation (swipe left → next month, swipe right → previous month).
-- `app/add-transaction.tsx` — Add/edit Transaction (Stack push)
-- `app/settings.tsx` — Settings screen (Stack push from the profile header)
-- `app/categories.tsx`, `app/subscriptions.tsx`, `app/proof-viewer.tsx`, `app/shareintent.tsx`, `app/login.tsx`, `app/signup.tsx`
+- `index.tsx`: Transactions (month nav with pan gesture, filters, spend breakdown, grouped list, FAB)
+- `insights.tsx`: Insights (month/year mode, trend chart, category breakdown)
+- `add-transaction.tsx`: add/edit transaction (`?id=` edits, `?date=` presets the date)
+- `settings.tsx`, `categories.tsx`, `subscriptions.tsx`, `proof-viewer.tsx`
+- `workspaces.tsx`, `create-workspace.tsx`, `workspace-settings.tsx`, `workspace-invites.tsx`
+- `shareintent.tsx`: incoming share intent. `+native-intent.ts` rewrites share-extension URLs to it.
+- `login.tsx`, `signup.tsx`
 
-`AuthGuard` (in `app/_layout.tsx`) redirects authenticated users to `/` and unauthenticated users to `/login`.
+`AuthGuard` (in `_layout.tsx`) sends signed-out users to `/login` (except on `shareintent`) and signed-in users on login/signup to `/`.
 
-### Floating Add Button
+**Target** (#25–#27):
 
-`components/floating-add-button.tsx` — bottom-centered amber FAB used in place of a tab bar. Wraps the shared `<Button variant="primary">`, applies safe-area-aware `bottom` insets, and pushes `/add-transaction` on press.
+- `NativeTabs` (expo-router native tabs) with three tabs: **Transactions / Insights / Settings**. Each tab has its own native Stack with native headers.
+- Add action: the tab-bar action slot on iOS 26+ (spike #26), a header toolbar `+` on iOS 17–18, a Material FAB on Android.
+- Editors and pickers are `presentation: 'formSheet'` routes with detents, not in-screen sheets.
+- Month change: header picker + chevrons. The custom pan gesture goes.
 
-**Important**: The FAB is `position: absolute`, so scrollable screens **must** include bottom padding using `FAB_HEIGHT` (exported from `@/components/floating-add-button`) to prevent content from being hidden behind it. Example: `paddingBottom: FAB_HEIGHT + insets.bottom + design.spacing.lg`
+Current provider hierarchy (`BottomSheetModalProvider` goes with the legacy sheets):
 
-### State Management
+```
+GestureHandlerRootView → LanguageProvider → QueryClientProvider → ShareIntentProvider
+  → BottomSheetModalProvider → AuthListener → WorkspaceProvider → AuthGuard → Stack
+```
 
-Uses **TanStack React Query** for all Supabase data operations. Hooks live in `hooks/`.
+### State management
 
-**Data hooks** (React Query wrappers):
+**TanStack React Query** handles all Supabase data. Hooks live in `hooks/`.
 
-- `hooks/use-auth.ts` — `useSession()`, `useUserProfile(userId)`, `useSignInWithEmail()`, `useSignUpWithEmail()`, `useSignInWithGoogle()`, `useSignOut()`
-- `hooks/use-categories.ts` — `useCategories(userId)` query hook
-- `hooks/use-add-transaction.ts` — `useAddTransaction()` mutation hook
-- `hooks/use-auth-listener.ts` — `useAuthListener()` — Supabase `onAuthStateChange` subscription + React Query cache sync
-
-**Screen/component hooks** (encapsulate business logic so components only render):
-
-- `hooks/use-transactions-screen.ts` — `useTransactionsScreen()` — month nav, totals, expense breakdown, grouped transactions, filter state
-- `hooks/use-transaction-form.ts` — `useTransactionForm()` — all form state, validation, key press handling, submission, picker toggling
-- `hooks/use-calendar.ts` — `useCalendar(opts)` — month navigation state, grid cell computation
-
-### Utilities
-
-Pure functions live in `utils/`. Note: `currency.ts` and `date.ts` depend on `i18n` for locale-aware formatting.
-
-- `utils/date.ts` — `isSameDay`, `getDaysInMonth`, `getFirstDayOfWeek`, `formatShortDate` (locale-aware)
-- `utils/string.ts` — `getInitials`
-- `utils/currency.ts` — `processAmountKeyPress`, `formatDisplayAmount`, `formatCompactAmount`, `formatCurrency` (use `i18n` for prefix/suffixes)
+- Data hooks: `use-auth` (session, profile, email/Google sign-in, sign-out), `use-auth-listener`, `use-transactions` / `use-transaction`, `use-add-` / `use-update-` / `use-delete-transaction`, `use-categories(workspaceId)`, `use-category-mutations`, `use-subscriptions`, `use-proofs`, `use-proof-download`, `use-workspaces`, `use-workspace-members`, `use-workspace-invites`, `use-exchange-rate`, `use-classify-description`, `use-scan-receipt`.
+- Screen hooks: `use-transactions-screen`, `use-insights-screen`, `use-transaction-form`, `use-category-form`, `use-category-management`, `use-share-intent-screen`.
+- `contexts/workspace.tsx`: `useWorkspace()` holds the active workspace (persisted under `active_workspace_id`).
+- `lib/api.ts`: `authenticatedFetch` for the backend at `goofy.nouveau.my.id` (AI classification, receipt scan, proofs).
 
 Conventions:
 
-- **Component-Hook-Service pattern**: Components only handle rendering. Business logic lives in hooks. Pure utility functions live in `utils/`.
-- **Never call Supabase directly from screens/components** — all Supabase calls must go through React Query hooks (`useQuery` for reads, `useMutation` for writes)
-- **Never define business logic or utility functions inline in components** — extract to hooks or `utils/`
-- Use TanStack `useQuery` for declarative data fetching — no `useEffect` + fetch patterns
-- Use TanStack `useMutation` for data mutations (inserts, updates, deletes, auth actions)
-- `QueryClientProvider` wraps the app in `app/_layout.tsx`
+- **Component-Hook-Service pattern**: components only render, business logic lives in hooks, pure functions live in `utils/`.
+- **Never call Supabase directly from screens/components.** Go through React Query hooks (`useQuery` for reads, `useMutation` for writes, including auth actions).
+- No business logic or utility functions inline in components. No `useEffect` + fetch.
+- `QueryClientProvider` wraps the app in `app/_layout.tsx`.
+
+### Utilities
+
+Pure functions live in `utils/`: `analytics` (totals, breakdown, monthly trend), `currency` (formatting, decimals, symbols), `date`, `file`, `icon` (`parseIcon`), `params`, `string`, `transaction`. `currency.ts` and `date.ts` use `i18n` for locale-aware formatting. The DB-to-native icon/color mapping also lives here (see below).
 
 ### Localization
 
-i18n setup using `expo-localization` + `i18n-js`:
+`expo-localization` + `i18n-js`:
 
-- **`lib/i18n.ts`** — Singleton `I18n` instance. Import directly from utils/hooks (no React dependency).
-- **`contexts/language.tsx`** — `LanguageProvider` wraps the app (outermost provider in `_layout.tsx`). Provides `useLanguage()` hook.
-- **`locales/en.ts`** / **`locales/id.ts`** — Translation files (English + Bahasa Indonesia). Nested by feature.
-- **`locales/keys.ts`** — Auto-generated type-safe key constants (`k`). Derived at runtime from the English locale structure via `buildKeys()`. Never hardcode keys manually.
+- `lib/i18n.ts`: singleton `I18n` instance, imported directly from utils/hooks.
+- `contexts/language.tsx`: `LanguageProvider` (outermost provider) and `useLanguage()` → `{ locale, setLocale, t }`.
+- `locales/en.ts`, `locales/id.ts`: English and Bahasa Indonesia, nested by feature.
+- `locales/keys.ts`: type-safe key constants `k`, generated at runtime from the English locale by `buildKeys()`. Never hand-write keys.
 
-**`useLanguage()` hook API**: `{ locale, setLocale, t }`
+Rules:
 
-**Convention**:
+- Always use `k`: `t(k.common.cancel)`, not `t('common.cancel')`. Import `k` from `@/locales/keys`.
+- Components use `t(k.*)` from `useLanguage()` (it re-renders on locale change). Utils/hooks use `i18n.t(k.*)`.
+- New strings go in **both** `en.ts` and `id.ts`. Use `%{name}` for interpolation.
+- The language preference is persisted to `localStorage` under `app_language`.
 
-- **Always use `k` constants** instead of raw string keys: `t(k.common.cancel)` not `t('common.cancel')`. Import `k` from `@/locales/keys`.
-- **Components** use `t(k.*)` from `useLanguage()` hook (triggers re-render on locale change)
-- **Utils/hooks** import `i18n` directly from `lib/i18n.ts` and use `i18n.t(k.*)` (no React context needed)
+## Native UI conventions
 
-**Adding new strings**: Add key to both `locales/en.ts` and `locales/id.ts` — the `k` constant is auto-generated from the English locale, so no manual key registration needed. Use `t(k.section.key)` in components or `i18n.t(k.section.key)` in utils/hooks. Use `%{name}` for interpolation.
+Use the platform component, not a custom look-alike. Check Context7 for the exact `@expo/ui` names before you use them. Prefer system animations; use `react-native-reanimated` only where native gives you nothing.
 
-Language preference is persisted to `localStorage` under key `app_language`.
+| Need                          | iOS                                               | Android                        |
+| ----------------------------- | ------------------------------------------------- | ------------------------------ |
+| Top-level navigation          | `NativeTabs` (Transactions / Insights / Settings) | same                           |
+| Title, back, header actions   | native Stack header (large titles, toolbar items) | native Stack header            |
+| Add transaction               | tab-bar action slot (26+), toolbar `+` (17–18)    | Material FAB                   |
+| Buttons, toggles, segmented   | `@expo/ui/swift-ui`                               | `@expo/ui/jetpack-compose`     |
+| Forms, settings, grouped rows | SwiftUI `Form`/`List` sections via `@expo/ui`     | Compose list items             |
+| Sheets / pickers / editors    | `presentation: 'formSheet'` route + detents       | same                           |
+| Confirm / destructive prompt  | native alert (`Alert.alert`)                      | same                           |
+| Overflow / row actions        | native menu / context menu                        | Compose dropdown menu          |
+| Amount entry                  | `TextInput` with the system decimal keyboard      | same                           |
+| Date, option picking          | native DatePicker / Picker (`@expo/ui`)           | Compose date picker / picker   |
+| Loading                       | native placeholders / activity indicator          | Compose progress / placeholder |
+| Charts                        | Swift Charts via a local Expo module (#37)        | Compose (#37)                  |
+| Icons                         | SF Symbols                                        | Material Symbols               |
 
-**Provider hierarchy** in `app/_layout.tsx`:
+### Color, type, accent, icons
 
-```
-GestureHandlerRootView
-  → LanguageProvider
-    → QueryClientProvider
-      → ShareIntentProvider
-        → BottomSheetModalProvider
-          → AuthListener → AuthGuard → Stack
-```
+- **Type:** system font and system text styles only, with Dynamic Type respected. No custom font sizes.
+- **Color:** semantic system colors only (iOS `PlatformColor` labels/backgrounds/separators, Material 3 color roles on Android). No hardcoded grays, whites or blacks.
+- **Dark mode** follows the system (`userInterfaceStyle: automatic`). No in-app theme switch.
+- **Accent:** `#E24A00` is the only brand color. Apply it as the app tint (tabs, buttons, links, FAB), not as fills. **Dark variant: TBD.** Don't invent one; record it here once it's chosen.
+- **Icons:** SF Symbols on iOS, Material Symbols on Android. No `@expo/vector-icons` in new UI.
 
-### Design System
+### DB contract: category icons and colors
 
-Centralized in `constants/colors.ts`. All UI should use these tokens instead of hardcoded values.
+The web app reads the same rows, so the stored format **does not change**:
 
-- **Colors**: `colors.primary` (amber `#F59E0B`), `colors.background` (warm off-white `#FFF9EB`), `colors.income` (green), `colors.expense` (red), `colors.gray` (50–900 scale)
-- **Borders**: `design.borderWidth` (2.5px) — thick cartoonish borders on all interactive/card elements
-- **Shadows**: `design.shadow` — hard offset (`{3,3}`, radius 0) for comic-book effect. Spread via `...design.shadow`
-- **Radii**: `design.radius` — sm(8), md(14), lg(20), xl(28), full(9999)
-- **Spacing**: `design.spacing` — xs(4), sm(8), md(16), lg(24), xl(32)
-- **Font sizes**: `design.fontSize` — xs(12) through 3xl(40)
+- `categories.icon`: an Ionicon name, stored as `"Ionicons/<name>"` (nullable, parsed by `utils/icon.ts` `parseIcon`).
+- `categories.color`: a hex string.
 
-Reusable components in `components/`:
+The app maps both to native values in `utils/`: Ionicon name → SF Symbol / Material Symbol (with a fallback for unmapped names), and hex → one of ~8 dynamic system colors. The native icon grid and color picker write Ionicon names and canonical hexes back. Never write SF/Material names or platform colors to the DB (#31).
 
-- `bottom-sheet.tsx` — `<BottomSheet visible onDismiss snapPoints?>` gesture-enabled bottom sheet (wraps `@gorhom/bottom-sheet`'s `BottomSheetModal`). Use `BottomSheetView` or `BottomSheetScrollView` from `@gorhom/bottom-sheet` as direct children.
-- `button.tsx` — `<Button variant="primary"|"outline"|"dark">` with animated press (shadow shifts on press). Always use this instead of raw `Pressable` for actions.
-- `alert.tsx` — `<Alert visible title message? actions? onDismiss?>` modal dialog with animated entry/exit. Always use this instead of `Alert.alert()` from react-native.
-- `card.tsx` — `<Card variant="default"|"primary">` with border + hard shadow
-- `avatar.tsx` — `<Avatar uri? name? size?>` with image or initials fallback
-- `overview-card.tsx` — `<OverviewCard type amount change>` for income/expense summaries
-- `transaction-item.tsx` — `<TransactionItem transaction isLast?>` for transaction rows
+### Wide layouts
 
-### Key Conventions
+**Lay out by space, never by device or pose.** Branch on the available window size, never on device model, `Platform.isPad`, orientation or fold state. The iPhone Duo inner display is just a wider window. When wide: list + detail, a readable-width cap on content, and sheets kept off the fold (#38).
 
-- **Path alias**: `@/*` maps to the project root
-- **TypeScript strict mode** is enabled
-- **Kebab-case filenames** for components and hooks
-- **Typed routes** experiment is enabled — route params are type-checked
-- **Animations** use `react-native-reanimated` (worklet-based). Use `scheduleOnRN` from `react-native-worklets` instead of the deprecated `runOnJS` from `react-native-reanimated` when calling JS functions from worklets.
-- **Bottom sheets** use `@gorhom/bottom-sheet` — `GestureHandlerRootView` + `BottomSheetModalProvider` wrap the app in `app/_layout.tsx`. Use the `<BottomSheet>` wrapper component (`components/bottom-sheet.tsx`) with `BottomSheetView` or `BottomSheetScrollView` as children.
+## Legacy (being removed, don't extend)
 
-### Supabase
+Removed in #39. Don't add new uses. Only touch these to delete them or to keep a screen working until its issue lands.
 
-- Client initialized in `lib/supabase.ts` with typed `Database` generic
-- Types live in `types/supabase.ts` — regenerate with `bun run supabase:gen-types`
-- Auth uses `expo-sqlite/localStorage` for session persistence
-- Environment variables: `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_KEY` (in `.env.local`)
+| Legacy                                                                                                         | Native replacement                                       |
+| -------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| `constants/colors.ts` (`colors`, `design`: borders, hard shadows, radii, spacing, font sizes)                  | semantic system colors + accent, platform metrics        |
+| `button.tsx`                                                                                                   | `@expo/ui` buttons, header/toolbar items                 |
+| `card.tsx`, `overview-card.tsx`, `summary-card.tsx`                                                            | native grouped list / form sections                      |
+| `alert.tsx`, `hooks/use-delete-confirmation.tsx`                                                               | native alert                                             |
+| `bottom-sheet.tsx`, `@gorhom/bottom-sheet`, `BottomSheetModalProvider`                                         | `formSheet` routes with detents                          |
+| `action-menu.tsx`                                                                                              | native menus                                             |
+| `category-picker.tsx`, `workspace-switcher-sheet.tsx`, `workspace-invite-sheet.tsx`                            | `formSheet` routes with native lists                     |
+| `screen-header.tsx`                                                                                            | native Stack header                                      |
+| `floating-add-button.tsx` (and the `FAB_HEIGHT` padding rule)                                                  | per-platform Add action (see table)                      |
+| `segmented-toggle.tsx`, `type-toggle.tsx`                                                                      | native segmented picker                                  |
+| `number-pad.tsx`, `processAmountKeyPress`                                                                      | system decimal keyboard                                  |
+| `date-picker.tsx`, `hooks/use-calendar.ts`                                                                     | native DatePicker                                        |
+| `icon-picker.tsx`, `color-picker.tsx`, `constants/category-icons.ts`, `constants/category-colors.ts`           | native icon grid + ~8 system colors via `utils/` mapping |
+| `skeleton.tsx`, `summary-card-skeleton.tsx`, `transaction-group-skeleton.tsx`, `transaction-item-skeleton.tsx` | native placeholders                                      |
+| `monthly-trend-chart.tsx`, `category-bar-list.tsx`                                                             | Swift Charts / Compose (#37)                             |
+| `transaction-item.tsx`, `avatar.tsx`, `workspace-members-section.tsx`, `workspace-invites-section.tsx`         | native rows, rebuilt in their screen issue               |
+| Month pan gesture on Transactions                                                                              | header picker + chevrons                                 |
+| `@expo/vector-icons` (Ionicons) in UI                                                                          | SF Symbols / Material Symbols                            |
+| `<StatusBar style="dark" />`, cream splash background `#FFF9EB`                                                | system appearance                                        |
+| RN web build (`react-native-web`, `web` script, `app.json` `web`)                                              | removed; the web app is `web/`                           |
 
-### Bundle Identifiers
+## Definition of done for UI work
 
-- iOS: `com.muhammadramdan.nouveau`
-- Android: `com.muhammadramdan.nouveau`
-- URL scheme: `nouveau`
+A UI issue is done when it has been verified with the `device-loop` skill (`.claude/skills/device-loop/`) on every device in the matrix, **each in light and dark**:
 
-### Active Plugins
+- iPhone 17 simulator (iOS 27) and an iPhone simulator on iOS 18.5
+- iPhone Duo simulator, outer and inner display (iOS 27.1)
+- Pixel_9a Android emulator
 
-- **Context7** — Documentation lookup for libraries. Use `Resolve Context7 Library ID` + `Query Documentation` tools to fetch up-to-date API docs and examples.
-- **Expo App Design** — Skills for building native UI, Expo Router, DOM components, Swift UI/Jetpack Compose, Tailwind setup, data fetching, API routes, and dev client builds.'
-- **Expo Deployment** — Expertise in Expo's build and deployment processes, including EAS Build, app store submission, OTA updates, and release channels.
-- **Feature Dev** — Guided feature development with codebase understanding, architecture focus, and code review.
+At the end of each phase, also check on the physical iPhone 15. Run the matrix as parallel sub-agents (one per device), each returning a digest. Also required: `bunx expo lint` is clean, `bun run format` has been run, and new strings exist in both locales.
+
+## Supabase
+
+- Client in `lib/supabase.ts` with the typed `Database` generic. Types in `types/supabase.ts` (regenerate with `bun run supabase:gen-types`).
+- Auth persists the session with `expo-sqlite/localStorage`. Env vars: `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_KEY` (in `.env.local`).
+
+## Key conventions
+
+- Path alias `@/*` maps to the project root. TypeScript strict mode is on.
+- Kebab-case filenames for components and hooks. Typed routes are enabled, so route params are type-checked.
+- From worklets, call JS with `scheduleOnRN` from `react-native-worklets`, not the deprecated `runOnJS`.
+- Bundle IDs: iOS and Android `com.muhammadramdan.nouveau`. URL scheme: `nouveau`.
