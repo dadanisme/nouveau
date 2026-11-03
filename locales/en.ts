@@ -43,6 +43,7 @@ const en = {
     title: 'Insights',
     month: 'Month',
     year: 'Year',
+    period: 'Period',
     balance: 'Balance',
     spendingByCategory: 'Spending by category',
     monthlyTrend: 'Monthly spending',

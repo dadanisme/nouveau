@@ -45,6 +45,7 @@ const id: Translations = {
     title: 'Wawasan',
     month: 'Bulan',
     year: 'Tahun',
+    period: 'Periode',
     balance: 'Saldo',
     spendingByCategory: 'Pengeluaran per kategori',
     monthlyTrend: 'Pengeluaran bulanan',

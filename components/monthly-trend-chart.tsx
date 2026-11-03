@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, type ColorValue } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -7,11 +7,15 @@ import Animated, {
   type SharedValue,
 } from 'react-native-reanimated';
 
-import { Card } from '@/components/card';
+import { ACCENT_COLOR } from '@/constants/accent';
 import { colors, design } from '@/constants/colors';
 import { useLanguage } from '@/contexts/language';
+import { useSystemColors } from '@/hooks/use-system-colors';
 import { k } from '@/locales/keys';
 import type { MonthlyPoint } from '@/utils/analytics';
+
+// #37: a stopgap until Swift Charts / Compose replace this chart. It sits in a native form row
+// (`FormHostedRow`), which supplies the background, so it only takes system label/fill colors.
 
 const CHART_HEIGHT = 120;
 const MIN_BAR_HEIGHT = 3;
@@ -24,6 +28,7 @@ interface MonthlyTrendChartProps {
 
 export function MonthlyTrendChart({ data, highlightMonth }: MonthlyTrendChartProps) {
   const { t } = useLanguage();
+  const system = useSystemColors();
   const monthNames = t(k.datePicker.months, { returnObjects: true }) as unknown as string[];
 
   const maxExpense = Math.max(...data.map((point) => point.expense), 1);
@@ -35,39 +40,44 @@ export function MonthlyTrendChart({ data, highlightMonth }: MonthlyTrendChartPro
   }, [progress, data]);
 
   return (
-    <Card style={styles.card}>
-      <View style={styles.chartRow}>
-        {data.map((point) => (
-          <View key={point.month} style={styles.column}>
-            <View style={styles.barArea}>
-              <TrendBar
-                ratio={point.expense / maxExpense}
-                isHighlighted={point.month === highlightMonth}
-                progress={progress}
-              />
-            </View>
-            <Text
-              style={[
-                styles.monthLabel,
-                point.month === highlightMonth && styles.monthLabelHighlighted,
-              ]}
-            >
-              {monthNames[point.month]?.charAt(0)}
-            </Text>
+    <View style={styles.chartRow}>
+      {data.map((point) => (
+        <View key={point.month} style={styles.column}>
+          <View style={styles.barArea}>
+            <TrendBar
+              ratio={point.expense / maxExpense}
+              isHighlighted={point.month === highlightMonth}
+              emptyColor={system.fill}
+              progress={progress}
+            />
           </View>
-        ))}
-      </View>
-    </Card>
+          <Text
+            style={[
+              styles.monthLabel,
+              { color: system.secondaryLabel },
+              point.month === highlightMonth && [
+                styles.monthLabelHighlighted,
+                { color: system.label },
+              ],
+            ]}
+          >
+            {monthNames[point.month]?.charAt(0)}
+          </Text>
+        </View>
+      ))}
+    </View>
   );
 }
 
 function TrendBar({
   ratio,
   isHighlighted,
+  emptyColor,
   progress,
 }: {
   ratio: number;
   isHighlighted: boolean;
+  emptyColor: ColorValue;
   progress: SharedValue<number>;
 }) {
   const barStyle = useAnimatedStyle(() => ({
@@ -78,8 +88,8 @@ function TrendBar({
     <Animated.View
       style={[
         styles.bar,
-        { backgroundColor: isHighlighted ? colors.primary.DEFAULT : colors.expense },
-        ratio === 0 && styles.barEmpty,
+        { backgroundColor: isHighlighted ? ACCENT_COLOR : colors.expense },
+        ratio === 0 && { backgroundColor: emptyColor },
         barStyle,
       ]}
     />
@@ -87,10 +97,6 @@ function TrendBar({
 }
 
 const styles = StyleSheet.create({
-  card: {
-    paddingVertical: design.spacing.md,
-    paddingHorizontal: design.spacing.md,
-  },
   chartRow: {
     flexDirection: 'row',
     gap: design.spacing.xs,
@@ -111,16 +117,11 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: design.radius.sm / 2,
     borderTopRightRadius: design.radius.sm / 2,
   },
-  barEmpty: {
-    backgroundColor: colors.gray[200],
-  },
   monthLabel: {
     fontSize: design.fontSize.xs,
     fontWeight: '600',
-    color: colors.gray[400],
   },
   monthLabelHighlighted: {
-    color: colors.gray[900],
     fontWeight: '800',
   },
 });

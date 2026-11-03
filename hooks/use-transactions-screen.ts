@@ -1,7 +1,6 @@
 import { useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 
-import type { FormSymbol } from '@/components/native-form-types';
 import type { TransactionRowData } from '@/components/transaction-row-types';
 import { useLanguage } from '@/contexts/language';
 import { useWorkspace } from '@/contexts/workspace';
@@ -12,15 +11,10 @@ import { useTransactions } from '@/hooks/use-transactions';
 import { k } from '@/locales/keys';
 import type { Tables } from '@/types/supabase';
 import { computeExpenseBreakdown, computeTotals } from '@/utils/analytics';
-import { getCategoryColor } from '@/utils/category-color';
-import { getCategorySymbol } from '@/utils/category-icon';
 import { formatCompactAmount } from '@/utils/currency';
 import { formatDayLabel } from '@/utils/date';
-import {
-  formatSignedTransactionAmount,
-  groupTransactionsByDay,
-  toTransactionRowData,
-} from '@/utils/transaction';
+import { formatPeriodSummary, toSpendBreakdownRows } from '@/utils/period-summary';
+import { groupTransactionsByDay, toTransactionRowData } from '@/utils/transaction';
 
 export type FilterType = 'all' | 'income' | 'expense';
 
@@ -39,22 +33,8 @@ export interface TransactionDaySection {
   rows: TransactionRowData[];
 }
 
-/** A spend breakdown row: a top category, or the remaining ones together. */
-export interface SpendBreakdownRow {
-  key: string;
-  title: string;
-  symbol: FormSymbol;
-  amount: string;
-  /** Share of the month's spending, 0–1. */
-  share: number;
-  /** Absent for the "Others" bucket, which has no drill-down. */
-  categoryId?: string;
-}
-
 /** Top categories shown before the rest fold into "Others". */
 const BREAKDOWN_TOP_CATEGORIES = 4;
-
-const OTHERS_SYMBOL = { sf: 'ellipsis.circle', material: 'more_horiz' } as const;
 
 /**
  * Transactions screen: the month (with its native header controls), filters, the month summary
@@ -95,36 +75,17 @@ export function useTransactionsScreen() {
   }
 
   const totals = useMemo(() => computeTotals(allTransactions), [allTransactions]);
-  const balance = totals.income - totals.expense;
+  const summary = useMemo(() => formatPeriodSummary(totals, locale), [totals, locale]);
 
-  const summary = useMemo(
-    () => ({
-      income: formatSignedTransactionAmount(totals.income, true, locale),
-      expense: formatSignedTransactionAmount(totals.expense, false, locale),
-      balance: formatSignedTransactionAmount(Math.abs(balance), balance >= 0, locale),
-    }),
-    [totals, balance, locale],
+  const breakdown = useMemo(
+    () =>
+      toSpendBreakdownRows(
+        computeExpenseBreakdown(allTransactions, BREAKDOWN_TOP_CATEGORIES),
+        categories,
+        { locale, othersTitle: t(k.transactions.others) },
+      ),
+    [allTransactions, categories, t, locale],
   );
-
-  const breakdown = useMemo((): SpendBreakdownRow[] => {
-    const iconById = new Map(categories.map((category) => [category.id, category.icon]));
-    return computeExpenseBreakdown(allTransactions, BREAKDOWN_TOP_CATEGORIES).map((spend) => {
-      const symbol = spend.id ? getCategorySymbol(iconById.get(spend.id)) : OTHERS_SYMBOL;
-      return {
-        key: spend.id ?? 'others',
-        title: spend.id ? spend.name : t(k.transactions.others),
-        symbol: {
-          sf: symbol.sf,
-          material: symbol.material,
-          // "Others" takes the system gray, not the legacy palette's.
-          color: getCategoryColor(spend.id ? spend.color : null),
-        },
-        amount: formatCompactAmount(spend.amount, locale),
-        share: spend.percentage / 100,
-        categoryId: spend.id,
-      };
-    });
-  }, [allTransactions, categories, t, locale]);
 
   const daySections = useMemo((): TransactionDaySection[] => {
     if (!filteredTransactions) return [];
