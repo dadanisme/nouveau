@@ -166,6 +166,8 @@ const id: Translations = {
     unknownFeature: 'Fitur Tidak Dikenal',
     noSubscriptions: 'Tidak ada langganan',
     noSubscriptionsMessage: 'Anda belum memiliki langganan fitur',
+    active: 'Aktif',
+    loadFailed: 'Gagal memuat langganan',
   },
   proofs: {
     title: 'Bukti Penerimaan',
@@ -193,6 +195,12 @@ const id: Translations = {
     scanning: 'Memindai...',
     scanReceipt: 'Pindai Struk',
     scanFailed: 'Gagal Memindai',
+    close: 'Tutup',
+    textSection: 'Teks',
+    linkSection: 'Tautan',
+    imagesSection: 'Gambar',
+    pdfsSection: 'PDF',
+    filesSection: 'File',
   },
   datePicker: {
     months: [

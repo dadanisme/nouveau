@@ -36,6 +36,15 @@ export function formatShortDate(dateStr: string): string {
   return date.toLocaleDateString(getDateLocale(), { month: 'short', day: 'numeric' });
 }
 
+/** "Mar 4, 2026" in the app locale. */
+export function formatMediumDate(dateStr: string): string {
+  return new Date(dateStr).toLocaleDateString(getDateLocale(), {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
+}
+
 /** An Insights period: a single month, or a whole year. */
 export type PeriodMode = 'month' | 'year';
 
