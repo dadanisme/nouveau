@@ -38,9 +38,9 @@ No test framework is configured. The web app in `web/` has its own scripts (`cd 
 
 ## Platform and stack
 
-- **Installed now:** Expo SDK 55, React Native 0.83, React 19.2, New Architecture, React Compiler (`experiments.reactCompiler`), Expo Router with typed routes.
-- **Pending, #24:** SDK 58 (RN 0.88) for stable `@expo/ui` (`@expo/ui/swift-ui`, `@expo/ui/jetpack-compose`), stable native tabs, the iOS 27 scene lifecycle and iPhone Duo. Native-shell work (phase 2+) builds on it. Local Swift/Kotlin Expo modules only for gaps (Swift Charts, #37).
-- **Targets:** iOS 17+ and Android, both first-class. `app.json` still sets the iOS deployment target to 16.0.
+- **Installed:** Expo SDK 58, React Native 0.88, React 19.3, New Architecture, React Compiler (`experiments.reactCompiler`), Expo Router with typed routes, UIScene lifecycle (required on iOS 27).
+- SDK 58 provides stable `@expo/ui` (`@expo/ui/swift-ui`, `@expo/ui/jetpack-compose`) and stable native tabs; `@expo/ui` is not installed yet (phase 2+). Local Swift/Kotlin Expo modules only for gaps (Swift Charts, #37).
+- **Targets:** iOS 17+ and Android, both first-class. The iOS deployment target is 17.0 (`app.json` build-properties + `plugins/with-ios-deployment-target.js`, which also covers the share extension).
 - **Web:** the web app is a separate Vite app in `web/` (app.nouveau.my.id) that reads the same Supabase data. The RN web build (`react-native-web`, the `web` script and `app.json` `web` block) is unused and will be removed. Don't maintain it.
 
 ## Architecture
