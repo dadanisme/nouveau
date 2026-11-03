@@ -10,7 +10,6 @@ A personal finance tracker built with Expo and React Native. Track your income a
 - **Supabase** — auth (email + Google Sign-In) and PostgreSQL database
 - **TanStack React Query** — server state management
 - **React Native Reanimated** — animations
-- **@gorhom/bottom-sheet** — gesture-driven bottom sheets
 - **expo-localization** + **i18n-js** — internationalization (English + Bahasa Indonesia)
 
 ## Getting Started

@@ -2,10 +2,9 @@ import { Stack } from 'expo-router';
 import { Platform } from 'react-native';
 
 import { useLanguage } from '@/contexts/language';
-import type { FilterType } from '@/hooks/use-transactions-screen';
+import type { CategoryFilterGroup, FilterType } from '@/hooks/use-transactions-screen';
 import { useSymbolIcon } from '@/hooks/use-symbol-icon';
 import { k } from '@/locales/keys';
-import type { Tables } from '@/types/supabase';
 
 /** Above this many categories, the Category section becomes a submenu instead of inline rows. */
 const CATEGORY_INLINE_LIMIT = 6;
@@ -18,7 +17,8 @@ interface TransactionsHeaderToolbarProps {
   onFilterChange: (filter: FilterType) => void;
   categoryFilter: string | null;
   onCategoryFilterChange: (categoryId: string | null) => void;
-  categories: Tables<'categories'>[];
+  /** One group per type; two (Expense, Income) when Type is All. */
+  categoryGroups: CategoryFilterGroup[];
   isFilterActive: boolean;
 }
 
@@ -35,7 +35,7 @@ export function TransactionsHeaderToolbar({
   onFilterChange,
   categoryFilter,
   onCategoryFilterChange,
-  categories,
+  categoryGroups,
   isFilterActive,
 }: TransactionsHeaderToolbarProps) {
   const { t } = useLanguage();
@@ -52,6 +52,20 @@ export function TransactionsHeaderToolbar({
     { key: 'expense', label: t(k.transactions.expense) },
     { key: 'income', label: t(k.transactions.income) },
   ];
+
+  const categoryCount = categoryGroups.reduce((sum, group) => sum + group.categories.length, 0);
+  const isGrouped = categoryGroups.length > 1;
+
+  const renderCategoryActions = (group: CategoryFilterGroup) =>
+    group.categories.map((category) => (
+      <Stack.Toolbar.MenuAction
+        key={category.id}
+        isOn={categoryFilter === category.id}
+        onPress={() => onCategoryFilterChange(category.id)}
+      >
+        {category.name}
+      </Stack.Toolbar.MenuAction>
+    ));
 
   // Android needs the menu icon as an image, so wait for it rather than show an empty slot.
   if (!filterIcon && !showAddAction) return null;
@@ -78,7 +92,7 @@ export function TransactionsHeaderToolbar({
             ))}
           </Stack.Toolbar.Menu>
           <Stack.Toolbar.Menu
-            inline={categories.length <= CATEGORY_INLINE_LIMIT}
+            inline={categoryCount <= CATEGORY_INLINE_LIMIT}
             title={t(k.addTransaction.category)}
           >
             <Stack.Toolbar.MenuAction
@@ -87,15 +101,21 @@ export function TransactionsHeaderToolbar({
             >
               {t(k.transactions.allCategories)}
             </Stack.Toolbar.MenuAction>
-            {categories.map((category) => (
-              <Stack.Toolbar.MenuAction
-                key={category.id}
-                isOn={categoryFilter === category.id}
-                onPress={() => onCategoryFilterChange(category.id)}
-              >
-                {category.name}
-              </Stack.Toolbar.MenuAction>
-            ))}
+            {isGrouped
+              ? categoryGroups.map((group) => (
+                  // iOS shows titled inline sections; Android's inline sections are only
+                  // dividers with no title, so it gets a titled submenu per type instead.
+                  <Stack.Toolbar.Menu
+                    key={group.type}
+                    inline={Platform.OS === 'ios'}
+                    title={t(
+                      group.type === 'expense' ? k.transactions.expense : k.transactions.income,
+                    )}
+                  >
+                    {renderCategoryActions(group)}
+                  </Stack.Toolbar.Menu>
+                ))
+              : categoryGroups.map(renderCategoryActions)}
           </Stack.Toolbar.Menu>
         </Stack.Toolbar.Menu>
       )}

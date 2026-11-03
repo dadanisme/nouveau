@@ -3,6 +3,7 @@ import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
+  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -13,7 +14,6 @@ import {
   View,
 } from 'react-native';
 
-import { Alert } from '@/components/alert';
 import { Button } from '@/components/button';
 import { colors, design } from '@/constants/colors';
 import { useLanguage } from '@/contexts/language';
@@ -29,13 +29,12 @@ export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [alert, setAlert] = useState<{ title: string; message: string } | null>(null);
 
   const isSubmitting = signInWithEmail.isPending || signInWithGoogle.isPending;
 
   const handleEmailSignIn = () => {
     if (!email.trim() || !password.trim()) {
-      setAlert({ title: t(k.login.missingFields), message: t(k.login.missingFieldsMessage) });
+      Alert.alert(t(k.login.missingFields), t(k.login.missingFieldsMessage));
       return;
     }
 
@@ -43,10 +42,10 @@ export default function LoginScreen() {
       { email: email.trim(), password },
       {
         onError: (error) => {
-          setAlert({
-            title: t(k.login.signInFailed),
-            message: error instanceof Error ? error.message : t(k.common.unexpectedError),
-          });
+          Alert.alert(
+            t(k.login.signInFailed),
+            error instanceof Error ? error.message : t(k.common.unexpectedError),
+          );
         },
       },
     );
@@ -55,10 +54,10 @@ export default function LoginScreen() {
   const handleGoogleSignIn = () => {
     signInWithGoogle.mutate(undefined, {
       onError: (error) => {
-        setAlert({
-          title: t(k.login.signInFailed),
-          message: error instanceof Error ? error.message : t(k.common.unexpectedError),
-        });
+        Alert.alert(
+          t(k.login.signInFailed),
+          error instanceof Error ? error.message : t(k.common.unexpectedError),
+        );
       },
     });
   };
@@ -155,12 +154,6 @@ export default function LoginScreen() {
           </View>
         </View>
       </ScrollView>
-      <Alert
-        visible={!!alert}
-        title={alert?.title ?? ''}
-        message={alert?.message}
-        onDismiss={() => setAlert(null)}
-      />
     </KeyboardAvoidingView>
   );
 }

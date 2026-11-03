@@ -4,6 +4,7 @@ import { useWorkspace } from '@/contexts/workspace';
 import { useCategories } from '@/hooks/use-categories';
 import { useTransactions, type TransactionWithCategory } from '@/hooks/use-transactions';
 import { getDateLocale } from '@/lib/i18n';
+import type { Tables } from '@/types/supabase';
 import { computeTotals } from '@/utils/analytics';
 
 export interface TransactionGroup {
@@ -15,6 +16,11 @@ export interface TransactionGroup {
 }
 
 export type FilterType = 'all' | 'income' | 'expense';
+
+export interface CategoryFilterGroup {
+  type: 'expense' | 'income';
+  categories: Tables<'categories'>[];
+}
 
 export function useTransactionsScreen() {
   const { currentWorkspaceId } = useWorkspace();
@@ -92,6 +98,17 @@ export function useTransactionsScreen() {
     return Object.values(groups).sort((a, b) => b.dateKey.localeCompare(a.dateKey));
   }, [filteredTransactions, categoryFilter]);
 
+  // Category filter options, one group per type. With Type = All both types show, so they're
+  // grouped (an "Other" exists in each); with a type on, only that type's categories can match.
+  const categoryGroups = useMemo(
+    (): CategoryFilterGroup[] =>
+      (['expense', 'income'] as const)
+        .filter((type) => activeFilter === 'all' || activeFilter === type)
+        .map((type) => ({ type, categories: categories.filter((c) => c.type === type) }))
+        .filter((group) => group.categories.length > 0),
+    [categories, activeFilter],
+  );
+
   // Picking a type drops a category filter of the other type (it could never match).
   function selectFilterType(type: FilterType) {
     setActiveFilter(type);
@@ -118,9 +135,7 @@ export function useTransactionsScreen() {
     setActiveFilter: selectFilterType,
     categoryFilter,
     setCategoryFilter,
-    // With a type filter on, only that type's categories can match, so offer only those.
-    categories:
-      activeFilter === 'all' ? categories : categories.filter((c) => c.type === activeFilter),
+    categoryGroups,
     isFilterActive: activeFilter !== 'all' || categoryFilter !== null,
     totals,
     balance,

@@ -1,4 +1,3 @@
-import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider, useRouter, useSegments } from 'expo-router';
 import { ShareIntentProvider, useShareIntentContext } from 'expo-share-intent';
@@ -147,7 +146,23 @@ function RootStack() {
             headerTransparent: false,
           })}
         />
-        <Stack.Screen name="proof-viewer" options={{ title: t(k.proofs.title) }} />
+        <Stack.Screen
+          name="proof-viewer"
+          options={({ navigation }) => ({
+            title: t(k.proofs.title),
+            // Opened from rows and from the add-transaction sheet, so it's always a modal
+            // (iOS page sheet, Android full-screen) rather than a push that lands over the
+            // sheet. iOS gets an explicit Done (HIG); Android keeps its back arrow.
+            presentation: 'modal',
+            unstable_headerLeftItems: () => [
+              {
+                type: 'button',
+                label: t(k.common.done),
+                onPress: () => navigation.goBack(),
+              },
+            ],
+          })}
+        />
         {/* Sheet routes (app/(sheets)/*): results come back through lib/sheet-result.ts. */}
         <Stack.Screen name="(sheets)/category-picker" options={sheetOptions([0.5, 1])} />
         <Stack.Screen name="(sheets)/date-picker" options={sheetOptions('fitToContents')} />
@@ -177,15 +192,13 @@ export default function RootLayout() {
             }}
           >
             <ShareIntentNavigator />
-            <BottomSheetModalProvider>
-              <AuthListener>
-                <WorkspaceProvider>
-                  <AuthGuard>
-                    <RootStack />
-                  </AuthGuard>
-                </WorkspaceProvider>
-              </AuthListener>
-            </BottomSheetModalProvider>
+            <AuthListener>
+              <WorkspaceProvider>
+                <AuthGuard>
+                  <RootStack />
+                </AuthGuard>
+              </WorkspaceProvider>
+            </AuthListener>
           </ShareIntentProvider>
         </QueryClientProvider>
       </LanguageProvider>

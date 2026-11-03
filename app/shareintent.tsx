@@ -3,7 +3,6 @@ import { Image } from 'expo-image';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Alert } from '@/components/alert';
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
 import { colors, design } from '@/constants/colors';
@@ -119,10 +118,8 @@ export default function ShareIntentScreen() {
     otherFiles,
     canScan,
     isScanning,
-    alertState,
     handleDismiss,
     handleScanReceipt,
-    dismissAlert,
   } = useShareIntentScreen();
 
   const hasContent =
@@ -183,13 +180,6 @@ export default function ShareIntentScreen() {
           </Button>
         )}
       </View>
-
-      <Alert
-        visible={alertState !== null}
-        title={alertState?.title ?? ''}
-        message={alertState?.message}
-        onDismiss={dismissAlert}
-      />
     </View>
   );
 }

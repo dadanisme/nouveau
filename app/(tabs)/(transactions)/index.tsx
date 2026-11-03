@@ -37,7 +37,7 @@ export default function TransactionsScreen() {
     setActiveFilter,
     categoryFilter,
     setCategoryFilter,
-    categories,
+    categoryGroups,
     isFilterActive,
     totals,
     balance,
@@ -110,7 +110,7 @@ export default function TransactionsScreen() {
           onFilterChange={setActiveFilter}
           categoryFilter={categoryFilter}
           onCategoryFilterChange={setCategoryFilter}
-          categories={categories}
+          categoryGroups={categoryGroups}
           isFilterActive={isFilterActive}
         />
         <ScrollView
