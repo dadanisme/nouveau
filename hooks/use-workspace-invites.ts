@@ -17,22 +17,29 @@ export type WorkspaceInviteWithWorkspace = {
   workspaces: { name: string; home_currency: string } | null;
 };
 
+/**
+ * Pending invites addressed to me. Filtered on my email: RLS also lets members read every invite
+ * of their workspaces, which would list the invites an owner sent. Invite emails are stored
+ * lowercased (`create_workspace_invite`).
+ */
 export function useMyPendingInvites() {
   const { session } = useSession();
   const userId = session?.user.id;
+  const email = session?.user.email?.toLowerCase();
   return useQuery({
-    queryKey: ['my-pending-invites', userId],
+    queryKey: ['my-pending-invites', userId, email],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('workspace_invites')
         .select('*, workspaces(name, home_currency)')
         .eq('status', 'pending')
+        .eq('email', email!)
         .order('created_at', { ascending: false })
         .returns<WorkspaceInviteWithWorkspace[]>();
       if (error) throw error;
       return data ?? [];
     },
-    enabled: !!userId,
+    enabled: !!userId && !!email,
   });
 }
 
@@ -84,6 +91,22 @@ export function useAcceptInvite() {
       const { data, error } = await supabase.rpc('accept_workspace_invite', { token });
       if (error) throw error;
       return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['my-pending-invites'] });
+      queryClient.invalidateQueries({ queryKey: ['workspaces'] });
+    },
+  });
+}
+
+/** Declines an invite addressed to me (`decline_workspace_invite`, invitee only). */
+export function useDeclineWorkspaceInvite() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (token: string) => {
+      const { error } = await supabase.rpc('decline_workspace_invite', { token });
+      if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['my-pending-invites'] });

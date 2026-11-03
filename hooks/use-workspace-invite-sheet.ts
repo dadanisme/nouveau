@@ -7,6 +7,7 @@ import { Alert } from 'react-native';
 import { useCreateInvite } from '@/hooks/use-workspace-invites';
 import i18n from '@/lib/i18n';
 import { k } from '@/locales/keys';
+import { getErrorMessage } from '@/utils/error';
 
 /** A copied invite token is cleared from the clipboard after this long, if it's still there. */
 const CLIPBOARD_CLEAR_DELAY_MS = 60_000;
@@ -25,12 +26,13 @@ export function useWorkspaceInviteSheet() {
   const createInvite = useCreateInvite();
   const [email, setEmail] = useState('');
   const [createdToken, setCreatedToken] = useState<string | null>(null);
+  const [isCopied, setIsCopied] = useState(false);
 
   const canSubmit = !!workspaceId && !!email.trim() && !createInvite.isPending;
 
   function submit() {
     const trimmed = email.trim();
-    if (!workspaceId || !trimmed) return;
+    if (!workspaceId || !trimmed || createInvite.isPending) return;
     createInvite.mutate(
       { workspace_id: workspaceId, email: trimmed },
       {
@@ -42,7 +44,7 @@ export function useWorkspaceInviteSheet() {
         onError: (error) => {
           Alert.alert(
             i18n.t(k.workspace.failedToInvite),
-            error instanceof Error ? error.message : i18n.t(k.common.unexpectedError),
+            getErrorMessage(error, i18n.t(k.common.unexpectedError)),
           );
         },
       },
@@ -53,6 +55,7 @@ export function useWorkspaceInviteSheet() {
     if (!createdToken) return;
     const token = createdToken;
     await Clipboard.setStringAsync(token);
+    setIsCopied(true);
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     setTimeout(async () => {
       if ((await Clipboard.getStringAsync()) === token) {
@@ -65,6 +68,7 @@ export function useWorkspaceInviteSheet() {
     email,
     setEmail,
     createdToken,
+    isCopied,
     canSubmit,
     isPending: createInvite.isPending,
     submit,

@@ -69,29 +69,78 @@ export type FormNoticeRowProps = {
   icon?: FormIcon;
 };
 
+/** A row action: an iOS swipe action and context-menu item, an Android row-menu item. */
+export type FormRowAction = {
+  title: string;
+  /** `destructive` renders in the system red / Material error color. */
+  role?: 'default' | 'destructive';
+  icon?: FormIcon;
+  /** Should confirm (`Alert.alert`) before anything destructive. */
+  onPress: () => void;
+};
+
+/**
+ * The generic list row: a leading icon or symbol, title, optional subtitle and value, then a
+ * chevron (tappable), a checkmark (`selected` set: single-choice lists) or nothing (static).
+ * Row actions: trailing swipe actions (a full swipe runs the first) plus a long-press context menu
+ * on iOS; on Android a long-press menu on tappable rows and a visible ⋮ menu on static ones.
+ */
 export type FormListRowProps = {
   title: string;
-  /** Leading glyph, e.g. a category's mapped icon in its color. */
+  /** Secondary line under the title (e.g. a role or an expiry date). */
+  subtitle?: string;
+  /** Static leading icon (SF Symbol + vector drawable). */
+  icon?: FormIcon;
+  /** Leading glyph chosen at runtime, e.g. a category's mapped icon in its color. */
   symbol?: FormSymbol;
-  /** Current value, shown trailing (iOS) or as supporting text (Android). */
-  value?: string;
-  onPress: () => void;
   /**
-   * Adds a destructive delete action: a trailing swipe action on iOS (full swipe allowed), a
-   * long-press menu item on Android. The handler should confirm (`Alert.alert`) before deleting.
+   * Current value, shown trailing (iOS) or as supporting text (Android; trailing when there is a
+   * subtitle).
+   */
+  value?: string;
+  /** Single-choice mode: the checkmark shows when true, and the row has no chevron either way. */
+  selected?: boolean;
+  /** Makes the row tappable (pushes, presents or selects). */
+  onPress?: () => void;
+  actions?: readonly FormRowAction[];
+  /**
+   * Shorthand for a trailing destructive delete action, after `actions`. The handler should
+   * confirm (`Alert.alert`) before deleting.
    */
   onDelete?: () => void;
   /** Title of the delete action. Required with `onDelete`. */
   deleteLabel?: string;
 };
 
+/**
+ * A single-line text input row: a SwiftUI `TextField` (iOS), a filled Material text field
+ * (Android). Uncontrolled with `defaultValue` (read once on mount); controlled with `value`
+ * (outside changes replace the text). Input traits are independent optional flags, so further
+ * ones (secure entry, autofill content type) add alongside `keyboard`.
+ */
 export type FormTextFieldRowProps = {
+  /** Shown while empty; also the label when `label` is unset. */
   placeholder: string;
-  /** Initial text, read once on mount (the field owns its text natively afterwards). */
+  /**
+   * What the field holds. iOS: the accessibility label. Android: the floating label, with the
+   * placeholder inside the empty field.
+   */
+  label?: string;
+  /** Controlled text. */
+  value?: string;
+  /** Initial text when uncontrolled, read once on mount. */
   defaultValue?: string;
   onChangeText: (text: string) => void;
+  /** `email`: email keyboard, no autocapitalization or autocorrection, email autofill. */
+  keyboard?: 'default' | 'email';
+  /** @default 'sentences' ('none' with the email keyboard) */
+  autoCapitalize?: 'none' | 'words' | 'sentences';
   autoFocus?: boolean;
   maxLength?: number;
+  /** The keyboard's return key (unset: iOS shows Return, Android Done). */
+  submitLabel?: 'done' | 'send' | 'next';
+  /** Runs when the return key is pressed. */
+  onSubmit?: () => void;
 };
 
 export type FormSegmentedRowProps<T extends string> = {

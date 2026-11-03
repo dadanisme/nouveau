@@ -1,6 +1,7 @@
 import {
   Button,
   ContentUnavailableView,
+  ContextMenu,
   Form,
   Host,
   HStack,
@@ -19,20 +20,27 @@ import {
 import {
   accessibilityAddTraits,
   accessibilityLabel,
+  autocorrectionDisabled,
   background,
   badge,
   disabled,
   font,
   foregroundStyle,
   frame,
+  keyboardType,
   labelsHidden,
   listRowBackground,
+  onSubmit as onSubmitModifier,
   padding,
   pickerStyle,
   refreshable,
+  submitLabel as submitLabelModifier,
   tag,
+  textContentType,
+  textInputAutocapitalization,
   tint,
 } from '@expo/ui/swift-ui/modifiers';
+import { useEffect, useRef } from 'react';
 import { PlatformColor, StyleSheet } from 'react-native';
 
 import type {
@@ -42,6 +50,7 @@ import type {
   FormNavRowProps,
   FormNoticeRowProps,
   FormPickerRowProps,
+  FormRowAction,
   FormSectionProps,
   FormSegmentedRowProps,
   FormTextFieldRowProps,
@@ -165,75 +174,181 @@ export function FormNoticeRow({ text, icon }: FormNoticeRowProps) {
   );
 }
 
+/** An action list for a row: `actions`, then the `onDelete` shorthand. */
+function rowActions({
+  actions,
+  onDelete,
+  deleteLabel,
+}: Pick<FormListRowProps, 'actions' | 'onDelete' | 'deleteLabel'>): FormRowAction[] {
+  const all = [...(actions ?? [])];
+  if (onDelete) {
+    all.push({
+      title: deleteLabel ?? '',
+      role: 'destructive',
+      icon: { sf: 'trash', md: require('@/assets/icons/delete.xml') },
+      onPress: onDelete,
+    });
+  }
+  return all;
+}
+
 /**
- * A tappable row with an optional colored symbol, value and chevron; `onDelete` adds a trailing
- * destructive swipe action (a full swipe runs it).
+ * The generic list row (see `FormListRowProps`): leading symbol/icon, title and subtitle, value,
+ * then a chevron (tappable) or checkmark (`selected`). Actions become trailing swipe actions (a
+ * full swipe runs the first) and a long-press context menu.
  */
 export function FormListRow({
   title,
+  subtitle,
+  icon,
   symbol,
   value,
+  selected,
   onPress,
+  actions,
   onDelete,
   deleteLabel,
 }: FormListRowProps) {
-  const row = (
-    <Button onPress={onPress}>
-      <HStack spacing={12}>
-        {symbol ? (
-          <Image
-            systemName={symbol.sf}
-            color={symbol.color}
-            modifiers={[frame({ width: SYMBOL_WIDTH, height: SYMBOL_WIDTH })]}
-          />
-        ) : null}
-        <Text modifiers={[PRIMARY]}>{title}</Text>
-        <Spacer />
-        {value ? <Text modifiers={[SECONDARY]}>{value}</Text> : null}
+  const titleView = subtitle ? (
+    <VStack alignment="leading" spacing={2}>
+      <Text modifiers={[PRIMARY]}>{title}</Text>
+      <Text modifiers={[font({ textStyle: 'subheadline' }), SECONDARY]}>{subtitle}</Text>
+    </VStack>
+  ) : (
+    <Text modifiers={[PRIMARY]}>{title}</Text>
+  );
+
+  const content = (
+    <HStack spacing={12}>
+      {symbol ? (
+        <Image
+          systemName={symbol.sf}
+          color={symbol.color}
+          modifiers={[frame({ width: SYMBOL_WIDTH, height: SYMBOL_WIDTH })]}
+        />
+      ) : null}
+      {icon && !symbol ? <Label systemImage={icon.sf}>{titleView}</Label> : titleView}
+      <Spacer />
+      {value ? <Text modifiers={[SECONDARY]}>{value}</Text> : null}
+      {selected ? (
+        <Image
+          systemName="checkmark"
+          modifiers={[
+            font({ textStyle: 'body', weight: 'semibold' }),
+            foregroundStyle(ACCENT_COLOR),
+          ]}
+        />
+      ) : null}
+      {onPress && selected === undefined ? (
         <Image
           systemName="chevron.right"
           modifiers={[font({ textStyle: 'footnote', weight: 'semibold' }), TERTIARY]}
         />
-      </HStack>
-    </Button>
+      ) : null}
+    </HStack>
   );
 
-  if (!onDelete) return row;
+  const row = onPress ? (
+    <Button
+      onPress={onPress}
+      modifiers={selected ? [accessibilityAddTraits(['isSelected'])] : undefined}
+    >
+      {content}
+    </Button>
+  ) : (
+    content
+  );
+
+  const all = rowActions({ actions, onDelete, deleteLabel });
+  if (!all.length) return row;
 
   return (
     <SwipeActions>
-      {row}
+      <ContextMenu>
+        <ContextMenu.Trigger>{row}</ContextMenu.Trigger>
+        <ContextMenu.Items>
+          {all.map((action) => (
+            <Button
+              key={action.title}
+              role={action.role === 'destructive' ? 'destructive' : 'default'}
+              label={action.title}
+              systemImage={action.icon?.sf}
+              onPress={action.onPress}
+            />
+          ))}
+        </ContextMenu.Items>
+      </ContextMenu>
       {/* Not `role="destructive"`: SwiftUI removes a destructive swipe row optimistically, before
           the confirmation, and Cancel can't bring it back. A red tint keeps the destructive look
           (the Host's accent tint would otherwise fill it orange). */}
       <SwipeActions.Actions edge="trailing">
-        <Button
-          label={deleteLabel}
-          systemImage="trash"
-          onPress={onDelete}
-          modifiers={[tint(PlatformColor('systemRed'))]}
-        />
+        {all.map((action) => (
+          <Button
+            key={action.title}
+            label={action.title}
+            systemImage={action.icon?.sf}
+            onPress={action.onPress}
+            modifiers={
+              action.role === 'destructive' ? [tint(PlatformColor('systemRed'))] : undefined
+            }
+          />
+        ))}
       </SwipeActions.Actions>
     </SwipeActions>
   );
 }
 
-/** A single-line text field row; the placeholder doubles as its label. */
+/** A single-line text field row (see `FormTextFieldRowProps`). */
 export function FormTextFieldRow({
   placeholder,
+  label,
+  value,
   defaultValue = '',
   onChangeText,
+  keyboard = 'default',
+  autoCapitalize,
   autoFocus,
   maxLength,
+  submitLabel,
+  onSubmit,
 }: FormTextFieldRowProps) {
-  const text = useNativeState(defaultValue);
+  const initial = value ?? defaultValue;
+  const text = useNativeState(initial);
+  // The last text the field reported, so only outside `value` changes are written back to it.
+  const lastText = useRef(initial);
+
+  useEffect(() => {
+    if (value === undefined || value === lastText.current) return;
+    lastText.current = value;
+    text.set(value);
+  }, [value, text]);
+
+  const isEmail = keyboard === 'email';
+  const capitalization = autoCapitalize ?? (isEmail ? 'none' : 'sentences');
+
   return (
     <TextField
       text={text}
       placeholder={placeholder}
-      onTextChange={onChangeText}
       autoFocus={autoFocus}
       maxLength={maxLength}
+      onTextChange={(next) => {
+        lastText.current = next;
+        onChangeText(next);
+      }}
+      modifiers={[
+        accessibilityLabel(label ?? placeholder),
+        textInputAutocapitalization(capitalization === 'none' ? 'never' : capitalization),
+        ...(isEmail
+          ? [
+              keyboardType('email-address'),
+              textContentType('emailAddress'),
+              autocorrectionDisabled(true),
+            ]
+          : []),
+        ...(submitLabel ? [submitLabelModifier(submitLabel)] : []),
+        ...(onSubmit ? [onSubmitModifier(onSubmit)] : []),
+      ]}
     />
   );
 }
