@@ -1,4 +1,5 @@
-import type { ImageSourcePropType } from 'react-native';
+import type { AndroidSymbol } from 'expo-symbols';
+import type { ColorValue, ImageSourcePropType } from 'react-native';
 import type { SFSymbol } from 'sf-symbols-typescript';
 
 /**
@@ -7,7 +8,22 @@ import type { SFSymbol } from 'sf-symbols-typescript';
  */
 export type FormIcon = { sf: SFSymbol; md: ImageSourcePropType };
 
-export type NativeFormProps = { children: React.ReactNode };
+/**
+ * A row glyph drawn from the system symbol sets, for icons chosen at runtime (e.g. a category's):
+ * any SF Symbol (iOS) or Material Symbol name (Android, from the Material Symbols font, so no
+ * vector asset per icon), optionally tinted. Static row icons keep using {@link FormIcon}.
+ */
+export type FormSymbol = { sf: SFSymbol; material: AndroidSymbol; color?: ColorValue };
+
+export type NativeFormProps = {
+  /**
+   * Heading for a form shown in a sheet without a native header (`(sheets)/*`).
+   */
+  title?: string;
+  /** Pull to refresh; the indicator shows until the promise settles. */
+  onRefresh?: () => Promise<void>;
+  children: React.ReactNode;
+};
 
 export type FormSectionProps = {
   /** Section header. */
@@ -51,4 +67,43 @@ export type FormNoticeRowProps = {
   /** A non-interactive warning/info line, e.g. a load error. */
   text: string;
   icon?: FormIcon;
+};
+
+export type FormListRowProps = {
+  title: string;
+  /** Leading glyph, e.g. a category's mapped icon in its color. */
+  symbol?: FormSymbol;
+  /** Current value, shown trailing (iOS) or as supporting text (Android). */
+  value?: string;
+  onPress: () => void;
+  /**
+   * Adds a destructive delete action: a trailing swipe action on iOS (full swipe allowed), a
+   * long-press menu item on Android. The handler should confirm (`Alert.alert`) before deleting.
+   */
+  onDelete?: () => void;
+  /** Title of the delete action. Required with `onDelete`. */
+  deleteLabel?: string;
+};
+
+export type FormTextFieldRowProps = {
+  placeholder: string;
+  /** Initial text, read once on mount (the field owns its text natively afterwards). */
+  defaultValue?: string;
+  onChangeText: (text: string) => void;
+  autoFocus?: boolean;
+  maxLength?: number;
+};
+
+export type FormSegmentedRowProps<T extends string> = {
+  /** What the control picks, for screen readers (the segments are its only visible labels). */
+  label: string;
+  options: readonly FormPickerOption<T>[];
+  selection: T;
+  onSelectionChange: (value: T) => void;
+};
+
+export type FormEmptyRowProps = {
+  title: string;
+  description?: string;
+  symbol: FormSymbol;
 };

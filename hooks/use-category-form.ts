@@ -6,17 +6,19 @@ import { Alert, Keyboard } from 'react-native';
 import { useWorkspace } from '@/contexts/workspace';
 import { useSession } from '@/hooks/use-auth';
 import { useCategories } from '@/hooks/use-categories';
-import {
-  useAddCategory,
-  useDeleteCategory,
-  useUpdateCategory,
-} from '@/hooks/use-category-mutations';
+import { useCategoryDeleteConfirmation } from '@/hooks/use-category-delete-confirmation';
+import { useAddCategory, useUpdateCategory } from '@/hooks/use-category-mutations';
 import { useSheetResult } from '@/hooks/use-sheet-result';
 import i18n from '@/lib/i18n';
 import { k } from '@/locales/keys';
 import type { Tables } from '@/types/supabase';
-import { DEFAULT_CATEGORY_COLOR } from '@/utils/category-color';
-import { toCategoryIconValue } from '@/utils/category-icon';
+import type { FormSymbol } from '@/components/native-form-types';
+import {
+  DEFAULT_CATEGORY_COLOR,
+  getCategoryColor,
+  getCategorySystemColor,
+} from '@/utils/category-color';
+import { getIoniconSymbol, toCategoryIconValue } from '@/utils/category-icon';
 import { parseIcon } from '@/utils/icon';
 
 export type CategoryFormSheetParams = {
@@ -45,7 +47,7 @@ export function useCategoryForm() {
   const { data: categories } = useCategories(currentWorkspaceId);
   const addCategory = useAddCategory();
   const updateCategory = useUpdateCategory();
-  const deleteCategory = useDeleteCategory();
+  const deleteConfirmation = useCategoryDeleteConfirmation();
 
   const [editingCategory, setEditingCategory] = useState<Tables<'categories'> | null>(null);
   const [name, setName] = useState('');
@@ -69,7 +71,8 @@ export function useCategoryForm() {
   const colorRequestId = useSheetResult('color-picker', ({ color: picked }) => setColor(picked));
 
   const isEditing = !!id;
-  const isPending = addCategory.isPending || updateCategory.isPending || deleteCategory.isPending;
+  const isPending =
+    addCategory.isPending || updateCategory.isPending || deleteConfirmation.isPending;
 
   function close() {
     if (closedRef.current) return;
@@ -120,33 +123,10 @@ export function useCategoryForm() {
     }
   }
 
-  function deleteEditingCategory() {
-    if (!editingCategory) return;
-    deleteCategory.mutate(
-      { id: editingCategory.id },
-      {
-        onSuccess: close,
-        onError: (error) =>
-          Alert.alert(
-            i18n.t(k.categories.failedToDelete),
-            error instanceof Error ? error.message : i18n.t(k.categories.deleteInUseMessage),
-          ),
-      },
-    );
-  }
-
   /** Native confirmation alert (Cancel + destructive Delete); deleting closes the sheet. */
   function requestDelete() {
     if (!editingCategory) return;
-    Keyboard.dismiss();
-    Alert.alert(
-      i18n.t(k.categories.deleteCategory),
-      i18n.t(k.categories.deleteCategoryMessage, { name: editingCategory.name }),
-      [
-        { text: i18n.t(k.common.cancel), style: 'cancel' },
-        { text: i18n.t(k.common.delete), style: 'destructive', onPress: deleteEditingCategory },
-      ],
-    );
+    deleteConfirmation.requestDelete(editingCategory, close);
   }
 
   function openIconPicker() {
@@ -165,11 +145,22 @@ export function useCategoryForm() {
     });
   }
 
+  const displayColor = getCategoryColor(color);
+  /** The icon row's preview: the picked icon (or the fallback) in the picked color. */
+  const iconSymbol: FormSymbol = { ...getIoniconSymbol(icon), color: displayColor };
+  /** The color row's preview swatch. */
+  const colorSymbol: FormSymbol = { sf: 'circle.fill', material: 'circle', color: displayColor };
+  /** Name of the picked system color (`k.categories.colors.*`), or null for a custom hex. */
+  const colorLabelKey = getCategorySystemColor(color)?.labelKey ?? null;
+
   return {
     name,
     type,
     color,
     icon,
+    iconSymbol,
+    colorSymbol,
+    colorLabelKey,
     isPending,
     isEditing,
     /** Editing, but the category isn't in the cache yet. */

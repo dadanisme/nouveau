@@ -12,6 +12,7 @@ import {
 } from '@expo/ui/swift-ui/modifiers';
 import { PlatformColor, StyleSheet, type ColorValue } from 'react-native';
 
+import { ACCENT_COLOR } from '@/constants/accent';
 import { useLanguage } from '@/contexts/language';
 import { k } from '@/locales/keys';
 import { chunk } from '@/utils/array';
@@ -48,7 +49,7 @@ export function IconPickerGrid({
   const { t } = useLanguage();
 
   return (
-    <Host style={styles.host}>
+    <Host style={styles.host} seedColor={ACCENT_COLOR}>
       <VStack
         spacing={0}
         modifiers={[

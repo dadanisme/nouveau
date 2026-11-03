@@ -7,6 +7,7 @@ import {
   RadioButton,
   Text,
   useMaterialColors,
+  type MaterialColors,
 } from '@expo/ui/jetpack-compose';
 import {
   background,
@@ -32,6 +33,11 @@ import {
 // Material 3 metrics: 24dp sheet padding, 24dp leading swatch in a one-line list item.
 const SHEET_PADDING = 24;
 const SWATCH_SIZE = 24;
+// Sheets don't inset for the gesture bar, so the last row clears it.
+const SHEET_BOTTOM = 72;
+
+// The system palette (as in `native-form`); the accent only tints, as the `primary` role.
+const COLOR_OVERRIDES: Partial<MaterialColors> = { primary: ACCENT_COLOR as `#${string}` };
 
 interface ColorPickerListProps {
   colors: readonly CategorySystemColor[];
@@ -45,12 +51,12 @@ interface ColorPickerListProps {
  */
 export function ColorPickerList({ colors, selectedId, onSelect }: ColorPickerListProps) {
   const { t } = useLanguage();
-  const palette = useMaterialColors({ seedColor: ACCENT_COLOR });
+  const palette = useMaterialColors();
 
   return (
-    <Host style={styles.host} seedColor={ACCENT_COLOR}>
+    <Host style={styles.host} colorOverrides={COLOR_OVERRIDES}>
       <LazyColumn
-        contentPadding={{ top: SHEET_PADDING, bottom: SHEET_PADDING }}
+        contentPadding={{ top: SHEET_PADDING, bottom: SHEET_BOTTOM }}
         modifiers={[fillMaxSize(), background(palette.surfaceContainerLow)]}
       >
         <Text

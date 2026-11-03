@@ -15,8 +15,12 @@ const ANDROID_SHEET_CORNER_RADIUS = 28;
  * on swipe-down and the scrim to dismiss.
  *
  * @param detents Fractions of the screen height (ascending, at most 3) or `'fitToContents'`.
+ * @param options.nativeBody The body is a native `@expo/ui` tree that paints its own background.
  */
-export function sheetOptions(detents: SheetDetents): NativeStackNavigationOptions {
+export function sheetOptions(
+  detents: SheetDetents,
+  { nativeBody = false }: { nativeBody?: boolean } = {},
+): NativeStackNavigationOptions {
   if (__DEV__ && Array.isArray(detents) && detents.length > 3) {
     console.warn('sheetOptions: Android form sheets support at most 3 detents.');
   }
@@ -26,8 +30,10 @@ export function sheetOptions(detents: SheetDetents): NativeStackNavigationOption
     sheetGrabberVisible: true,
     sheetAllowedDetents: detents,
     ...(Platform.OS === 'android' && { sheetCornerRadius: ANDROID_SHEET_CORNER_RADIUS }),
-    // Sheet bodies still draw legacy dark text, so pin the sheet to the same legacy cream as the
-    // screen bodies in both appearances. #28–#36 replace this with system backgrounds.
-    contentStyle: { backgroundColor: colors.background },
+    // Native bodies (`@expo/ui` Host filling the sheet) paint their own system background, so
+    // the sheet keeps the navigation theme's light/dark background behind them. Legacy bodies
+    // still draw dark text, so they stay pinned to the legacy cream in both appearances until
+    // #28–#36 rebuild them.
+    ...(!nativeBody && { contentStyle: { backgroundColor: colors.background } }),
   };
 }

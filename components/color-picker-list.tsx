@@ -10,6 +10,7 @@ import {
 } from '@expo/ui/swift-ui/modifiers';
 import { PlatformColor, StyleSheet } from 'react-native';
 
+import { ACCENT_COLOR } from '@/constants/accent';
 import { useLanguage } from '@/contexts/language';
 import { k } from '@/locales/keys';
 import {
@@ -32,7 +33,7 @@ export function ColorPickerList({ colors, selectedId, onSelect }: ColorPickerLis
   const { t } = useLanguage();
 
   return (
-    <Host style={styles.host}>
+    <Host style={styles.host} seedColor={ACCENT_COLOR}>
       <VStack
         spacing={0}
         modifiers={[
