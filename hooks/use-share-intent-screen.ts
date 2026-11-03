@@ -2,7 +2,8 @@ import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { useShareIntentContext } from 'expo-share-intent';
 import type { ShareIntentFile } from 'expo-share-intent';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
+import { Alert } from 'react-native';
 
 import i18n from '@/lib/i18n';
 import { k } from '@/locales/keys';
@@ -17,8 +18,6 @@ export function useShareIntentScreen() {
   const router = useRouter();
   const { hasShareIntent, shareIntent, resetShareIntent } = useShareIntentContext();
   const scanReceipt = useScanReceipt();
-
-  const [alertState, setAlertState] = useState<{ title: string; message: string } | null>(null);
 
   const sharedText = shareIntent.text ?? null;
   const sharedUrl = shareIntent.webUrl ?? null;
@@ -63,17 +62,13 @@ export function useShareIntentScreen() {
         },
         onError: (error) => {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-          setAlertState({
-            title: i18n.t(k.shareIntent.scanFailed),
-            message: error instanceof Error ? error.message : i18n.t(k.common.unexpectedError),
-          });
+          Alert.alert(
+            i18n.t(k.shareIntent.scanFailed),
+            error instanceof Error ? error.message : i18n.t(k.common.unexpectedError),
+          );
         },
       },
     );
-  }
-
-  function dismissAlert() {
-    setAlertState(null);
   }
 
   return {
@@ -85,9 +80,7 @@ export function useShareIntentScreen() {
     otherFiles,
     canScan,
     isScanning,
-    alertState,
     handleDismiss,
     handleScanReceipt,
-    dismissAlert,
   };
 }

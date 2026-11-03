@@ -1,4 +1,3 @@
-import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider, useRouter, useSegments } from 'expo-router';
 import { ShareIntentProvider, useShareIntentContext } from 'expo-share-intent';
@@ -11,6 +10,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { AuthListener } from '@/components/auth-listener';
 import { SplashOverlay } from '@/components/splash-overlay';
 import { ACCENT_COLOR } from '@/constants/accent';
+import { sheetOptions } from '@/constants/sheet-options';
 import { LanguageProvider, useLanguage } from '@/contexts/language';
 import { WorkspaceProvider } from '@/contexts/workspace';
 import { useSession } from '@/hooks/use-auth';
@@ -146,7 +146,32 @@ function RootStack() {
             headerTransparent: false,
           })}
         />
-        <Stack.Screen name="proof-viewer" options={{ title: t(k.proofs.title) }} />
+        <Stack.Screen
+          name="proof-viewer"
+          options={({ navigation }) => ({
+            title: t(k.proofs.title),
+            // Opened from rows and from the add-transaction sheet, so it's always a modal
+            // (iOS page sheet, Android full-screen) rather than a push that lands over the
+            // sheet. iOS gets an explicit Done (HIG); Android keeps its back arrow.
+            presentation: 'modal',
+            unstable_headerLeftItems: () => [
+              {
+                type: 'button',
+                label: t(k.common.done),
+                onPress: () => navigation.goBack(),
+              },
+            ],
+          })}
+        />
+        {/* Sheet routes (app/(sheets)/*): results come back through lib/sheet-result.ts. */}
+        <Stack.Screen name="(sheets)/category-picker" options={sheetOptions([0.5, 1])} />
+        <Stack.Screen name="(sheets)/date-picker" options={sheetOptions('fitToContents')} />
+        <Stack.Screen name="(sheets)/category-transactions" options={sheetOptions([0.6, 1])} />
+        <Stack.Screen name="(sheets)/workspace-switcher" options={sheetOptions([0.5, 1])} />
+        <Stack.Screen name="(sheets)/workspace-invite" options={sheetOptions('fitToContents')} />
+        <Stack.Screen name="(sheets)/category-form" options={sheetOptions([0.6, 1])} />
+        <Stack.Screen name="(sheets)/icon-picker" options={sheetOptions([0.7, 1])} />
+        <Stack.Screen name="(sheets)/color-picker" options={sheetOptions('fitToContents')} />
       </Stack>
     </ThemeProvider>
   );
@@ -167,15 +192,13 @@ export default function RootLayout() {
             }}
           >
             <ShareIntentNavigator />
-            <BottomSheetModalProvider>
-              <AuthListener>
-                <WorkspaceProvider>
-                  <AuthGuard>
-                    <RootStack />
-                  </AuthGuard>
-                </WorkspaceProvider>
-              </AuthListener>
-            </BottomSheetModalProvider>
+            <AuthListener>
+              <WorkspaceProvider>
+                <AuthGuard>
+                  <RootStack />
+                </AuthGuard>
+              </WorkspaceProvider>
+            </AuthListener>
           </ShareIntentProvider>
         </QueryClientProvider>
       </LanguageProvider>

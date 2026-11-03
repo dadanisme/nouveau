@@ -47,31 +47,28 @@ No test framework is configured. The web app in `web/` has its own scripts (`cd 
 
 ### Routing
 
-Routes live in `app/`. **Current** state: one root `Stack` in `app/_layout.tsx`, every screen `headerShown: false` with a custom header.
+Routes live in `app/`. The root `Stack` in `app/_layout.tsx` holds the tab shell and everything presented over it:
 
-- `index.tsx`: Transactions (month nav with pan gesture, filters, spend breakdown, grouped list, FAB)
-- `insights.tsx`: Insights (month/year mode, trend chart, category breakdown)
-- `add-transaction.tsx`: add/edit transaction (`?id=` edits, `?date=` presets the date)
-- `settings.tsx`, `categories.tsx`, `subscriptions.tsx`, `proof-viewer.tsx`
-- `workspaces.tsx`, `create-workspace.tsx`, `workspace-settings.tsx`, `workspace-invites.tsx`
+- `(tabs)/`: `NativeTabs` with **Transactions / Insights / Settings**, each with its own native Stack (`(transactions)/index.tsx`, `(insights)/insights.tsx`, `(settings)/settings.tsx` plus `categories`, `subscriptions`, `workspaces`, `create-workspace`, `workspace-settings`, `workspace-invites`). `add-action.tsx` is the inert tab-bar Add placeholder.
+- `add-transaction.tsx`: add/edit transaction (`?id=` edits, `?date=` presets the date). A `formSheet` (one full detent, Cancel on the left) on iOS and a full-screen modal on Android, because Android form sheets have no header.
+- `proof-viewer.tsx`: a `modal` (Done on the left on iOS, back arrow on Android), opened from rows, the drill-down sheet and the add-transaction sheet.
+- `(sheets)/`: editors and pickers as `formSheet` routes (`category-picker`, `date-picker`, `category-transactions`, `workspace-switcher`, `workspace-invite`, `category-form`, `icon-picker`, `color-picker`). No layout of their own: each is registered in the root Stack with `sheetOptions(detents)` from `constants/sheet-options.ts` (formSheet, no header, grabber). Inputs go in as serializable params (plus a `requestId`); results come back through `lib/sheet-result.ts`: the presenter listens with `useSheetResult(key, requestId, handler)`, the sheet emits with `useSheetResponder` (`hooks/use-sheet-result.ts`) and closes itself.
 - `shareintent.tsx`: incoming share intent. `+native-intent.ts` rewrites share-extension URLs to it.
 - `login.tsx`, `signup.tsx`
 
 `AuthGuard` (in `_layout.tsx`) sends signed-out users to `/login` (except on `shareintent`) and signed-in users on login/signup to `/`.
 
-**Target** (#25–#27):
+Navigation conventions (#25–#27):
 
-- `NativeTabs` (expo-router native tabs) with three tabs: **Transactions / Insights / Settings**. Each tab has its own native Stack with native headers.
 - Add action (#26, `utils/platform.ts` `getAddActionPlacement()`): the tab-bar slot on iOS 26.1+ (a `role="search"` trigger, `disabled`, whose `tabPress` pushes `/add-transaction`; the `add-action` route is an inert placeholder), a header `+` on iOS 17–26.0, an `@expo/ui` Compose FAB on Android (lists keep `ADD_FAB_CLEARANCE` bottom padding).
-- `add-transaction` is a `formSheet` (one full detent, Cancel on the left) on iOS and a full-screen modal on Android, because Android form sheets have no header.
-- Editors and pickers are `presentation: 'formSheet'` routes with detents, not in-screen sheets.
+- New editors and pickers are `(sheets)/` routes with detents, never in-screen sheets. Header menus are `Stack.Toolbar.Menu`; confirms and errors are `Alert.alert`.
 - Month change: header picker + chevrons. The custom pan gesture goes.
 
-Current provider hierarchy (`BottomSheetModalProvider` goes with the legacy sheets):
+Provider hierarchy:
 
 ```
 GestureHandlerRootView → LanguageProvider → QueryClientProvider → ShareIntentProvider
-  → BottomSheetModalProvider → AuthListener → WorkspaceProvider → AuthGuard → Stack
+  → AuthListener → WorkspaceProvider → AuthGuard → Stack
 ```
 
 ### State management
@@ -155,27 +152,23 @@ The migration targets phone-width layouts. iPhone Duo and wide layouts (list + d
 
 Removed in #39. Don't add new uses. Only touch these to delete them or to keep a screen working until its issue lands.
 
-| Legacy                                                                                                         | Native replacement                                       |
-| -------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
-| `constants/colors.ts` (`colors`, `design`: borders, hard shadows, radii, spacing, font sizes)                  | semantic system colors + accent, platform metrics        |
-| `button.tsx`                                                                                                   | `@expo/ui` buttons, header/toolbar items                 |
-| `card.tsx`, `overview-card.tsx`, `summary-card.tsx`                                                            | native grouped list / form sections                      |
-| `alert.tsx`, `hooks/use-delete-confirmation.tsx`                                                               | native alert                                             |
-| `bottom-sheet.tsx`, `@gorhom/bottom-sheet`, `BottomSheetModalProvider`                                         | `formSheet` routes with detents                          |
-| `action-menu.tsx`                                                                                              | native menus                                             |
-| `category-picker.tsx`, `workspace-switcher-sheet.tsx`, `workspace-invite-sheet.tsx`                            | `formSheet` routes with native lists                     |
-| `screen-header.tsx`                                                                                            | native Stack header                                      |
-| `segmented-toggle.tsx`, `type-toggle.tsx`                                                                      | native segmented picker                                  |
-| `number-pad.tsx`, `processAmountKeyPress`                                                                      | system decimal keyboard                                  |
-| `date-picker.tsx`, `hooks/use-calendar.ts`                                                                     | native DatePicker                                        |
-| `icon-picker.tsx`, `color-picker.tsx`, `constants/category-icons.ts`, `constants/category-colors.ts`           | native icon grid + ~8 system colors via `utils/` mapping |
-| `skeleton.tsx`, `summary-card-skeleton.tsx`, `transaction-group-skeleton.tsx`, `transaction-item-skeleton.tsx` | native placeholders                                      |
-| `monthly-trend-chart.tsx`, `category-bar-list.tsx`                                                             | Swift Charts / Compose (#37)                             |
-| `transaction-item.tsx`, `avatar.tsx`, `workspace-members-section.tsx`, `workspace-invites-section.tsx`         | native rows, rebuilt in their screen issue               |
-| Month pan gesture on Transactions                                                                              | header picker + chevrons                                 |
-| `@expo/vector-icons` (Ionicons) in UI                                                                          | SF Symbols / Material Symbols                            |
-| `<StatusBar style="dark" />`, cream splash background `#FFF9EB`                                                | system appearance                                        |
-| RN web build (`react-native-web`, `web` script, `app.json` `web`)                                              | removed; the web app is `web/`                           |
+| Legacy                                                                                                                | Native replacement                                       |
+| --------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| `constants/colors.ts` (`colors`, `design`: borders, hard shadows, radii, spacing, font sizes)                         | semantic system colors + accent, platform metrics        |
+| `button.tsx`                                                                                                          | `@expo/ui` buttons, header/toolbar items                 |
+| `card.tsx`, `overview-card.tsx`, `summary-card.tsx`                                                                   | native grouped list / form sections                      |
+| `screen-header.tsx`                                                                                                   | native Stack header                                      |
+| `segmented-toggle.tsx`, `type-toggle.tsx`                                                                             | native segmented picker                                  |
+| `number-pad.tsx`, `processAmountKeyPress`                                                                             | system decimal keyboard                                  |
+| `calendar-grid.tsx` (in `(sheets)/date-picker`), `hooks/use-calendar.ts`                                              | native DatePicker                                        |
+| `icon-grid.tsx`, `color-grid.tsx`, `category-grid.tsx`, `constants/category-icons.ts`, `constants/category-colors.ts` | native icon grid + ~8 system colors via `utils/` mapping |
+| `skeleton.tsx`, `summary-card-skeleton.tsx`, `transaction-group-skeleton.tsx`, `transaction-item-skeleton.tsx`        | native placeholders                                      |
+| `monthly-trend-chart.tsx`, `category-bar-list.tsx`                                                                    | Swift Charts / Compose (#37)                             |
+| `transaction-item.tsx`, `avatar.tsx`, `workspace-members-section.tsx`, `workspace-invites-section.tsx`                | native rows, rebuilt in their screen issue               |
+| Month pan gesture on Transactions                                                                                     | header picker + chevrons                                 |
+| `@expo/vector-icons` (Ionicons) in UI                                                                                 | SF Symbols / Material Symbols                            |
+| `<StatusBar style="dark" />`, cream splash background `#FFF9EB`                                                       | system appearance                                        |
+| RN web build (`react-native-web`, `web` script, `app.json` `web`)                                                     | removed; the web app is `web/`                           |
 
 ## Definition of done for UI work
 

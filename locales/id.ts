@@ -26,6 +26,8 @@ const id: Translations = {
     nextMonth: 'Bulan berikutnya',
     filter: 'Filter',
     type: 'Tipe',
+    filterActive: 'Filter, aktif',
+    allCategories: 'Semua kategori',
   },
   insights: {
     title: 'Wawasan',
@@ -38,6 +40,7 @@ const id: Translations = {
     nextYear: 'Tahun berikutnya',
     noData: 'Tidak ada data untuk periode ini',
     viewInsights: 'Lihat wawasan',
+    recategorizeHint: 'Ketuk transaksi untuk mengganti kategorinya',
   },
   addTransaction: {
     addTransaction: 'Tambah Transaksi',
@@ -127,6 +130,10 @@ const id: Translations = {
     invalidNameMessage: 'Masukkan nama kategori.',
     failedToSave: 'Gagal Menyimpan',
     failedToUpdate: 'Gagal Memperbarui',
+    failedToDelete: 'Gagal Menghapus',
+    deleteInUseMessage: 'Kategori ini mungkin sedang dipakai oleh transaksi.',
+    chooseIcon: 'Pilih Ikon',
+    chooseColor: 'Pilih Warna',
   },
   subscriptions: {
     title: 'Langganan',
@@ -238,6 +245,8 @@ const id: Translations = {
     confirmDeleteMessage: 'Tindakan ini menghapus workspace beserta semua isinya secara permanen.',
     confirmRemove: 'Hapus %{name}?',
     confirmRemoveMessage: 'Mereka akan kehilangan akses ke workspace ini segera.',
+    confirmRevoke: 'Cabut undangan untuk %{email}?',
+    confirmRevokeMessage: 'Token undangan tidak akan bisa digunakan lagi.',
     failedToCreate: 'Gagal membuat workspace',
     failedToUpdate: 'Gagal memperbarui workspace',
     failedToDelete: 'Gagal menghapus workspace',

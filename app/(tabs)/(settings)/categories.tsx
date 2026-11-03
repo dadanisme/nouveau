@@ -1,5 +1,4 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { BottomSheetTextInput, BottomSheetView } from '@gorhom/bottom-sheet';
 import { Stack } from 'expo-router';
 import {
   ActivityIndicator,
@@ -11,15 +10,9 @@ import {
   View,
 } from 'react-native';
 
-import { Alert } from '@/components/alert';
-import { BottomSheet } from '@/components/bottom-sheet';
-import { Button } from '@/components/button';
-import { ColorPicker } from '@/components/color-picker';
 import { headerActionOptions } from '@/components/header-action';
-import { IconPicker } from '@/components/icon-picker';
 import { colors, design } from '@/constants/colors';
 import { useLanguage } from '@/contexts/language';
-import { useCategoryForm } from '@/hooks/use-category-form';
 import { useCategoryManagement } from '@/hooks/use-category-management';
 import { k } from '@/locales/keys';
 import type { Tables } from '@/types/supabase';
@@ -54,136 +47,6 @@ function CategoryRow({
       </Text>
       <Ionicons name="chevron-forward" size={18} color={colors.gray[400]} />
     </Pressable>
-  );
-}
-
-function CategoryFormSheet({
-  visible,
-  onDismiss,
-  editingCategory,
-  onDelete,
-}: {
-  visible: boolean;
-  onDismiss: () => void;
-  editingCategory: Tables<'categories'> | null;
-  onDelete: () => void;
-}) {
-  const form = useCategoryForm({ editingCategory, onSuccess: onDismiss });
-  const { t } = useLanguage();
-
-  return (
-    <>
-      <BottomSheet visible={visible} onDismiss={onDismiss} snapPoints={['55%']}>
-        <BottomSheetView style={styles.formContent}>
-          <Text style={styles.formTitle}>
-            {form.isEditing ? t(k.categories.editCategory) : t(k.categories.newCategory)}
-          </Text>
-
-          <BottomSheetTextInput
-            style={styles.nameInput}
-            placeholder={t(k.categories.categoryName)}
-            placeholderTextColor={colors.gray[400]}
-            value={form.name}
-            onChangeText={form.setName}
-            maxLength={50}
-            autoFocus={!form.isEditing}
-          />
-
-          <View style={styles.typeRow}>
-            <Button
-              variant={form.type === 'expense' ? 'dark' : 'outline'}
-              style={StyleSheet.flatten([
-                styles.typeButton,
-                form.type === 'expense' && { backgroundColor: colors.expense },
-              ])}
-              onPress={() => form.setType('expense')}
-            >
-              <Text style={[styles.typeText, form.type === 'expense' && styles.typeTextActive]}>
-                {t(k.common.expense)}
-              </Text>
-            </Button>
-            <Button
-              variant={form.type === 'income' ? 'dark' : 'outline'}
-              style={StyleSheet.flatten([
-                styles.typeButton,
-                form.type === 'income' && { backgroundColor: colors.income },
-              ])}
-              onPress={() => form.setType('income')}
-            >
-              <Text style={[styles.typeText, form.type === 'income' && styles.typeTextActive]}>
-                {t(k.common.income)}
-              </Text>
-            </Button>
-          </View>
-
-          <View style={styles.pickerRow}>
-            <Button variant="outline" style={styles.pickerButton} onPress={form.openIconPicker}>
-              {form.icon ? (
-                <Ionicons
-                  name={form.icon as keyof typeof Ionicons.glyphMap}
-                  size={20}
-                  color={form.color}
-                />
-              ) : (
-                <Ionicons name="apps-outline" size={20} color={colors.gray[400]} />
-              )}
-              <Text style={[styles.pickerText, !form.icon && styles.pickerTextPlaceholder]}>
-                {t(k.categories.icon)}
-              </Text>
-            </Button>
-
-            <Button variant="outline" style={styles.pickerButton} onPress={form.openColorPicker}>
-              <View style={[styles.colorDot, { backgroundColor: form.color }]} />
-              <Text style={styles.pickerText}>{t(k.categories.color)}</Text>
-            </Button>
-          </View>
-
-          <Button
-            variant="primary"
-            style={styles.saveButton}
-            onPress={form.handleSubmit}
-            disabled={form.isPending}
-          >
-            {form.isPending ? (
-              <ActivityIndicator size="small" color={colors.black} />
-            ) : (
-              <Text style={styles.saveText}>
-                {form.isEditing ? t(k.common.update) : t(k.common.save)}
-              </Text>
-            )}
-          </Button>
-
-          {form.isEditing && (
-            <Button variant="outline" style={styles.deleteButton} onPress={onDelete}>
-              <Ionicons name="trash-outline" size={18} color={colors.expense} />
-              <Text style={styles.deleteText}>{t(k.categories.deleteCategory)}</Text>
-            </Button>
-          )}
-        </BottomSheetView>
-      </BottomSheet>
-
-      <IconPicker
-        visible={form.showIconPicker}
-        selectedIcon={form.icon}
-        accentColor={form.color}
-        onSelect={form.setIcon}
-        onDismiss={form.closeIconPicker}
-      />
-
-      <ColorPicker
-        visible={form.showColorPicker}
-        selectedColor={form.color}
-        onSelect={form.setColor}
-        onDismiss={form.closeColorPicker}
-      />
-
-      <Alert
-        visible={!!form.alertState}
-        title={form.alertState?.title ?? ''}
-        message={form.alertState?.message}
-        onDismiss={form.dismissAlert}
-      />
-    </>
   );
 }
 
@@ -263,36 +126,6 @@ export default function CategoriesScreen() {
           )}
         </ScrollView>
       )}
-
-      <CategoryFormSheet
-        visible={mgmt.showForm}
-        onDismiss={mgmt.closeForm}
-        editingCategory={mgmt.editingCategory}
-        onDelete={() => {
-          if (mgmt.editingCategory) {
-            mgmt.confirmDelete(mgmt.editingCategory);
-            mgmt.closeForm();
-          }
-        }}
-      />
-
-      <Alert
-        visible={!!mgmt.deletingCategory}
-        title={t(k.categories.deleteCategory)}
-        message={t(k.categories.deleteCategoryMessage, { name: mgmt.deletingCategory?.name })}
-        actions={[
-          { label: t(k.common.cancel), variant: 'outline', onPress: mgmt.cancelDelete },
-          { label: t(k.common.delete), variant: 'dark', onPress: mgmt.executeDelete },
-        ]}
-        onDismiss={mgmt.cancelDelete}
-      />
-
-      <Alert
-        visible={!!mgmt.alertState}
-        title={mgmt.alertState?.title ?? ''}
-        message={mgmt.alertState?.message}
-        onDismiss={mgmt.dismissAlert}
-      />
     </>
   );
 }
@@ -361,87 +194,6 @@ const styles = StyleSheet.create({
     fontSize: design.fontSize.md,
     fontWeight: '600',
     color: colors.gray[900],
-  },
-  // Form styles
-  formContent: {
-    paddingHorizontal: design.spacing.lg,
-    paddingBottom: design.spacing.lg,
-    gap: design.spacing.md,
-  },
-  formTitle: {
-    fontSize: design.fontSize.lg,
-    fontWeight: '800',
-    color: colors.black,
-    textAlign: 'center',
-  },
-  nameInput: {
-    fontSize: design.fontSize.md,
-    color: colors.gray[900],
-    paddingVertical: design.spacing.md - 2,
-    paddingHorizontal: design.spacing.md,
-    borderWidth: design.borderWidth,
-    borderColor: colors.black,
-    borderRadius: design.radius.md,
-    backgroundColor: colors.white,
-    ...design.shadow,
-  },
-  typeRow: {
-    flexDirection: 'row',
-    gap: design.spacing.sm,
-  },
-  typeButton: {
-    flex: 1,
-    paddingVertical: design.spacing.sm + 2,
-  },
-  typeText: {
-    fontSize: design.fontSize.sm,
-    fontWeight: '700',
-    color: colors.gray[600],
-  },
-  typeTextActive: {
-    color: colors.white,
-    fontWeight: '800',
-  },
-  pickerRow: {
-    flexDirection: 'row',
-    gap: design.spacing.sm,
-  },
-  pickerButton: {
-    flex: 1,
-    borderRadius: design.radius.md,
-    paddingVertical: design.spacing.md - 2,
-  },
-  pickerText: {
-    fontSize: design.fontSize.sm,
-    fontWeight: '700',
-    color: colors.gray[800],
-  },
-  pickerTextPlaceholder: {
-    color: colors.gray[400],
-  },
-  colorDot: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    borderWidth: 1.5,
-    borderColor: colors.black,
-  },
-  saveButton: {
-    marginTop: design.spacing.xs,
-  },
-  saveText: {
-    fontSize: design.fontSize.md,
-    fontWeight: '800',
-    color: colors.black,
-  },
-  deleteButton: {
-    borderColor: colors.expense,
-    shadowColor: colors.expense,
-  },
-  deleteText: {
-    fontSize: design.fontSize.sm,
-    fontWeight: '700',
-    color: colors.expense,
   },
   // Empty state
   emptyContainer: {

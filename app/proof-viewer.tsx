@@ -14,7 +14,6 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
 
-import { Alert } from '@/components/alert';
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
 import { colors, design } from '@/constants/colors';
@@ -29,7 +28,7 @@ export default function ProofViewerScreen() {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const { data: proofs, isLoading, error } = useProofs(transactionId);
-  const { isSaving, isSharing, saveAllToPhotos, share, alert, dismissAlert } = useProofDownload();
+  const { isSaving, isSharing, saveAllToPhotos, share } = useProofDownload();
   const { t } = useLanguage();
 
   const hasImages = proofs?.some((p) => isSaveableImage(p.mimeType)) ?? false;
@@ -189,14 +188,6 @@ export default function ProofViewerScreen() {
           </Button>
         </View>
       )}
-
-      <Alert
-        visible={alert.visible}
-        title={alert.title}
-        message={alert.message}
-        onDismiss={dismissAlert}
-        actions={[{ label: 'OK', onPress: dismissAlert }]}
-      />
     </View>
   );
 }

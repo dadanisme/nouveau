@@ -24,6 +24,8 @@ const en = {
     nextMonth: 'Next month',
     filter: 'Filter',
     type: 'Type',
+    filterActive: 'Filter, active',
+    allCategories: 'All categories',
   },
   insights: {
     title: 'Insights',
@@ -36,6 +38,7 @@ const en = {
     nextYear: 'Next year',
     noData: 'No data for this period',
     viewInsights: 'View insights',
+    recategorizeHint: 'Tap a transaction to change its category',
   },
   addTransaction: {
     addTransaction: 'Add Transaction',
@@ -124,6 +127,10 @@ const en = {
     invalidNameMessage: 'Please enter a category name.',
     failedToSave: 'Failed to Save',
     failedToUpdate: 'Failed to Update',
+    failedToDelete: 'Failed to Delete',
+    deleteInUseMessage: 'This category may be in use by transactions.',
+    chooseIcon: 'Choose Icon',
+    chooseColor: 'Choose Color',
   },
   subscriptions: {
     title: 'Subscriptions',
@@ -235,6 +242,8 @@ const en = {
       'This permanently removes the workspace and everything inside it. This cannot be undone.',
     confirmRemove: 'Remove %{name}?',
     confirmRemoveMessage: 'They will lose access to this workspace immediately.',
+    confirmRevoke: 'Revoke the invite for %{email}?',
+    confirmRevokeMessage: 'The invite token will stop working.',
     failedToCreate: 'Failed to create workspace',
     failedToUpdate: 'Failed to update workspace',
     failedToDelete: 'Failed to delete workspace',

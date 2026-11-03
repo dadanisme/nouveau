@@ -1,29 +1,22 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import * as Haptics from 'expo-haptics';
-import { Stack, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { useCallback, useMemo } from 'react';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { scheduleOnRN } from 'react-native-worklets';
 
-import { BottomSheet } from '@/components/bottom-sheet';
-import { Button } from '@/components/button';
 import { Card } from '@/components/card';
 import { ADD_FAB_CLEARANCE, AddTransactionFab } from '@/components/add-transaction-fab';
-import { headerActionOptions } from '@/components/header-action';
 import { SummaryCard } from '@/components/summary-card';
 import { SummaryCardSkeleton } from '@/components/summary-card-skeleton';
 import { TransactionGroupSkeleton } from '@/components/transaction-group-skeleton';
 import { TransactionItem } from '@/components/transaction-item';
+import { TransactionsHeaderToolbar } from '@/components/transactions-header-toolbar';
 import { colors, design } from '@/constants/colors';
 import { useLanguage } from '@/contexts/language';
 import { useDeleteConfirmation } from '@/hooks/use-delete-confirmation';
-import {
-  useTransactionsScreen,
-  type FilterType,
-  type TransactionGroup,
-} from '@/hooks/use-transactions-screen';
+import { useTransactionsScreen, type TransactionGroup } from '@/hooks/use-transactions-screen';
 import { k } from '@/locales/keys';
 import { formatCompactAmount } from '@/utils/currency';
 import { getAddActionPlacement } from '@/utils/platform';
@@ -44,9 +37,8 @@ export default function TransactionsScreen() {
     setActiveFilter,
     categoryFilter,
     setCategoryFilter,
-    categories,
-    filterSheetVisible,
-    setFilterSheetVisible,
+    categoryGroups,
+    isFilterActive,
     totals,
     balance,
     groupedTransactions,
@@ -56,16 +48,7 @@ export default function TransactionsScreen() {
     isRefreshing,
     refetch,
   } = useTransactionsScreen();
-  const { requestDelete, deleteConfirmAlert } = useDeleteConfirmation();
-
-  const FILTERS: { key: FilterType; label: string }[] = useMemo(
-    () => [
-      { key: 'all', label: t(k.transactions.all) },
-      { key: 'income', label: t(k.transactions.income) },
-      { key: 'expense', label: t(k.transactions.expense) },
-    ],
-    [t],
-  );
+  const { requestDelete } = useDeleteConfirmation();
 
   function handleAddPress() {
     router.push('/add-transaction');
@@ -117,21 +100,19 @@ export default function TransactionsScreen() {
     [onSwipeNext, onSwipePrev],
   );
 
-  const isFilterActive = activeFilter !== 'all' || categoryFilter !== null;
-
   return (
     <GestureDetector gesture={panGesture}>
       <View style={styles.container}>
-        {ADD_ACTION_PLACEMENT === 'toolbar' && (
-          <Stack.Screen
-            options={headerActionOptions({
-              sf: 'plus',
-              md: 'add',
-              label: t(k.addTransaction.addTransaction),
-              onPress: handleAddPress,
-            })}
-          />
-        )}
+        <TransactionsHeaderToolbar
+          showAddAction={ADD_ACTION_PLACEMENT === 'toolbar'}
+          onAddPress={handleAddPress}
+          activeFilter={activeFilter}
+          onFilterChange={setActiveFilter}
+          categoryFilter={categoryFilter}
+          onCategoryFilterChange={setCategoryFilter}
+          categoryGroups={categoryGroups}
+          isFilterActive={isFilterActive}
+        />
         <ScrollView
           style={styles.scroll}
           contentInsetAdjustmentBehavior="automatic"
@@ -151,45 +132,26 @@ export default function TransactionsScreen() {
             />
           }
         >
-          {/* Filter | Month Nav */}
+          {/* Month Nav */}
           <View style={styles.navRowOuter}>
-            <View style={styles.navRowInner}>
-              <Button
-                variant="outline"
-                accessibilityLabel={t(k.transactions.filter)}
+            <View style={styles.monthNav}>
+              <Pressable
+                onPress={goToPreviousMonth}
+                hitSlop={12}
                 accessibilityRole="button"
-                onPress={() => setFilterSheetVisible(true)}
-                style={styles.iconButton}
+                accessibilityLabel={t(k.transactions.previousMonth)}
               >
-                <Ionicons
-                  name={isFilterActive ? 'funnel' : 'funnel-outline'}
-                  size={20}
-                  color={colors.gray[900]}
-                />
-              </Button>
-
-              <View style={styles.monthNav}>
-                <Pressable
-                  onPress={goToPreviousMonth}
-                  hitSlop={12}
-                  accessibilityRole="button"
-                  accessibilityLabel={t(k.transactions.previousMonth)}
-                >
-                  <Ionicons name="chevron-back" size={24} color={colors.gray[900]} />
-                </Pressable>
-                <Text style={styles.monthLabel}>{monthLabel}</Text>
-                <Pressable
-                  onPress={goToNextMonth}
-                  hitSlop={12}
-                  accessibilityRole="button"
-                  accessibilityLabel={t(k.transactions.nextMonth)}
-                >
-                  <Ionicons name="chevron-forward" size={24} color={colors.gray[900]} />
-                </Pressable>
-              </View>
-
-              {/* Balances the filter button so the month stays centered */}
-              <View style={styles.iconButtonSpacer} />
+                <Ionicons name="chevron-back" size={24} color={colors.gray[900]} />
+              </Pressable>
+              <Text style={styles.monthLabel}>{monthLabel}</Text>
+              <Pressable
+                onPress={goToNextMonth}
+                hitSlop={12}
+                accessibilityRole="button"
+                accessibilityLabel={t(k.transactions.nextMonth)}
+              >
+                <Ionicons name="chevron-forward" size={24} color={colors.gray[900]} />
+              </Pressable>
             </View>
           </View>
 
@@ -242,108 +204,6 @@ export default function TransactionsScreen() {
         </ScrollView>
 
         {ADD_ACTION_PLACEMENT === 'fab' && <AddTransactionFab />}
-
-        <BottomSheet
-          visible={filterSheetVisible}
-          onDismiss={() => setFilterSheetVisible(false)}
-          snapPoints={['60%']}
-        >
-          <BottomSheetScrollView contentContainerStyle={styles.filterSheet}>
-            <Text style={styles.filterSheetTitle}>{t(k.transactions.filter)}</Text>
-
-            {/* Type */}
-            <Text style={styles.filterSheetSection}>{t(k.transactions.type)}</Text>
-            {FILTERS.map((filter, index) => {
-              const isActive = activeFilter === filter.key;
-              return (
-                <Pressable
-                  key={filter.key}
-                  accessibilityRole="button"
-                  accessibilityLabel={filter.label}
-                  accessibilityState={{ selected: isActive }}
-                  style={[
-                    styles.filterSheetItem,
-                    index < FILTERS.length - 1 && styles.filterSheetItemBorder,
-                  ]}
-                  onPress={() => {
-                    setActiveFilter(filter.key);
-                    setFilterSheetVisible(false);
-                  }}
-                >
-                  <Text
-                    style={[styles.filterSheetLabel, isActive && styles.filterSheetLabelActive]}
-                  >
-                    {filter.label}
-                  </Text>
-                  {isActive && (
-                    <Ionicons name="checkmark" size={22} color={colors.primary.DEFAULT} />
-                  )}
-                </Pressable>
-              );
-            })}
-
-            {/* Category */}
-            <Text style={styles.filterSheetSection}>{t(k.addTransaction.category)}</Text>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={t(k.transactions.all)}
-              accessibilityState={{ selected: categoryFilter === null }}
-              style={[styles.filterSheetItem, styles.filterSheetItemBorder]}
-              onPress={() => {
-                setCategoryFilter(null);
-                setFilterSheetVisible(false);
-              }}
-            >
-              <Text
-                style={[
-                  styles.filterSheetLabel,
-                  categoryFilter === null && styles.filterSheetLabelActive,
-                ]}
-              >
-                {t(k.transactions.all)}
-              </Text>
-              {categoryFilter === null && (
-                <Ionicons name="checkmark" size={22} color={colors.primary.DEFAULT} />
-              )}
-            </Pressable>
-            {categories.map((category, index) => {
-              const isActive = categoryFilter === category.id;
-              return (
-                <Pressable
-                  key={category.id}
-                  accessibilityRole="button"
-                  accessibilityLabel={category.name}
-                  accessibilityState={{ selected: isActive }}
-                  style={[
-                    styles.filterSheetItem,
-                    index < categories.length - 1 && styles.filterSheetItemBorder,
-                  ]}
-                  onPress={() => {
-                    setCategoryFilter(category.id);
-                    setFilterSheetVisible(false);
-                  }}
-                >
-                  <View style={styles.filterSheetCategoryLeft}>
-                    <View
-                      style={[styles.filterSheetCategoryDot, { backgroundColor: category.color }]}
-                    />
-                    <Text
-                      style={[styles.filterSheetLabel, isActive && styles.filterSheetLabelActive]}
-                    >
-                      {category.name}
-                    </Text>
-                  </View>
-                  {isActive && (
-                    <Ionicons name="checkmark" size={22} color={colors.primary.DEFAULT} />
-                  )}
-                </Pressable>
-              );
-            })}
-            <View style={styles.filterSheetBottomPad} />
-          </BottomSheetScrollView>
-        </BottomSheet>
-
-        {deleteConfirmAlert}
       </View>
     </GestureDetector>
   );
@@ -418,24 +278,8 @@ const styles = StyleSheet.create({
     paddingVertical: design.spacing.sm,
     marginBottom: design.spacing.lg,
   },
-  navRowInner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: design.spacing.sm,
-  },
-  iconButton: {
-    width: 44,
-    height: 44,
-    paddingVertical: 0,
-    paddingHorizontal: 0,
-    borderRadius: design.radius.sm,
-  },
-  iconButtonSpacer: {
-    width: 44,
-  },
   monthNav: {
-    flex: 1,
+    minHeight: 44,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -486,54 +330,5 @@ const styles = StyleSheet.create({
     fontSize: design.fontSize.md,
     fontWeight: '600',
     color: colors.gray[400],
-  },
-  filterSheet: {
-    paddingHorizontal: design.spacing.lg,
-    paddingTop: design.spacing.sm,
-  },
-  filterSheetTitle: {
-    fontSize: design.fontSize.lg,
-    fontWeight: '800',
-    color: colors.gray[900],
-    paddingVertical: design.spacing.sm,
-  },
-  filterSheetSection: {
-    fontSize: design.fontSize.xs,
-    fontWeight: '700',
-    color: colors.gray[400],
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginTop: design.spacing.sm,
-  },
-  filterSheetCategoryLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: design.spacing.sm + 2,
-  },
-  filterSheetCategoryDot: {
-    width: 10,
-    height: 10,
-    borderRadius: design.radius.full,
-  },
-  filterSheetItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: design.spacing.md,
-  },
-  filterSheetItemBorder: {
-    borderBottomWidth: 1,
-    borderBottomColor: colors.gray[200],
-  },
-  filterSheetLabel: {
-    fontSize: design.fontSize.md,
-    fontWeight: '700',
-    color: colors.gray[700],
-  },
-  filterSheetLabelActive: {
-    color: colors.gray[900],
-  },
-  filterSheetBottomPad: {
-    height: design.spacing.lg,
   },
 });

@@ -1,18 +1,19 @@
+import { useRouter } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 
 import { useWorkspace } from '@/contexts/workspace';
 import { useCategories } from '@/hooks/use-categories';
-import { useDeleteCategory } from '@/hooks/use-category-mutations';
 import type { Tables } from '@/types/supabase';
 
+/** Screen hook for Categories: the list split by type, pull to refresh, and the form sheet. */
 export function useCategoryManagement() {
+  const router = useRouter();
   const { currentWorkspaceId } = useWorkspace();
   const {
     data: categories = [],
     isLoading,
     refetch: queryRefetch,
   } = useCategories(currentWorkspaceId);
-  const deleteCategory = useDeleteCategory();
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const refetch = useCallback(async () => {
@@ -23,11 +24,6 @@ export function useCategoryManagement() {
       setIsRefreshing(false);
     }
   }, [queryRefetch]);
-
-  const [showForm, setShowForm] = useState(false);
-  const [editingCategory, setEditingCategory] = useState<Tables<'categories'> | null>(null);
-  const [deletingCategory, setDeletingCategory] = useState<Tables<'categories'> | null>(null);
-  const [alertState, setAlertState] = useState<{ title: string; message: string } | null>(null);
 
   const expenseCategories = useMemo(
     () => categories.filter((c) => c.type === 'expense'),
@@ -40,49 +36,11 @@ export function useCategoryManagement() {
   );
 
   function openAddForm() {
-    setEditingCategory(null);
-    setShowForm(true);
+    router.push('/category-form');
   }
 
   function openEditForm(category: Tables<'categories'>) {
-    setEditingCategory(category);
-    setShowForm(true);
-  }
-
-  function closeForm() {
-    setShowForm(false);
-    setEditingCategory(null);
-  }
-
-  function confirmDelete(category: Tables<'categories'>) {
-    setDeletingCategory(category);
-  }
-
-  function executeDelete() {
-    if (!deletingCategory) return;
-
-    deleteCategory.mutate(
-      { id: deletingCategory.id },
-      {
-        onSuccess: () => {
-          setDeletingCategory(null);
-        },
-        onError: (error) => {
-          setDeletingCategory(null);
-          setAlertState({
-            title: 'Failed to Delete',
-            message:
-              error instanceof Error
-                ? error.message
-                : 'This category may be in use by transactions.',
-          });
-        },
-      },
-    );
-  }
-
-  function cancelDelete() {
-    setDeletingCategory(null);
+    router.push({ pathname: '/category-form', params: { id: category.id } });
   }
 
   return {
@@ -92,17 +50,7 @@ export function useCategoryManagement() {
     isLoading,
     isRefreshing,
     refetch,
-    showForm,
-    editingCategory,
-    deletingCategory,
-    alertState,
-    isDeleting: deleteCategory.isPending,
     openAddForm,
     openEditForm,
-    closeForm,
-    confirmDelete,
-    executeDelete,
-    cancelDelete,
-    dismissAlert: () => setAlertState(null),
   };
 }

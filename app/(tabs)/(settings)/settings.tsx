@@ -1,16 +1,11 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { BottomSheetView } from '@gorhom/bottom-sheet';
-import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { Alert } from '@/components/alert';
 import { Avatar } from '@/components/avatar';
-import { BottomSheet } from '@/components/bottom-sheet';
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
-import { WorkspaceSwitcherSheet } from '@/components/workspace-switcher-sheet';
+import { LanguageMenu } from '@/components/language-menu';
 import { colors, design } from '@/constants/colors';
 import { useLanguage } from '@/contexts/language';
 import { useWorkspace } from '@/contexts/workspace';
@@ -23,18 +18,14 @@ export default function SettingsScreen() {
   const { session } = useSession();
   const { data: user, error: userError } = useUserProfile(session?.user.id);
   const signOut = useSignOut();
-  const { t, locale, setLocale } = useLanguage();
+  const { t } = useLanguage();
   const { currentWorkspace } = useWorkspace();
   const { data: pendingInvites = [] } = useMyPendingInvites();
   const pendingCount = pendingInvites.length;
-  const [showWorkspaceSwitcher, setShowWorkspaceSwitcher] = useState(false);
 
   const displayName = user?.display_name ?? session?.user.user_metadata?.full_name ?? '';
   const email = user?.email ?? session?.user.email ?? '';
   const profileImage = user?.profile_image ?? session?.user.user_metadata?.avatar_url;
-
-  const [alert, setAlert] = useState<{ title: string; message: string } | null>(null);
-  const [showLanguagePicker, setShowLanguagePicker] = useState(false);
 
   const MENU_ITEMS = [
     { icon: 'grid-outline', label: t(k.settings.categories), route: '/categories' },
@@ -55,10 +46,10 @@ export default function SettingsScreen() {
   const handleSignOut = () => {
     signOut.mutate(undefined, {
       onError: (error) => {
-        setAlert({
-          title: t(k.settings.signOutFailed),
-          message: error instanceof Error ? error.message : t(k.common.unexpectedError),
-        });
+        Alert.alert(
+          t(k.settings.signOutFailed),
+          error instanceof Error ? error.message : t(k.common.unexpectedError),
+        );
       },
     });
   };
@@ -66,8 +57,6 @@ export default function SettingsScreen() {
   const handleMenuPress = (item: (typeof MENU_ITEMS)[number]) => {
     if ('route' in item && item.route) {
       router.push(item.route);
-    } else if ('action' in item && item.action === 'language') {
-      setShowLanguagePicker(true);
     } else if ('action' in item && item.action === 'workspaces') {
       router.push('/workspaces');
     }
@@ -77,154 +66,108 @@ export default function SettingsScreen() {
   // tab bar don't track it (no large-title collapse or tab bar minimize, content scrolls
   // under the title).
   return (
-    <>
-      <ScrollView
-        style={styles.scroll}
-        contentInsetAdjustmentBehavior="automatic"
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
-      >
-        {userError && (
-          <Card style={styles.errorCard}>
-            <Ionicons name="warning-outline" size={20} color={colors.expense} />
-            <Text style={styles.errorText}>{t(k.settings.profileError)}</Text>
-          </Card>
-        )}
+    <ScrollView
+      style={styles.scroll}
+      contentInsetAdjustmentBehavior="automatic"
+      contentContainerStyle={styles.content}
+      showsVerticalScrollIndicator={false}
+    >
+      {userError && (
+        <Card style={styles.errorCard}>
+          <Ionicons name="warning-outline" size={20} color={colors.expense} />
+          <Text style={styles.errorText}>{t(k.settings.profileError)}</Text>
+        </Card>
+      )}
 
-        <Card style={styles.profileCard}>
-          <View style={styles.profileTop}>
-            <Avatar uri={profileImage} name={displayName} size={64} />
-            <View style={styles.profileInfo}>
-              <Text style={styles.profileName}>{displayName || t(k.settings.unknown)}</Text>
-              <Text style={styles.profileEmail}>{email || t(k.settings.noEmail)}</Text>
-            </View>
+      <Card style={styles.profileCard}>
+        <View style={styles.profileTop}>
+          <Avatar uri={profileImage} name={displayName} size={64} />
+          <View style={styles.profileInfo}>
+            <Text style={styles.profileName}>{displayName || t(k.settings.unknown)}</Text>
+            <Text style={styles.profileEmail}>{email || t(k.settings.noEmail)}</Text>
           </View>
+        </View>
 
-          <Pressable
-            style={styles.switcherTrigger}
-            onPress={() => setShowWorkspaceSwitcher(true)}
-            accessibilityRole="button"
-            accessibilityLabel={t(k.workspace.switch)}
-          >
-            <View style={styles.switcherIcon}>
+        <Pressable
+          style={styles.switcherTrigger}
+          onPress={() => router.push('/workspace-switcher')}
+          accessibilityRole="button"
+          accessibilityLabel={t(k.workspace.switch)}
+        >
+          <View style={styles.switcherIcon}>
+            <Ionicons
+              name={currentWorkspace?.is_personal === false ? 'people-outline' : 'person-outline'}
+              size={16}
+              color={colors.gray[700]}
+            />
+          </View>
+          <View style={styles.switcherText}>
+            <Text style={styles.switcherLabel}>{t(k.workspace.current)}</Text>
+            <Text style={styles.switcherName}>
+              {currentWorkspace?.name ?? t(k.workspace.switch)}
+            </Text>
+          </View>
+          <Ionicons name="swap-horizontal-outline" size={20} color={colors.gray[500]} />
+        </Pressable>
+      </Card>
+
+      <Card style={styles.menuCard}>
+        {MENU_ITEMS.map((item, index) => {
+          const disabled = 'disabled' in item && item.disabled;
+          const badge = 'badge' in item ? item.badge : 0;
+          const rowStyle = [styles.menuRow, index < MENU_ITEMS.length - 1 && styles.menuRowBorder];
+          const rowContent = (
+            <>
               <Ionicons
-                name={currentWorkspace?.is_personal === false ? 'people-outline' : 'person-outline'}
-                size={16}
-                color={colors.gray[700]}
+                name={item.icon as keyof typeof Ionicons.glyphMap}
+                size={20}
+                color={disabled ? colors.gray[300] : colors.gray[700]}
               />
-            </View>
-            <View style={styles.switcherText}>
-              <Text style={styles.switcherLabel}>{t(k.workspace.current)}</Text>
-              <Text style={styles.switcherName}>
-                {currentWorkspace?.name ?? t(k.workspace.switch)}
+              <Text style={[styles.menuLabel, disabled && styles.menuLabelDisabled]}>
+                {item.label}
               </Text>
-            </View>
-            <Ionicons name="swap-horizontal-outline" size={20} color={colors.gray[500]} />
-          </Pressable>
-        </Card>
-
-        <Card style={styles.menuCard}>
-          {MENU_ITEMS.map((item, index) => {
-            const disabled = 'disabled' in item && item.disabled;
-            const badge = 'badge' in item ? item.badge : 0;
+              {badge > 0 ? (
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText}>{badge}</Text>
+                </View>
+              ) : null}
+              <Ionicons
+                name="chevron-forward"
+                size={18}
+                color={disabled ? colors.gray[200] : colors.gray[400]}
+              />
+            </>
+          );
+          // The language row opens a native menu, which owns the tap. Rows are keyed by their
+          // icon, not the translated label: a key that changes with the locale would unmount the
+          // menu's native view while iOS is still dismissing it (crash).
+          if ('action' in item && item.action === 'language') {
             return (
-              <Pressable
-                key={item.label}
-                style={[styles.menuRow, index < MENU_ITEMS.length - 1 && styles.menuRowBorder]}
-                onPress={() => handleMenuPress(item)}
-                disabled={disabled}
-              >
-                <Ionicons
-                  name={item.icon as keyof typeof Ionicons.glyphMap}
-                  size={20}
-                  color={disabled ? colors.gray[300] : colors.gray[700]}
-                />
-                <Text style={[styles.menuLabel, disabled && styles.menuLabelDisabled]}>
-                  {item.label}
-                </Text>
-                {badge > 0 ? (
-                  <View style={styles.badge}>
-                    <Text style={styles.badgeText}>{badge}</Text>
-                  </View>
-                ) : null}
-                <Ionicons
-                  name="chevron-forward"
-                  size={18}
-                  color={disabled ? colors.gray[200] : colors.gray[400]}
-                />
-              </Pressable>
+              <LanguageMenu key={item.icon}>
+                <View style={rowStyle}>{rowContent}</View>
+              </LanguageMenu>
             );
-          })}
-        </Card>
+          }
+          return (
+            <Pressable
+              key={item.icon}
+              style={rowStyle}
+              onPress={() => handleMenuPress(item)}
+              disabled={disabled}
+            >
+              {rowContent}
+            </Pressable>
+          );
+        })}
+      </Card>
 
-        <Button style={styles.signOutButton} onPress={handleSignOut} disabled={signOut.isPending}>
-          <Ionicons name="log-out-outline" size={22} color={colors.white} />
-          <Text style={styles.signOutText}>
-            {signOut.isPending ? t(k.common.pleaseWait) : t(k.settings.signOut)}
-          </Text>
-        </Button>
-      </ScrollView>
-
-      <BottomSheet
-        visible={showLanguagePicker}
-        onDismiss={() => setShowLanguagePicker(false)}
-        snapPoints={['30%']}
-      >
-        <BottomSheetView style={styles.languageContent}>
-          <Text style={styles.languageTitle}>{t(k.settings.selectLanguage)}</Text>
-          <Button
-            variant="outline"
-            style={[styles.languageOption, locale === 'en' && styles.languageOptionActive]}
-            onPress={() => {
-              setLocale('en');
-              setShowLanguagePicker(false);
-            }}
-          >
-            <View style={styles.languageOptionLeft}>
-              <View style={styles.flagContainer}>
-                <Image
-                  source={{ uri: 'https://flagcdn.com/w80/gb.png' }}
-                  style={styles.flagImage}
-                />
-              </View>
-              <Text style={styles.languageLabel}>{t(k.settings.english)}</Text>
-            </View>
-            {locale === 'en' && <Ionicons name="checkmark" size={22} color={colors.gray[900]} />}
-          </Button>
-          <Button
-            variant="outline"
-            style={[styles.languageOption, locale === 'id' && styles.languageOptionActive]}
-            onPress={() => {
-              setLocale('id');
-              setShowLanguagePicker(false);
-            }}
-          >
-            <View style={styles.languageOptionLeft}>
-              <View style={styles.flagContainer}>
-                <Image
-                  source={{ uri: 'https://flagcdn.com/w80/id.png' }}
-                  style={styles.flagImage}
-                />
-              </View>
-              <Text style={styles.languageLabel}>{t(k.settings.indonesian)}</Text>
-            </View>
-            {locale === 'id' && <Ionicons name="checkmark" size={22} color={colors.gray[900]} />}
-          </Button>
-        </BottomSheetView>
-      </BottomSheet>
-
-      <WorkspaceSwitcherSheet
-        visible={showWorkspaceSwitcher}
-        onDismiss={() => setShowWorkspaceSwitcher(false)}
-      />
-
-      <Alert
-        visible={!!alert}
-        title={alert?.title ?? ''}
-        message={alert?.message}
-        onDismiss={() => setAlert(null)}
-      />
-    </>
+      <Button style={styles.signOutButton} onPress={handleSignOut} disabled={signOut.isPending}>
+        <Ionicons name="log-out-outline" size={22} color={colors.white} />
+        <Text style={styles.signOutText}>
+          {signOut.isPending ? t(k.common.pleaseWait) : t(k.settings.signOut)}
+        </Text>
+      </Button>
+    </ScrollView>
   );
 }
 
@@ -352,46 +295,5 @@ const styles = StyleSheet.create({
     fontSize: design.fontSize.md,
     fontWeight: '700',
     color: colors.white,
-  },
-  languageContent: {
-    paddingHorizontal: design.spacing.lg,
-    paddingBottom: design.spacing.lg,
-    gap: design.spacing.sm,
-  },
-  languageTitle: {
-    fontSize: design.fontSize.lg,
-    fontWeight: '800',
-    color: colors.black,
-    textAlign: 'center',
-    marginBottom: design.spacing.sm,
-  },
-  languageOption: {
-    justifyContent: 'space-between',
-  },
-  languageOptionActive: {
-    backgroundColor: colors.primary.DEFAULT,
-  },
-  languageOptionLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: design.spacing.sm,
-  },
-  flagContainer: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    borderWidth: design.borderWidth,
-    borderColor: colors.black,
-    ...design.shadow,
-  },
-  flagImage: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 14,
-  },
-  languageLabel: {
-    fontSize: design.fontSize.md,
-    fontWeight: '700',
-    color: colors.gray[900],
   },
 });

@@ -2,6 +2,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
+  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -12,7 +13,6 @@ import {
   View,
 } from 'react-native';
 
-import { Alert } from '@/components/alert';
 import { Button } from '@/components/button';
 import { colors, design } from '@/constants/colors';
 import { useLanguage } from '@/contexts/language';
@@ -27,13 +27,12 @@ export default function SignUpScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [alert, setAlert] = useState<{ title: string; message: string } | null>(null);
 
   const isSubmitting = signUpWithEmail.isPending;
 
   const handleSignUp = () => {
     if (!email.trim() || !password.trim()) {
-      setAlert({ title: t(k.signup.missingFields), message: t(k.signup.missingFieldsMessage) });
+      Alert.alert(t(k.signup.missingFields), t(k.signup.missingFieldsMessage));
       return;
     }
 
@@ -41,16 +40,13 @@ export default function SignUpScreen() {
       { email: email.trim(), password },
       {
         onSuccess: () => {
-          setAlert({
-            title: t(k.signup.checkEmail),
-            message: t(k.signup.checkEmailMessage),
-          });
+          Alert.alert(t(k.signup.checkEmail), t(k.signup.checkEmailMessage));
         },
         onError: (error) => {
-          setAlert({
-            title: t(k.signup.signUpFailed),
-            message: error instanceof Error ? error.message : t(k.common.unexpectedError),
-          });
+          Alert.alert(
+            t(k.signup.signUpFailed),
+            error instanceof Error ? error.message : t(k.common.unexpectedError),
+          );
         },
       },
     );
@@ -129,12 +125,6 @@ export default function SignUpScreen() {
           </View>
         </View>
       </ScrollView>
-      <Alert
-        visible={!!alert}
-        title={alert?.title ?? ''}
-        message={alert?.message}
-        onDismiss={() => setAlert(null)}
-      />
     </KeyboardAvoidingView>
   );
 }

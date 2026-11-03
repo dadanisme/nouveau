@@ -2,9 +2,8 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
-import { Alert } from '@/components/alert';
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
 import { colors, design } from '@/constants/colors';
@@ -22,7 +21,6 @@ export default function CreateWorkspaceScreen() {
 
   const [name, setName] = useState('');
   const [currency, setCurrency] = useState<string>('IDR');
-  const [alert, setAlert] = useState<{ title: string; message?: string } | null>(null);
 
   const isSubmitDisabled = createWorkspace.isPending || name.trim().length === 0;
 
@@ -38,81 +36,72 @@ export default function CreateWorkspaceScreen() {
           router.back();
         },
         onError: (error) => {
-          setAlert({
-            title: t(k.workspace.failedToCreate),
-            message: error instanceof Error ? error.message : t(k.common.unexpectedError),
-          });
+          Alert.alert(
+            t(k.workspace.failedToCreate),
+            error instanceof Error ? error.message : t(k.common.unexpectedError),
+          );
         },
       },
     );
   }
 
   return (
-    <>
-      <ScrollView
-        style={styles.scroll}
-        contentInsetAdjustmentBehavior="automatic"
-        contentContainerStyle={styles.content}
-        keyboardShouldPersistTaps="handled"
+    <ScrollView
+      style={styles.scroll}
+      contentInsetAdjustmentBehavior="automatic"
+      contentContainerStyle={styles.content}
+      keyboardShouldPersistTaps="handled"
+    >
+      <View style={styles.fieldGroup}>
+        <Text style={styles.fieldLabel}>{t(k.workspace.workspaceName)}</Text>
+        <Card style={styles.inputCard}>
+          <TextInput
+            value={name}
+            onChangeText={setName}
+            placeholder={t(k.workspace.workspaceNamePlaceholder)}
+            placeholderTextColor={colors.gray[400]}
+            style={styles.input}
+            autoFocus
+          />
+        </Card>
+      </View>
+
+      <View style={styles.fieldGroup}>
+        <Text style={styles.fieldLabel}>{t(k.workspace.homeCurrency)}</Text>
+        <View style={styles.currencyRow}>
+          {COMMON_CURRENCIES.map((code) => {
+            const active = code === currency;
+            return (
+              <Button
+                key={code}
+                variant={active ? 'dark' : 'outline'}
+                style={StyleSheet.flatten([
+                  styles.currencyPill,
+                  active && { backgroundColor: colors.primary.DEFAULT },
+                ])}
+                onPress={() => setCurrency(code)}
+              >
+                <Text style={[styles.currencyText, active && styles.currencyTextActive]}>
+                  {code}
+                </Text>
+              </Button>
+            );
+          })}
+        </View>
+      </View>
+
+      <Button
+        variant="primary"
+        onPress={handleSubmit}
+        disabled={isSubmitDisabled}
+        style={styles.submitButton}
       >
-        <View style={styles.fieldGroup}>
-          <Text style={styles.fieldLabel}>{t(k.workspace.workspaceName)}</Text>
-          <Card style={styles.inputCard}>
-            <TextInput
-              value={name}
-              onChangeText={setName}
-              placeholder={t(k.workspace.workspaceNamePlaceholder)}
-              placeholderTextColor={colors.gray[400]}
-              style={styles.input}
-              autoFocus
-            />
-          </Card>
-        </View>
-
-        <View style={styles.fieldGroup}>
-          <Text style={styles.fieldLabel}>{t(k.workspace.homeCurrency)}</Text>
-          <View style={styles.currencyRow}>
-            {COMMON_CURRENCIES.map((code) => {
-              const active = code === currency;
-              return (
-                <Button
-                  key={code}
-                  variant={active ? 'dark' : 'outline'}
-                  style={StyleSheet.flatten([
-                    styles.currencyPill,
-                    active && { backgroundColor: colors.primary.DEFAULT },
-                  ])}
-                  onPress={() => setCurrency(code)}
-                >
-                  <Text style={[styles.currencyText, active && styles.currencyTextActive]}>
-                    {code}
-                  </Text>
-                </Button>
-              );
-            })}
-          </View>
-        </View>
-
-        <Button
-          variant="primary"
-          onPress={handleSubmit}
-          disabled={isSubmitDisabled}
-          style={styles.submitButton}
-        >
-          <Ionicons name="checkmark" size={20} color={colors.black} />
-          <Text style={styles.submitText}>
-            {createWorkspace.isPending ? t(k.common.pleaseWait) : t(k.workspace.create)}
-          </Text>
-        </Button>
-      </ScrollView>
-
-      <Alert
-        visible={!!alert}
-        title={alert?.title ?? ''}
-        message={alert?.message}
-        onDismiss={() => setAlert(null)}
-      />
-    </>
+        <Ionicons name="checkmark" size={20} color={colors.black} />
+        <Text style={styles.submitText}>
+          {createWorkspace.isPending ? t(k.common.pleaseWait) : t(k.workspace.create)}
+        </Text>
+      </Button>
+    </ScrollView>
   );
 }
 

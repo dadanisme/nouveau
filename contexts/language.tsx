@@ -3,7 +3,7 @@ import { createContext, useCallback, useContext, useEffect, useState } from 'rea
 import i18n from '@/lib/i18n';
 import type { Scope, TranslateOptions } from 'i18n-js';
 
-type Locale = 'en' | 'id';
+export type Locale = 'en' | 'id';
 
 interface LanguageContextValue {
   locale: Locale;

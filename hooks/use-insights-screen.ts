@@ -1,16 +1,8 @@
-import { useNavigation, type NativeStackNavigationProp } from 'expo-router';
+import { useNavigation, useRouter, type NativeStackNavigationProp } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { useWorkspace } from '@/contexts/workspace';
-import { useCategories } from '@/hooks/use-categories';
-import {
-  useTransactions,
-  useTransactionsByYear,
-  type TransactionWithCategory,
-} from '@/hooks/use-transactions';
-import { useUpdateTransaction } from '@/hooks/use-update-transaction';
-import { getDateLocale } from '@/lib/i18n';
-import type { Tables } from '@/types/supabase';
+import { useTransactions, useTransactionsByYear } from '@/hooks/use-transactions';
 import {
   computeExpenseBreakdown,
   computeMonthlyTrend,
@@ -18,8 +10,9 @@ import {
   type CategorySpend,
   type MonthlyPoint,
 } from '@/utils/analytics';
+import { formatPeriodLabel, type PeriodMode } from '@/utils/date';
 
-export type InsightsMode = 'month' | 'year';
+export type InsightsMode = PeriodMode;
 
 type InsightsParams = { year?: string; month?: string };
 
@@ -29,6 +22,7 @@ type InsightsParams = { year?: string; month?: string };
  */
 export function useInsightsScreen(requestedYear: number | null, requestedMonth: number | null) {
   const { currentWorkspaceId } = useWorkspace();
+  const router = useRouter();
   const navigation = useNavigation<NativeStackNavigationProp<{ insights: InsightsParams }>>();
 
   const [mode, setMode] = useState<InsightsMode>('month');
@@ -78,49 +72,21 @@ export function useInsightsScreen(requestedYear: number | null, requestedMonth: 
     [yearQuery.data],
   );
 
-  // Category drill-down: transactions for the tapped category within the active period
-  const [selectedCategory, setSelectedCategory] = useState<CategorySpend | null>(null);
+  // Category drill-down: a sheet route that re-reads the same period from the query cache
+  function openCategory(category: CategorySpend) {
+    if (!category.id) return;
+    router.push({
+      pathname: '/category-transactions',
+      params: {
+        categoryId: category.id,
+        mode,
+        year: String(viewYear),
+        month: String(viewMonth),
+      },
+    });
+  }
 
-  const selectedCategoryTransactions = useMemo(() => {
-    if (!selectedCategory?.id || !activeTransactions) return [];
-    return activeTransactions.filter((tx) => tx.category.id === selectedCategory.id);
-  }, [selectedCategory, activeTransactions]);
-
-  // Close the drill-down once its category has no transactions left
-  // (e.g. the last one was re-categorized or deleted)
-  useEffect(() => {
-    if (selectedCategory && activeTransactions && selectedCategoryTransactions.length === 0) {
-      setSelectedCategory(null);
-    }
-  }, [selectedCategory, activeTransactions, selectedCategoryTransactions]);
-
-  // Quick re-categorize: tapping a transaction in the drill-down opens the category picker
-  const { data: allCategories = [] } = useCategories(currentWorkspaceId);
-  const updateTransaction = useUpdateTransaction();
-  const [recategorizeTarget, setRecategorizeTarget] = useState<TransactionWithCategory | null>(
-    null,
-  );
-
-  const recategorizeOptions = useMemo(
-    () => allCategories.filter((category) => category.type === recategorizeTarget?.type),
-    [allCategories, recategorizeTarget],
-  );
-
-  const recategorize = useCallback(
-    (category: Tables<'categories'>) => {
-      if (recategorizeTarget && category.id !== recategorizeTarget.category.id) {
-        updateTransaction.mutate({ id: recategorizeTarget.id, category_id: category.id });
-      }
-      setRecategorizeTarget(null);
-    },
-    [recategorizeTarget, updateTransaction],
-  );
-
-  const monthLabel = new Date(viewYear, viewMonth).toLocaleDateString(getDateLocale(), {
-    month: 'long',
-    year: 'numeric',
-  });
-  const periodLabel = mode === 'month' ? monthLabel : String(viewYear);
+  const periodLabel = formatPeriodLabel(mode, viewYear, viewMonth);
 
   // Highlight the current month in the trend chart only when viewing the current year
   const now = new Date();
@@ -160,13 +126,7 @@ export function useInsightsScreen(requestedYear: number | null, requestedMonth: 
     categoryBreakdown,
     monthlyTrend,
     highlightMonth,
-    selectedCategory,
-    setSelectedCategory,
-    selectedCategoryTransactions,
-    recategorizeTarget,
-    setRecategorizeTarget,
-    recategorizeOptions,
-    recategorize,
+    openCategory,
     goToPrevious,
     goToNext,
     isLoading: mode === 'month' ? monthQuery.isLoading : yearQuery.isLoading,
