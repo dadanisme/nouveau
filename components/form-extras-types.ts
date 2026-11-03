@@ -21,7 +21,7 @@ export type FormDetailRowProps = {
 };
 
 export type FormImageRowProps = {
-  /** A local `file://` or remote image URI. */
+  /** A local `file://` image URI (iOS reads it synchronously). */
   uri: string;
   accessibilityLabel?: string;
 };
