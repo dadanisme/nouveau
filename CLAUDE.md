@@ -62,7 +62,8 @@ Navigation conventions (#25–#27):
 
 - Add action (#26, `utils/platform.ts` `getAddActionPlacement()`): the tab-bar slot on iOS 26.1+ (a `role="search"` trigger, `disabled`, whose `tabPress` pushes `/add-transaction`; the `add-action` route is an inert placeholder), a header `+` on iOS 17–26.0, an `@expo/ui` Compose FAB on Android (lists keep `ADD_FAB_CLEARANCE` bottom padding).
 - New editors and pickers are `(sheets)/` routes with detents, never in-screen sheets. Header menus are `Stack.Toolbar.Menu`; confirms and errors are `Alert.alert`.
-- Month change: header picker + chevrons. The custom pan gesture goes.
+- Period change (Transactions, Insights): the period is the nav title, with chevrons and a period menu in the header from `usePeriodNavigation(mode)` + `usePeriodNavToolbar(nav)` (a left toolbar on iOS, leading right-toolbar items on Android). No pan gestures.
+- Content that has no native equivalent yet (the legacy trend chart until #37) sits in a form row through `FormHostedRow` (`RNHostView`).
 
 Provider hierarchy:
 
@@ -89,7 +90,7 @@ Conventions:
 
 ### Utilities
 
-Pure functions live in `utils/`: `analytics` (totals, breakdown, monthly trend), `currency` (formatting, decimals, symbols), `date`, `file`, `icon` (`parseIcon`), `params`, `string`, `transaction`. `currency.ts` and `date.ts` use `i18n` for locale-aware formatting. The DB-to-native icon/color mapping also lives here (see below).
+Pure functions live in `utils/`: `analytics` (totals, breakdown, monthly trend), `currency` (formatting, decimals, symbols), `date`, `file`, `icon` (`parseIcon`), `params`, `period-summary` (summary values and spend breakdown rows), `string`, `transaction`. `currency.ts` and `date.ts` use `i18n` for locale-aware formatting. The DB-to-native icon/color mapping also lives here (see below).
 
 ### Localization
 
@@ -160,23 +161,17 @@ The migration targets phone-width layouts. iPhone Duo and wide layouts (list + d
 
 Removed in #39. Don't add new uses. Only touch these to delete them or to keep a screen working until its issue lands.
 
-| Legacy                                                                                                         | Native replacement                                |
-| -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------- |
-| `constants/colors.ts` (`colors`, `design`: borders, hard shadows, radii, spacing, font sizes)                  | semantic system colors + accent, platform metrics |
-| `button.tsx`                                                                                                   | `@expo/ui` buttons, header/toolbar items          |
-| `card.tsx`, `overview-card.tsx`, `summary-card.tsx`                                                            | native grouped list / form sections               |
-| `screen-header.tsx`                                                                                            | native Stack header                               |
-| `segmented-toggle.tsx`, `type-toggle.tsx`                                                                      | native segmented picker                           |
-| `number-pad.tsx`, `processAmountKeyPress`                                                                      | system decimal keyboard                           |
-| `calendar-grid.tsx` (in `(sheets)/date-picker`), `hooks/use-calendar.ts`                                       | native DatePicker                                 |
-| `category-grid.tsx` (in `(sheets)/category-picker`)                                                            | native list with `CategoryIcon` rows              |
-| `skeleton.tsx`, `summary-card-skeleton.tsx`, `transaction-group-skeleton.tsx`, `transaction-item-skeleton.tsx` | native placeholders                               |
-| `monthly-trend-chart.tsx`, `category-bar-list.tsx`                                                             | Swift Charts / Compose (#37)                      |
-| `transaction-item.tsx`, `workspace-members-section.tsx`, `workspace-invites-section.tsx`                       | native rows, rebuilt in their screen issue        |
-| Month pan gesture on Transactions                                                                              | header picker + chevrons                          |
-| `@expo/vector-icons` (Ionicons) in UI                                                                          | SF Symbols / Material Symbols                     |
-| `<StatusBar style="dark" />`, cream splash background `#FFF9EB`                                                | system appearance                                 |
-| RN web build (`react-native-web`, `web` script, `app.json` `web`)                                              | removed; the web app is `web/`                    |
+| Legacy                                                                                        | Native replacement                                |
+| --------------------------------------------------------------------------------------------- | ------------------------------------------------- |
+| `constants/colors.ts` (`colors`, `design`: borders, hard shadows, radii, spacing, font sizes) | semantic system colors + accent, platform metrics |
+| `button.tsx`                                                                                  | `@expo/ui` buttons, header/toolbar items          |
+| `number-pad.tsx`, `processAmountKeyPress`                                                     | system decimal keyboard                           |
+| `calendar-grid.tsx` (in `(sheets)/date-picker`), `hooks/use-calendar.ts`                      | native DatePicker                                 |
+| `category-grid.tsx` (in `(sheets)/category-picker`)                                           | native list with `CategoryIcon` rows              |
+| `monthly-trend-chart.tsx` (hosted in Insights through `FormHostedRow`)                        | Swift Charts / Compose (#37)                      |
+| `@expo/vector-icons` (Ionicons) in UI                                                         | SF Symbols / Material Symbols                     |
+| `<StatusBar style="dark" />`, cream splash background `#FFF9EB`                               | system appearance                                 |
+| RN web build (`react-native-web`, `web` script, `app.json` `web`)                             | removed; the web app is `web/`                    |
 
 ## Definition of done for UI work
 

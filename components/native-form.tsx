@@ -10,6 +10,7 @@ import {
   Picker,
   ProgressView,
   SecureField,
+  RNHostView,
   Section,
   Spacer,
   SwipeActions,
@@ -51,6 +52,7 @@ import { PlatformColor, StyleSheet } from 'react-native';
 import type {
   FormButtonRowProps,
   FormEmptyRowProps,
+  FormHostedRowProps,
   FormListRowProps,
   FormNavRowProps,
   FormNoticeRowProps,
@@ -471,6 +473,11 @@ export function FormProgressRow({ title, symbol, value, progress, onPress }: For
   );
 
   return onPress ? <Button onPress={onPress}>{content}</Button> : content;
+}
+
+/** A row hosting a React Native view: full row width, the view's own height. */
+export function FormHostedRow({ children }: FormHostedRowProps) {
+  return <RNHostView matchContents={{ vertical: true }}>{children}</RNHostView>;
 }
 
 /** An empty state (`ContentUnavailableView`) on a clear row. */
