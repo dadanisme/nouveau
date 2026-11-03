@@ -36,7 +36,8 @@ export function AppleSignInButton({ variant, disabled, onPress }: AppleSignInBut
       modifiers={[
         frame({ maxWidth: Infinity }),
         listRowBackground('clear'),
-        listRowInsets({ top: 0, leading: 0, bottom: 0, trailing: 0 }),
+        // 6pt above and below: a 12pt gap between stacked sign-in buttons.
+        listRowInsets({ top: 6, leading: 0, bottom: 6, trailing: 0 }),
         listRowSeparator('hidden'),
       ]}
     >
