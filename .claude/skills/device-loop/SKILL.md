@@ -81,7 +81,7 @@ for k in ios27 ios18 duo; do xcrun simctl install "$($S/matrix.sh udid $k)" ios/
 xcrun simctl launch <udid> com.muhammadramdan.nouveau   # opens dev launcher -> tap the http://<ip>:8081 server
 ```
 
-First load shows the Expo dev menu: tap its Close button (MCP; AXe `axe tap --label Close --element-type Button --udid <udid>` except on the Duo).
+First load shows the Expo dev menu, sometimes an onboarding page with **Continue** instead: tap Close/Continue (MCP; AXe `axe tap --label Close --element-type Button --udid <udid>` except on the Duo).
 
 Physical iPhone 15 (or MCP path (a) with destination "Ramdan’s Iphone"):
 
@@ -112,9 +112,15 @@ sessionIdentifier)` when the app is already installed; it can interact but not i
    capture only: returns paths to a screenshot, a thumbnail, a UI hierarchy (text: element type, `{{x,y},{w,h}}`
    frame, `hitPoint`, labels) and logs, plus `applicationState`. **grep the hierarchy file; view only the thumbnail.**
 2. Coordinates are points, taken from the latest hierarchy, never guessed from pixels. Verified grammar: tap `t X Y`,
-   long press `t X Y 1.2`, swipe `t X1 Y1 f X2 Y2 [dur]` (several space-separated taps in one command worked once
-   on the Duo). Per ogmo-app, unverified in nouveau: one command per call (prefer it), type `sender keyboard kbd <text>`, `orientation <portrait|landscapeLeft|...>`. From Xcode's embedded docs
-   (unverified): double tap `d X Y`, `drag X1 Y1 X2 Y2`. Re-capture after each command.
+   long press `t X Y 1.2`, swipe `t X1 Y1 f X2 Y2 [dur]`. **One command per call**: chained taps
+   (`t X Y t X Y ...`) dropped taps on the Duo (3/3 once, then 2/6; 2026-11-03). Per ogmo-app, unverified in
+   nouveau: type `sender keyboard kbd <text>`, `orientation <portrait|landscapeLeft|...>`. From Xcode's embedded
+   docs (unverified): double tap `d X Y`, `drag X1 Y1 X2 Y2`. Re-capture after each command.
+   - Controls move when labels change width (e.g. month chevrons shift with the month name): re-read coordinates.
+   - A capture taken during a push transition shows a stale frame; capture again.
+   - A swipe starting near y=0 opens Notification Center; `activationBundleId` brings the app back.
+   - The first tap into a text field shows the iOS swipe-typing intro: tap Continue.
+   - MCP screenshots are 1x (points). For full-resolution evidence use `simctl io <udid> screenshot`.
 3. `activationBundleId: "com.muhammadramdan.nouveau"` brings the app to the front first.
 4. `DeviceInteractionEndSession(interactionSessionKey)` -> "Session stopped". Always, even on failure.
 
@@ -160,15 +166,19 @@ It sets appearance (`simctl ui <udid> appearance`, `devicectl device settings ap
 `adb exec-out screencap -p`). Reset to light afterwards. Downscale before viewing: `sips -Z 600 in.png --out small.png`.
 `android screen capture --device <serial> -o f.png` also works (`--annotate` + `android screen resolve` for labelled targets).
 
-**iPhone Duo displays**: `simctl io <udid> enumerate` shows two screens: `primary` (1398x2034, active by default)
-and `primary-1` (2007x2853, black while inactive). Per ogmo-app, unverified in nouveau:
+**iPhone Duo displays**: `simctl io <udid> enumerate` lists them under "Connected Screens" (the names are not in the
+port list): `primary` (1398x2034, outer, active by default) and `primary-1` (2007x2853, inner, black while folded;
+Screen ID `3` also works for `--display`). The outer display is 466x678 pt; there iOS 27.1 shows the tab bar as a
+vertical floating pill at the right edge and header bar buttons as a glass rail on the right (verified 2026-11-03).
+Per ogmo-app, unverified in nouveau:
 
 - The MCP drives only the **outer** display; with the device open, MCP taps don't land and MCP captures are black.
 - Capture the **inner** display with `SIM_DISPLAY=primary-1 $S/shot.sh ios duo <name> [mode]`
   (`simctl io <udid> screenshot --display=primary-1`).
 - A pose change ends the MCP session: start a new one after every fold/unfold.
 - No CLI/MCP pose control: the Closed / Partially Open / Open buttons sit under the bezel in Device Hub. Ask the
-  user to change the pose by hand, wait for confirmation, then continue.
+  user to change the pose by hand, wait for confirmation, then continue. (`simctl io <udid> screenConfig
+--display=... power on|off` exists and is unexplored as a pose control.)
 
 ## 5. Compare
 
