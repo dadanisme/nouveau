@@ -3,7 +3,6 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useRef, useState } from 'react';
 import { Alert, Keyboard } from 'react-native';
 
-import { CATEGORY_COLORS } from '@/constants/category-colors';
 import { useWorkspace } from '@/contexts/workspace';
 import { useSession } from '@/hooks/use-auth';
 import { useCategories } from '@/hooks/use-categories';
@@ -16,6 +15,8 @@ import { useSheetResult } from '@/hooks/use-sheet-result';
 import i18n from '@/lib/i18n';
 import { k } from '@/locales/keys';
 import type { Tables } from '@/types/supabase';
+import { DEFAULT_CATEGORY_COLOR } from '@/utils/category-color';
+import { toCategoryIconValue } from '@/utils/category-icon';
 import { parseIcon } from '@/utils/icon';
 
 export type CategoryFormSheetParams = {
@@ -49,7 +50,7 @@ export function useCategoryForm() {
   const [editingCategory, setEditingCategory] = useState<Tables<'categories'> | null>(null);
   const [name, setName] = useState('');
   const [type, setType] = useState<CategoryType>('expense');
-  const [color, setColor] = useState<string>(CATEGORY_COLORS[0]);
+  const [color, setColor] = useState<string>(DEFAULT_CATEGORY_COLOR);
   const [icon, setIcon] = useState<string | null>(null);
   // Only the first close counts, so a double tap can't pop the screen underneath.
   const closedRef = useRef(false);
@@ -91,7 +92,7 @@ export function useCategoryForm() {
     const userId = session?.user.id;
     if (!currentWorkspaceId || !userId) return;
 
-    const iconValue = icon ? `Ionicons/${icon}` : null;
+    const iconValue = toCategoryIconValue(icon);
 
     if (editingCategory) {
       updateCategory.mutate(

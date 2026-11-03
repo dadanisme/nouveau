@@ -1,38 +1,13 @@
-import { StyleSheet, Text, View } from 'react-native';
-
-import { ColorGrid } from '@/components/color-grid';
-import { colors, design } from '@/constants/colors';
-import { useLanguage } from '@/contexts/language';
+import { ColorPickerList } from '@/components/color-picker-list';
 import { useColorPickerSheet } from '@/hooks/use-color-picker-sheet';
-import { k } from '@/locales/keys';
 
 /**
- * Category color picker sheet (fits its content). Params: `selected`, `requestId`; result:
- * `color-picker`. The swatches are legacy until #31 swaps in system colors.
+ * Category color picker sheet. Params: `selected` (hex), `requestId`; result: `color-picker` with
+ * the picked system color's canonical palette hex (`utils/category-color.ts`). An inline SwiftUI
+ * picker on iOS, a Compose radio list on Android.
  */
 export default function ColorPickerSheet() {
-  const { t } = useLanguage();
-  const { selectedColor, selectColor } = useColorPickerSheet();
+  const { colors, selectedId, selectColor } = useColorPickerSheet();
 
-  return (
-    <View style={styles.content}>
-      <Text style={styles.title}>{t(k.categories.chooseColor)}</Text>
-      <ColorGrid selectedColor={selectedColor} onSelect={selectColor} />
-    </View>
-  );
+  return <ColorPickerList colors={colors} selectedId={selectedId} onSelect={selectColor} />;
 }
-
-const styles = StyleSheet.create({
-  content: {
-    paddingTop: design.spacing.xl,
-    paddingHorizontal: design.spacing.lg,
-    paddingBottom: design.spacing.xl,
-  },
-  title: {
-    fontSize: design.fontSize.lg,
-    fontWeight: '800',
-    color: colors.black,
-    textAlign: 'center',
-    marginBottom: design.spacing.md,
-  },
-});
