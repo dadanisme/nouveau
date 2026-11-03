@@ -1,5 +1,6 @@
 import { useRef } from 'react';
 
+import { AppleSignInButton } from '@/components/apple-sign-in-button';
 import { AuthForm, AuthFormSection, AuthSwitchRow } from '@/components/auth-form';
 import { FormPrimaryButtonRow } from '@/components/form-primary-button-row';
 import { FormTextFieldRow } from '@/components/native-form';
@@ -56,9 +57,14 @@ export default function LoginScreen() {
       </AuthFormSection>
 
       <AuthFormSection title={t(k.login.orContinueWith)}>
-        {/* Sign in with Apple (#35) goes HERE, above Google: Apple requires it to be at least as
-            prominent as other third-party sign-in options. Same full-width, 50pt-high clear row
-            as the Google button (SOCIAL_BUTTON_HEIGHT). */}
+        {/* Apple first: Apple requires it to be at least as prominent as other providers. */}
+        {screen.isAppleAvailable ? (
+          <AppleSignInButton
+            variant="signIn"
+            disabled={screen.isSubmitting}
+            onPress={screen.signInWithApple}
+          />
+        ) : null}
         <GoogleSignInButton
           title={t(k.login.signInWithGoogle)}
           disabled={screen.isSubmitting}

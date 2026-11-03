@@ -12,6 +12,7 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.muhammadramdan.nouveau",
       "appleTeamId": "C4SQMCY5WT",
+      "usesAppleSignIn": true,
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "NSPhotoLibraryUsageDescription": "Allow Nouveau to save receipt photos to your library.",
