@@ -19,7 +19,7 @@ import { useUpdateTransaction } from '@/hooks/use-update-transaction';
 import type { Tables } from '@/types/supabase';
 import type { FormSymbol } from '@/components/native-form-types';
 import { getCategoryColor } from '@/utils/category-color';
-import { getCategorySymbol } from '@/utils/category-icon';
+import { FALLBACK_CATEGORY_SYMBOL, getCategorySymbol } from '@/utils/category-icon';
 import {
   currencyDecimals,
   getAmountPrefix,
@@ -68,8 +68,8 @@ export function useTransactionForm(transactionId?: string, initialDate?: string)
   const [selectedCategory, setSelectedCategory] = useState<Tables<'categories'> | null>(null);
   const [date, setDate] = useState(initialDate ? new Date(initialDate + 'T00:00:00') : new Date());
   const [prefilled, setPrefilled] = useState(false);
-  // The amount field owns its (grouped) text natively and reads its initial value on mount, so it
-  // remounts (new key) whenever the form sets the amount: prefill and "add more" reset.
+  // The amount field owns its (grouped) text natively; bumping this reloads it from the form after
+  // the form sets the amount itself (edit prefill, "add more" reset).
   const [fieldsKey, setFieldsKey] = useState(0);
   const userPickedCategoryRef = useRef(false);
   const lastClassifiedDescriptionRef = useRef<string | null>(null);
@@ -283,12 +283,14 @@ export function useTransactionForm(transactionId?: string, initialDate?: string)
       isLoadingCategories ||
       (!!existingTransaction && categories.length > 0));
 
-  const categorySymbol: FormSymbol | undefined = selectedCategory
+  // The category row always has a glyph (a placeholder until one is picked): a Compose list row
+  // doesn't pick up a leading slot added after it first rendered.
+  const categorySymbol: FormSymbol = selectedCategory
     ? {
         ...getCategorySymbol(selectedCategory.icon),
         color: getCategoryColor(selectedCategory.color),
       }
-    : undefined;
+    : FALLBACK_CATEGORY_SYMBOL;
 
   return {
     type,

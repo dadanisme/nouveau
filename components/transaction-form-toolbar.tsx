@@ -1,4 +1,4 @@
-import { Stack } from 'expo-router';
+import { Color, Stack } from 'expo-router';
 import { ActivityIndicator, Platform } from 'react-native';
 
 import { useLanguage } from '@/contexts/language';
@@ -37,6 +37,10 @@ export function TransactionFormToolbar({
   // Android needs icons as images, so its items wait for them rather than show an empty slot.
   const saveIcon = Platform.OS === 'android' ? checkIcon : undefined;
   const canShowSave = Platform.OS === 'ios' || !!saveIcon;
+  // Android's header icon button keeps the toolbar tint when disabled, so a disabled Save would
+  // look enabled: dim it to the M3 `outline` role. iOS dims disabled bar items itself.
+  const disabledTint =
+    Platform.OS === 'android' && isSaveDisabled ? Color.android.dynamic.outline : undefined;
 
   return (
     <Stack.Toolbar placement="right">
@@ -60,6 +64,7 @@ export function TransactionFormToolbar({
             icon={saveIcon}
             variant="done"
             disabled={isSaveDisabled}
+            tintColor={disabledTint}
             accessibilityLabel={t(k.common.save)}
             onPress={onSave}
           >

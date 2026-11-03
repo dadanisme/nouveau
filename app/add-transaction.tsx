@@ -56,10 +56,10 @@ export default function AddTransactionScreen() {
         ) : (
           <>
             <FormSection>
-              {/* The amount field reads its value on mount; `fieldsKey` remounts it when the
-                  form sets it (edit prefill, Save and Add Another). */}
+              {/* The amount field owns its grouped text; `fieldsKey` reloads it when the form
+                  sets the amount (Save and Add Another). */}
               <AmountFieldRow
-                key={`amount-${form.fieldsKey}`}
+                resetKey={form.fieldsKey}
                 label={t(k.addTransaction.amount)}
                 prefix={form.amountPrefix}
                 defaultAmount={form.amountString}

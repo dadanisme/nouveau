@@ -1,13 +1,22 @@
-import { HStack, Text, TextField, useNativeState } from '@expo/ui/swift-ui';
+import {
+  HStack,
+  Text,
+  TextField,
+  useNativeState,
+  type TextFieldRef,
+  type TextFieldSelection,
+} from '@expo/ui/swift-ui';
 import {
   accessibilityLabel,
   font,
   foregroundStyle,
   keyboardType,
 } from '@expo/ui/swift-ui/modifiers';
+import { useRef } from 'react';
 import { PlatformColor } from 'react-native';
 import { scheduleOnRN } from 'react-native-worklets';
 
+import { focusField, useAutoFocus, useResetEffect } from '@/hooks/use-auto-focus';
 import { formatAmountInput, parseAmountInput, type AmountSeparators } from '@/utils/currency';
 
 const AMOUNT_FONT = font({ textStyle: 'largeTitle', weight: 'bold' });
@@ -17,12 +26,15 @@ export interface AmountFieldRowProps {
   label: string;
   /** Currency prefix shown before the amount, e.g. "Rp" or "$". */
   prefix: string;
-  /** Initial canonical amount (`"1234.5"`), read once on mount; remount the row to reset it. */
+  /** Canonical amount (`"1234.5"`) the field shows on mount and whenever `resetKey` changes. */
   defaultAmount?: string;
+  /** Change it to reload the field from `defaultAmount` (and refocus with `autoFocus`). */
+  resetKey?: number;
   /** Minor units the currency allows; 0 ignores the decimal key. */
   decimals: number;
   /** How the amount is grouped as it's typed (`getAmountSeparators`), like the app shows it. */
   separators: AmountSeparators;
+  /** Focus the field once its screen has presented, and again after each reset. */
   autoFocus?: boolean;
   /** Called with the canonical amount string (`""` when empty). */
   onChangeAmount: (amount: string) => void;
@@ -38,20 +50,41 @@ export function AmountFieldRow({
   label,
   prefix,
   defaultAmount = '',
+  resetKey = 0,
   decimals,
   separators,
   autoFocus,
   onChangeAmount,
 }: AmountFieldRowProps) {
+  const ref = useRef<TextFieldRef>(null);
   const text = useNativeState(formatAmountInput(defaultAmount, separators));
+  const selection = useNativeState<TextFieldSelection>({ start: 0, end: 0 });
 
   const handleTextChange = (value: string) => {
     'worklet';
-    const amount = parseAmountInput(value, decimals, separators);
-    const formatted = formatAmountInput(amount, separators);
-    if (formatted !== value) text.set(formatted);
-    scheduleOnRN(onChangeAmount, amount);
+    scheduleOnRN(onChangeAmount, parseAmountInput(value, decimals, separators));
+    // Regroup on the next frame, not inside the field's own text update (a write from there is
+    // dropped and the caret lands mid-number). Reading the current text then keeps every key typed
+    // since, and the caret goes back to the end.
+    requestAnimationFrame(() => {
+      const current = text.get();
+      const formatted = formatAmountInput(
+        parseAmountInput(current, decimals, separators),
+        separators,
+      );
+      if (formatted === current) return;
+      text.set(formatted);
+      selection.set({ start: formatted.length, end: formatted.length });
+    });
   };
+
+  const handleFocusChange = useAutoFocus(ref, autoFocus);
+  useResetEffect(resetKey, () => {
+    const formatted = formatAmountInput(defaultAmount, separators);
+    text.set(formatted);
+    selection.set({ start: formatted.length, end: formatted.length });
+    if (autoFocus) focusField(ref);
+  });
 
   return (
     <HStack spacing={8}>
@@ -59,10 +92,12 @@ export function AmountFieldRow({
         {prefix}
       </Text>
       <TextField
+        ref={ref}
         text={text}
+        selection={selection}
         placeholder="0"
-        autoFocus={autoFocus}
         onTextChange={handleTextChange}
+        onFocusChange={handleFocusChange}
         modifiers={[AMOUNT_FONT, keyboardType('decimal-pad'), accessibilityLabel(label)]}
       />
     </HStack>

@@ -1,8 +1,10 @@
-import { Text, TextField, useNativeState } from '@expo/ui/jetpack-compose';
+import { Text, TextField, useNativeState, type TextFieldRef } from '@expo/ui/jetpack-compose';
 import { fillMaxWidth, padding } from '@expo/ui/jetpack-compose/modifiers';
+import { useRef } from 'react';
 import { scheduleOnRN } from 'react-native-worklets';
 
 import type { AmountFieldRowProps } from '@/components/amount-field-row';
+import { focusField, useAutoFocus, useResetEffect } from '@/hooks/use-auto-focus';
 import { formatAmountInput, parseAmountInput } from '@/utils/currency';
 
 // Compose text fields take a `TextStyle`, not a typography role, so this is the Material 3
@@ -21,26 +23,48 @@ export function AmountFieldRow({
   label,
   prefix,
   defaultAmount = '',
+  resetKey = 0,
   decimals,
   separators,
   autoFocus,
   onChangeAmount,
 }: AmountFieldRowProps) {
+  const ref = useRef<TextFieldRef>(null);
   const text = useNativeState(formatAmountInput(defaultAmount, separators));
+  const selection = useNativeState({ start: 0, end: 0 });
 
   const handleValueChange = (value: string) => {
     'worklet';
-    const amount = parseAmountInput(value, decimals, separators);
-    const formatted = formatAmountInput(amount, separators);
-    if (formatted !== value) text.set(formatted);
-    scheduleOnRN(onChangeAmount, amount);
+    scheduleOnRN(onChangeAmount, parseAmountInput(value, decimals, separators));
+    // Regroup on the next frame, from the text current by then (as on iOS), so no key typed in
+    // between is lost; the caret goes back to the end.
+    requestAnimationFrame(() => {
+      const current = text.get();
+      const formatted = formatAmountInput(
+        parseAmountInput(current, decimals, separators),
+        separators,
+      );
+      if (formatted === current) return;
+      text.set(formatted);
+      selection.set({ start: formatted.length, end: formatted.length });
+    });
   };
+
+  const handleFocusChange = useAutoFocus(ref, autoFocus);
+  useResetEffect(resetKey, () => {
+    const formatted = formatAmountInput(defaultAmount, separators);
+    text.set(formatted);
+    selection.set({ start: formatted.length, end: formatted.length });
+    if (autoFocus) focusField(ref);
+  });
 
   return (
     <TextField
+      ref={ref}
       value={text}
+      selection={selection}
       onValueChange={handleValueChange}
-      autoFocus={autoFocus}
+      onFocusChanged={handleFocusChange}
       singleLine
       keyboardOptions={{ keyboardType: 'decimal', imeAction: 'done' }}
       textStyle={{ fontSize: HEADLINE_LARGE_SIZE }}
@@ -50,10 +74,11 @@ export function AmountFieldRow({
         <Text>{label}</Text>
       </TextField.Label>
       <TextField.Placeholder>
-        <Text>0</Text>
+        <Text style={{ typography: 'headlineLarge' }}>0</Text>
       </TextField.Placeholder>
       <TextField.Prefix>
-        <Text>{`${prefix} `}</Text>
+        {/* Same size as the amount, so the prefix sits on its baseline. */}
+        <Text style={{ typography: 'headlineLarge' }}>{`${prefix} `}</Text>
       </TextField.Prefix>
     </TextField>
   );
