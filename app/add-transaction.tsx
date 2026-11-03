@@ -1,5 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, Keyboard, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -9,6 +9,7 @@ import { Alert } from '@/components/alert';
 import { Button } from '@/components/button';
 import { CategoryPicker } from '@/components/category-picker';
 import { DatePicker } from '@/components/date-picker';
+import { headerActionOptions } from '@/components/header-action';
 import { NumberPad } from '@/components/number-pad';
 import { colors, design } from '@/constants/colors';
 import { useLanguage } from '@/contexts/language';
@@ -52,32 +53,22 @@ export default function AddTransactionScreen() {
     closeDatePicker,
     selectDate,
     dismissAlert,
-    goBack,
   } = useTransactionForm(id, dateParam);
 
   const amountColor = type === 'income' ? colors.income : colors.expense;
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
-      <View style={styles.header}>
-        <Button variant="outline" onPress={goBack} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={22} color={colors.gray[900]} />
-        </Button>
-        <Text style={styles.headerTitle}>
-          {isEditMode ? t(k.addTransaction.editTransaction) : t(k.addTransaction.addTransaction)}
-        </Text>
-        {isEditMode ? (
-          <Button
-            variant="outline"
-            onPress={() => setShowActionMenu(true)}
-            style={styles.menuButton}
-          >
-            <Ionicons name="ellipsis-horizontal" size={22} color={colors.gray[900]} />
-          </Button>
-        ) : (
-          <View style={styles.headerSpacer} />
-        )}
-      </View>
+    <View style={styles.container}>
+      {isEditMode && (
+        <Stack.Screen
+          options={headerActionOptions({
+            sf: 'ellipsis.circle',
+            md: 'more_vert',
+            label: t(k.common.moreActions),
+            onPress: () => setShowActionMenu(true),
+          })}
+        />
+      )}
 
       <View style={styles.content}>
         {/* Top section */}
@@ -297,39 +288,10 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: design.spacing.lg,
-    paddingVertical: design.spacing.md,
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    paddingVertical: 0,
-    paddingHorizontal: 0,
-    borderRadius: design.radius.sm,
-  },
-  headerTitle: {
-    flex: 1,
-    textAlign: 'center',
-    fontSize: design.fontSize.lg,
-    fontWeight: '800',
-    color: colors.gray[900],
-  },
-  headerSpacer: {
-    width: 40,
-  },
-  menuButton: {
-    width: 40,
-    height: 40,
-    paddingVertical: 0,
-    paddingHorizontal: 0,
-    borderRadius: design.radius.sm,
-  },
   content: {
     flex: 1,
     justifyContent: 'space-between',
+    paddingTop: design.spacing.md,
     paddingHorizontal: design.spacing.lg,
     gap: design.spacing.lg,
   },

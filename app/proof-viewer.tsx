@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { PdfView } from '@kishannareshpal/expo-pdf';
 import { Image } from 'expo-image';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { Stack, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import {
   ActivityIndicator,
@@ -27,7 +27,6 @@ import { isSaveableImage } from '@/utils/file';
 export default function ProofViewerScreen() {
   const { transactionId } = useLocalSearchParams<{ transactionId: string }>();
   const insets = useSafeAreaInsets();
-  const router = useRouter();
   const { width } = useWindowDimensions();
   const { data: proofs, isLoading, error } = useProofs(transactionId);
   const { isSaving, isSharing, saveAllToPhotos, share, alert, dismissAlert } = useProofDownload();
@@ -43,17 +42,10 @@ export default function ProofViewerScreen() {
   const [pdfErrors, setPdfErrors] = useState<Record<string, boolean>>({});
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
-      <View style={styles.header}>
-        <Button variant="outline" onPress={() => router.back()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={22} color={colors.gray[900]} />
-        </Button>
-        <Text style={styles.headerTitle}>
-          {t(k.proofs.title)}
-          {proofs ? ` (${proofs.length})` : ''}
-        </Text>
-        <View style={styles.headerSpacer} />
-      </View>
+    <View style={styles.container}>
+      <Stack.Screen
+        options={{ title: proofs ? `${t(k.proofs.title)} (${proofs.length})` : t(k.proofs.title) }}
+      />
 
       {isLoading && (
         <View style={styles.centered}>
@@ -77,6 +69,7 @@ export default function ProofViewerScreen() {
 
       {proofs && proofs.length > 0 && (
         <ScrollView
+          contentInsetAdjustmentBehavior="automatic"
           contentContainerStyle={[
             styles.scrollContent,
             { paddingBottom: FOOTER_HEIGHT + design.spacing.lg },
@@ -212,29 +205,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: design.spacing.lg,
-    paddingVertical: design.spacing.md,
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    paddingVertical: 0,
-    paddingHorizontal: 0,
-    borderRadius: design.radius.sm,
-  },
-  headerTitle: {
-    flex: 1,
-    textAlign: 'center',
-    fontSize: design.fontSize.lg,
-    fontWeight: '800',
-    color: colors.gray[900],
-  },
-  headerSpacer: {
-    width: 40,
   },
   centered: {
     flex: 1,

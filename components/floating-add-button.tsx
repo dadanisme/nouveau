@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
-import { StyleSheet, View } from 'react-native';
+import { Platform, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/button';
@@ -15,16 +15,17 @@ export const FAB_HEIGHT = FAB_SIZE + design.spacing.md;
 
 export function FloatingAddButton() {
   const insets = useSafeAreaInsets();
+  // Inside a native tab on iOS the screen runs under the tab bar, and the tab's own
+  // SafeAreaProvider reports the tab bar in `insets.bottom`. On Android the native
+  // tabs already lay the screen out above the tab bar, so no extra inset is needed.
+  const bottomInset = Platform.OS === 'ios' ? insets.bottom : 0;
   const router = useRouter();
   const { t } = useLanguage();
 
   return (
     <View
       pointerEvents="box-none"
-      style={[
-        styles.container,
-        { bottom: Math.max(insets.bottom, design.spacing.sm) + design.spacing.sm },
-      ]}
+      style={[styles.container, { bottom: bottomInset + design.spacing.md }]}
     >
       <Button
         variant="primary"

@@ -1,10 +1,8 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { Card } from '@/components/card';
-import { ScreenHeader } from '@/components/screen-header';
 import { colors, design } from '@/constants/colors';
 import { useLanguage } from '@/contexts/language';
 import { useWorkspace } from '@/contexts/workspace';
@@ -12,7 +10,6 @@ import { useMyPendingInvites } from '@/hooks/use-workspace-invites';
 import { k } from '@/locales/keys';
 
 export default function WorkspacesScreen() {
-  const insets = useSafeAreaInsets();
   const router = useRouter();
   const { t } = useLanguage();
   const { currentWorkspaceId, currentWorkspace } = useWorkspace();
@@ -44,44 +41,44 @@ export default function WorkspacesScreen() {
   ];
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
-      <ScreenHeader title={t(k.workspace.workspaces)} onBack={() => router.back()} />
-
-      <View style={styles.content}>
-        <Card style={styles.menuCard}>
-          {ITEMS.map((item, index) => (
-            <Pressable
-              key={item.label}
-              style={[styles.row, index < ITEMS.length - 1 && styles.rowBorder]}
-              onPress={item.onPress}
-              disabled={item.disabled}
-            >
-              <Ionicons
-                name={item.icon}
-                size={20}
-                color={item.disabled ? colors.gray[300] : colors.gray[700]}
-              />
-              <View style={styles.labelWrap}>
-                <Text style={[styles.label, item.disabled && styles.labelDisabled]}>
-                  {item.label}
-                </Text>
-                {item.subtitle ? <Text style={styles.subtitle}>{item.subtitle}</Text> : null}
+    <ScrollView
+      style={styles.container}
+      contentInsetAdjustmentBehavior="automatic"
+      contentContainerStyle={styles.content}
+    >
+      <Card style={styles.menuCard}>
+        {ITEMS.map((item, index) => (
+          <Pressable
+            key={item.label}
+            style={[styles.row, index < ITEMS.length - 1 && styles.rowBorder]}
+            onPress={item.onPress}
+            disabled={item.disabled}
+          >
+            <Ionicons
+              name={item.icon}
+              size={20}
+              color={item.disabled ? colors.gray[300] : colors.gray[700]}
+            />
+            <View style={styles.labelWrap}>
+              <Text style={[styles.label, item.disabled && styles.labelDisabled]}>
+                {item.label}
+              </Text>
+              {item.subtitle ? <Text style={styles.subtitle}>{item.subtitle}</Text> : null}
+            </View>
+            {item.badge && item.badge > 0 ? (
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>{item.badge}</Text>
               </View>
-              {item.badge && item.badge > 0 ? (
-                <View style={styles.badge}>
-                  <Text style={styles.badgeText}>{item.badge}</Text>
-                </View>
-              ) : null}
-              <Ionicons
-                name="chevron-forward"
-                size={18}
-                color={item.disabled ? colors.gray[200] : colors.gray[400]}
-              />
-            </Pressable>
-          ))}
-        </Card>
-      </View>
-    </View>
+            ) : null}
+            <Ionicons
+              name="chevron-forward"
+              size={18}
+              color={item.disabled ? colors.gray[200] : colors.gray[400]}
+            />
+          </Pressable>
+        ))}
+      </Card>
+    </ScrollView>
   );
 }
 
@@ -91,7 +88,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   content: {
-    flex: 1,
     paddingHorizontal: design.spacing.lg,
     paddingTop: design.spacing.lg,
     gap: design.spacing.lg,

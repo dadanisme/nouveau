@@ -9,7 +9,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { scheduleOnRN } from 'react-native-worklets';
 
 import { BottomSheet } from '@/components/bottom-sheet';
-import { Button } from '@/components/button';
 import { CategoryBarList } from '@/components/category-bar-list';
 import { CategoryPicker } from '@/components/category-picker';
 import { MonthlyTrendChart } from '@/components/monthly-trend-chart';
@@ -34,9 +33,6 @@ export default function InsightsScreen() {
   const { t } = useLanguage();
 
   const params = useLocalSearchParams<{ year?: string; month?: string }>();
-  const now = new Date();
-  const initialYear = parseIntParam(params.year) ?? now.getFullYear();
-  const initialMonth = parseIntParam(params.month) ?? now.getMonth();
 
   const {
     mode,
@@ -59,7 +55,7 @@ export default function InsightsScreen() {
     isLoading,
     isRefreshing,
     refetch,
-  } = useInsightsScreen(initialYear, initialMonth);
+  } = useInsightsScreen(parseIntParam(params.year), parseIntParam(params.month));
   const { requestDelete, deleteConfirmAlert } = useDeleteConfirmation();
 
   const modeOptions = [
@@ -108,46 +104,11 @@ export default function InsightsScreen() {
 
   return (
     <GestureDetector gesture={panGesture}>
-      <View style={[styles.container, { paddingTop: insets.top }]}>
-        {/* Header — Back | Period Nav | Spacer (mirrors the transactions screen header) */}
-        <View style={styles.header}>
-          <Button variant="outline" onPress={() => router.back()} style={styles.iconButton}>
-            <Ionicons name="arrow-back" size={22} color={colors.gray[900]} />
-          </Button>
-
-          <View style={styles.periodNav}>
-            <Pressable
-              onPress={goToPrevious}
-              hitSlop={12}
-              accessibilityRole="button"
-              accessibilityLabel={
-                mode === 'month' ? t(k.transactions.previousMonth) : t(k.insights.previousYear)
-              }
-            >
-              <Ionicons name="chevron-back" size={24} color={colors.gray[900]} />
-            </Pressable>
-            <Text style={styles.periodLabel}>{periodLabel}</Text>
-            <Pressable
-              onPress={goToNext}
-              hitSlop={12}
-              accessibilityRole="button"
-              accessibilityLabel={
-                mode === 'month' ? t(k.transactions.nextMonth) : t(k.insights.nextYear)
-              }
-            >
-              <Ionicons name="chevron-forward" size={24} color={colors.gray[900]} />
-            </Pressable>
-          </View>
-
-          <View style={styles.headerSpacer} />
-        </View>
-
+      <View style={styles.container}>
         <ScrollView
           style={styles.scroll}
-          contentContainerStyle={[
-            styles.contentContainer,
-            { paddingBottom: insets.bottom + design.spacing.lg },
-          ]}
+          contentInsetAdjustmentBehavior="automatic"
+          contentContainerStyle={styles.contentContainer}
           showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl
@@ -158,6 +119,33 @@ export default function InsightsScreen() {
             />
           }
         >
+          {/* Period nav (mirrors the transactions screen) */}
+          <View style={styles.periodRow}>
+            <View style={styles.periodNav}>
+              <Pressable
+                onPress={goToPrevious}
+                hitSlop={12}
+                accessibilityRole="button"
+                accessibilityLabel={
+                  mode === 'month' ? t(k.transactions.previousMonth) : t(k.insights.previousYear)
+                }
+              >
+                <Ionicons name="chevron-back" size={24} color={colors.gray[900]} />
+              </Pressable>
+              <Text style={styles.periodLabel}>{periodLabel}</Text>
+              <Pressable
+                onPress={goToNext}
+                hitSlop={12}
+                accessibilityRole="button"
+                accessibilityLabel={
+                  mode === 'month' ? t(k.transactions.nextMonth) : t(k.insights.nextYear)
+                }
+              >
+                <Ionicons name="chevron-forward" size={24} color={colors.gray[900]} />
+              </Pressable>
+            </View>
+          </View>
+
           {/* Month / Year mode toggle */}
           <View style={styles.toggleContainer}>
             <SegmentedToggle<InsightsMode> options={modeOptions} value={mode} onChange={setMode} />
@@ -254,27 +242,14 @@ const styles = StyleSheet.create({
   contentContainer: {
     paddingHorizontal: design.spacing.lg,
     paddingTop: design.spacing.md,
+    paddingBottom: design.spacing.lg,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: design.spacing.sm,
-    paddingHorizontal: design.spacing.lg,
+  periodRow: {
     paddingVertical: design.spacing.sm,
-  },
-  iconButton: {
-    width: 44,
-    height: 44,
-    paddingVertical: 0,
-    paddingHorizontal: 0,
-    borderRadius: design.radius.sm,
-  },
-  headerSpacer: {
-    width: 44,
+    marginBottom: design.spacing.lg,
   },
   periodNav: {
-    flex: 1,
+    minHeight: 44,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',

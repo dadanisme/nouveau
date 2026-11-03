@@ -10,8 +10,11 @@ const en = {
     unexpectedError: 'An unexpected error occurred',
     income: 'Income',
     expense: 'Expense',
+    moreActions: 'More actions',
+    back: 'Back',
   },
   transactions: {
+    title: 'Transactions',
     noTransactions: 'No transactions',
     all: 'All',
     income: 'Income',

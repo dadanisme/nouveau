@@ -1,6 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { BottomSheetTextInput, BottomSheetView } from '@gorhom/bottom-sheet';
-import { useRouter } from 'expo-router';
+import { Stack } from 'expo-router';
 import {
   ActivityIndicator,
   Pressable,
@@ -10,12 +10,12 @@ import {
   Text,
   View,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Alert } from '@/components/alert';
 import { BottomSheet } from '@/components/bottom-sheet';
 import { Button } from '@/components/button';
 import { ColorPicker } from '@/components/color-picker';
+import { headerActionOptions } from '@/components/header-action';
 import { IconPicker } from '@/components/icon-picker';
 import { colors, design } from '@/constants/colors';
 import { useLanguage } from '@/contexts/language';
@@ -188,22 +188,21 @@ function CategoryFormSheet({
 }
 
 export default function CategoriesScreen() {
-  const insets = useSafeAreaInsets();
-  const router = useRouter();
   const mgmt = useCategoryManagement();
   const { t } = useLanguage();
 
+  // The ScrollView must be the screen's root view, or the native header and tab bar don't
+  // track it (the tab bar stays transparent over the rows on iOS 18).
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
-      <View style={styles.header}>
-        <Button variant="outline" onPress={() => router.back()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={22} color={colors.gray[900]} />
-        </Button>
-        <Text style={styles.headerTitle}>{t(k.categories.title)}</Text>
-        <Button variant="outline" onPress={mgmt.openAddForm} style={styles.addButton}>
-          <Ionicons name="add" size={22} color={colors.gray[900]} />
-        </Button>
-      </View>
+    <>
+      <Stack.Screen
+        options={headerActionOptions({
+          sf: 'plus',
+          md: 'add',
+          label: t(k.categories.newCategory),
+          onPress: mgmt.openAddForm,
+        })}
+      />
 
       {mgmt.isLoading ? (
         <View style={styles.loadingContainer}>
@@ -212,17 +211,14 @@ export default function CategoriesScreen() {
       ) : (
         <ScrollView
           style={styles.scrollView}
-          contentContainerStyle={[
-            styles.scrollContent,
-            { paddingBottom: insets.bottom + design.spacing.lg },
-          ]}
+          contentInsetAdjustmentBehavior="automatic"
+          contentContainerStyle={styles.scrollContent}
           refreshControl={
             <RefreshControl
               refreshing={mgmt.isRefreshing}
               onRefresh={mgmt.refetch}
               tintColor={colors.primary.DEFAULT}
               colors={[colors.primary.DEFAULT]}
-              progressViewOffset={insets.top}
             />
           }
         >
@@ -297,53 +293,25 @@ export default function CategoriesScreen() {
         message={mgmt.alertState?.message}
         onDismiss={mgmt.dismissAlert}
       />
-    </View>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: design.spacing.lg,
-    paddingVertical: design.spacing.md,
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    paddingVertical: 0,
-    paddingHorizontal: 0,
-    borderRadius: design.radius.sm,
-  },
-  headerTitle: {
-    flex: 1,
-    textAlign: 'center',
-    fontSize: design.fontSize.lg,
-    fontWeight: '800',
-    color: colors.gray[900],
-  },
-  addButton: {
-    width: 40,
-    height: 40,
-    paddingVertical: 0,
-    paddingHorizontal: 0,
-    borderRadius: design.radius.sm,
-  },
   loadingContainer: {
     flex: 1,
+    backgroundColor: colors.background,
     justifyContent: 'center',
     alignItems: 'center',
   },
   scrollView: {
     flex: 1,
+    backgroundColor: colors.background,
   },
   scrollContent: {
     paddingHorizontal: design.spacing.lg,
     paddingTop: design.spacing.md,
+    paddingBottom: design.spacing.lg,
   },
   section: {
     marginBottom: design.spacing.lg,

@@ -1,4 +1,5 @@
 import * as Haptics from 'expo-haptics';
+import { useEffect } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, {
   interpolateColor,
@@ -31,9 +32,14 @@ export function SegmentedToggle<T extends string>({
   // 0 = first option, 1 = second option
   const progress = useSharedValue(value === second.value ? 1 : 0);
 
+  // Follow `value` rather than the press, so a change made by the parent (e.g. Insights
+  // jumping to Month from a route param) moves the highlight too.
+  useEffect(() => {
+    progress.value = withSpring(value === second.value ? 1 : 0, design.animation.tabSwitch);
+  }, [value, second.value, progress]);
+
   const handlePress = (next: T) => {
     if (next === value) return;
-    progress.value = withSpring(next === second.value ? 1 : 0, design.animation.tabSwitch);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     onChange(next);
   };

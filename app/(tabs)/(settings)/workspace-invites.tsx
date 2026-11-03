@@ -3,12 +3,10 @@ import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Alert } from '@/components/alert';
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
-import { ScreenHeader } from '@/components/screen-header';
 import { colors, design } from '@/constants/colors';
 import { useLanguage } from '@/contexts/language';
 import { useWorkspace } from '@/contexts/workspace';
@@ -21,7 +19,6 @@ import { formatShortDate } from '@/utils/date';
 import { k } from '@/locales/keys';
 
 export default function WorkspaceInvitesScreen() {
-  const insets = useSafeAreaInsets();
   const router = useRouter();
   const { t } = useLanguage();
   const { switchWorkspace } = useWorkspace();
@@ -50,10 +47,12 @@ export default function WorkspaceInvitesScreen() {
   }
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
-      <ScreenHeader title={t(k.workspace.pendingInvites)} onBack={() => router.back()} />
-
-      <ScrollView contentContainerStyle={styles.content}>
+    <>
+      <ScrollView
+        style={styles.container}
+        contentInsetAdjustmentBehavior="automatic"
+        contentContainerStyle={styles.content}
+      >
         {!isLoading && invites.length === 0 && (
           <View style={styles.empty}>
             <Ionicons name="mail-outline" size={48} color={colors.gray[300]} />
@@ -96,7 +95,7 @@ export default function WorkspaceInvitesScreen() {
         message={alert?.message}
         onDismiss={() => setAlert(null)}
       />
-    </View>
+    </>
   );
 }
 
@@ -108,6 +107,7 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: design.spacing.lg,
     paddingTop: design.spacing.lg,
+    paddingBottom: design.spacing.lg,
     gap: design.spacing.md,
   },
   empty: {
