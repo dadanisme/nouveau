@@ -13,11 +13,12 @@ import { k } from '@/locales/keys';
 const ICONS = {
   invite: { sf: 'person.2', md: require('@/assets/icons/group.xml') },
   accept: { sf: 'checkmark', md: require('@/assets/icons/check.xml') },
+  decline: { sf: 'xmark', md: require('@/assets/icons/close.xml') },
 } as const;
 
 const EMPTY_SYMBOL: FormSymbol = { sf: 'envelope', material: 'mail' };
 
-/** Invites sent to me: one section per invite with an inline Accept action. */
+/** Invites sent to me: one section per invite with inline Accept and Decline actions. */
 export default function WorkspaceInvitesScreen() {
   const { t } = useLanguage();
   const screen = useWorkspaceInvitesScreen();
@@ -35,8 +36,15 @@ export default function WorkspaceInvitesScreen() {
           <FormButtonRow
             title={invite.acceptTitle}
             icon={ICONS.accept}
-            disabled={invite.acceptDisabled}
+            disabled={invite.disabled}
             onPress={invite.accept}
+          />
+          <FormButtonRow
+            title={invite.declineTitle}
+            role="destructive"
+            icon={ICONS.decline}
+            disabled={invite.disabled}
+            onPress={invite.decline}
           />
         </FormSection>
       ))}

@@ -4,7 +4,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: '12.2.3 (519615d)';
+    PostgrestVersion: '12.2.3';
   };
   public: {
     Tables: {
@@ -482,6 +482,7 @@ export type Database = {
           home_amount: number;
           home_currency: string;
           id: string;
+          order_id: string | null;
           type: string;
           updated_at: string | null;
           user_id: string;
@@ -497,6 +498,7 @@ export type Database = {
           home_amount: number;
           home_currency?: string;
           id?: string;
+          order_id?: string | null;
           type: string;
           updated_at?: string | null;
           user_id: string;
@@ -512,6 +514,7 @@ export type Database = {
           home_amount?: number;
           home_currency?: string;
           id?: string;
+          order_id?: string | null;
           type?: string;
           updated_at?: string | null;
           user_id?: string;
@@ -769,6 +772,7 @@ export type Database = {
           token: string;
         }[];
       };
+      decline_workspace_invite: { Args: { token: string }; Returns: undefined };
       get_balance: { Args: { uid: string }; Returns: number };
       get_monthly_totals: {
         Args: { end_date: string; start_date: string; uid: string };
