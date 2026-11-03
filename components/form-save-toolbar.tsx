@@ -12,7 +12,8 @@ export type FormSaveToolbarProps = {
 
 /**
  * The confirming action of a form screen, in the header's trailing toolbar: a text `done` button
- * on iOS (prominent on iOS 26+), a ✓ icon button on Android (toolbar buttons there are icon-only).
+ * on iOS (prominent on iOS 26+, dimmed while disabled), a ✓ icon button on Android (toolbar
+ * buttons there are icon-only), hidden while disabled.
  */
 export function FormSaveToolbar({ title, disabled, onPress }: FormSaveToolbarProps) {
   const checkIcon = useSymbolIcon({ sf: 'checkmark', md: 'check' });
@@ -30,12 +31,15 @@ export function FormSaveToolbar({ title, disabled, onPress }: FormSaveToolbarPro
   // Android needs the icon as an image, so wait for it rather than show an empty slot.
   if (!checkIcon) return null;
 
+  // expo-router tints Android toolbar icons explicitly, so a disabled ✓ looks enabled: show it
+  // only while the action is available.
   return (
     <Stack.Toolbar placement="right">
       <Stack.Toolbar.Button
         icon={checkIcon}
         accessibilityLabel={title}
         disabled={disabled}
+        hidden={disabled}
         onPress={onPress}
       />
     </Stack.Toolbar>

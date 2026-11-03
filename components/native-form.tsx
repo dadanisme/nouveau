@@ -337,7 +337,7 @@ export function FormTextFieldRow({
         onChangeText(next);
       }}
       modifiers={[
-        ...(label ? [accessibilityLabel(label)] : []),
+        accessibilityLabel(label ?? placeholder),
         textInputAutocapitalization(capitalization === 'none' ? 'never' : capitalization),
         ...(isEmail
           ? [

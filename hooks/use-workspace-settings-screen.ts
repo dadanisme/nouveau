@@ -20,7 +20,11 @@ import {
 } from '@/hooks/use-workspaces';
 import { k } from '@/locales/keys';
 import { formatShortDate } from '@/utils/date';
+import { getErrorCode, getErrorMessage } from '@/utils/error';
 import { getHomeCurrencyOptions } from '@/utils/workspace';
+
+/** Postgres foreign key violation: the workspace still has rows (categories, transactions). */
+const FOREIGN_KEY_VIOLATION = '23503';
 
 /**
  * Screen hook for Workspace Settings (`?id=`): the owner edits the name and home currency (saved
@@ -61,7 +65,7 @@ export function useWorkspaceSettingsScreen() {
   const canSave = isOwner && isDirty && name.trim().length > 0 && !updateWorkspace.isPending;
 
   function showError(title: string, error: unknown) {
-    Alert.alert(title, error instanceof Error ? error.message : t(k.common.unexpectedError));
+    Alert.alert(title, getErrorMessage(error, t(k.common.unexpectedError)));
   }
 
   /** Native confirmation alert: Cancel plus a destructive confirm button. */
@@ -126,7 +130,10 @@ export function useWorkspaceSettingsScreen() {
       () =>
         deleteWorkspace.mutate(workspaceId, {
           onSuccess: () => closeAfterRemoval(workspaceId),
-          onError: (error) => showError(t(k.workspace.failedToDelete), error),
+          onError: (error) =>
+            getErrorCode(error) === FOREIGN_KEY_VIOLATION
+              ? Alert.alert(t(k.workspace.failedToDelete), t(k.workspace.errorDeleteHasData))
+              : showError(t(k.workspace.failedToDelete), error),
         }),
     );
   }
@@ -185,7 +192,7 @@ export function useWorkspaceSettingsScreen() {
     canSave,
     save,
     members: memberRows,
-    membersTitle: t(k.workspace.membersCount, { count: members.length }),
+    membersTitle: t(k.workspace.members),
     invites: inviteRows,
     openInviteSheet: () => {
       if (!workspace) return;

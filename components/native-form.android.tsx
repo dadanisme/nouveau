@@ -165,7 +165,9 @@ function RowIcon({ icon, tint }: { icon?: FormNavRowProps['icon']; tint?: string
 
 export function FormNavRow({ title, icon, value, badge, onPress }: FormNavRowProps) {
   return (
-    <ListItem modifiers={[clickable(onPress)]}>
+    // Keyed on whether a value shows: a supporting slot added after the first render (e.g. the
+    // workspace name once it loads) sometimes never appeared.
+    <ListItem key={value ? 'value' : 'plain'} modifiers={[clickable(onPress)]}>
       <RowIcon icon={icon} />
       <ListItem.HeadlineContent>
         <Text>{title}</Text>

@@ -12,6 +12,7 @@ import {
 } from '@/hooks/use-workspace-invites';
 import { k } from '@/locales/keys';
 import { formatShortDate } from '@/utils/date';
+import { getErrorMessage } from '@/utils/error';
 
 /**
  * Screen hook for Pending Invites (the invites sent to me): accepting one joins and switches to
@@ -28,7 +29,7 @@ export function useWorkspaceInvitesScreen() {
   const [busy, setBusy] = useState<{ id: string; action: 'accept' | 'decline' } | null>(null);
 
   function showError(title: string, error: unknown) {
-    Alert.alert(title, error instanceof Error ? error.message : t(k.common.unexpectedError));
+    Alert.alert(title, getErrorMessage(error, t(k.common.unexpectedError)));
   }
 
   function accept(inviteId: string, token: string) {

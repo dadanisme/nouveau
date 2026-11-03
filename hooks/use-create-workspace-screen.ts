@@ -7,6 +7,7 @@ import { useLanguage } from '@/contexts/language';
 import { useWorkspace } from '@/contexts/workspace';
 import { useCreateWorkspace } from '@/hooks/use-workspaces';
 import { k } from '@/locales/keys';
+import { getErrorMessage } from '@/utils/error';
 import { getHomeCurrencyOptions } from '@/utils/workspace';
 
 const DEFAULT_CURRENCY = 'IDR';
@@ -37,7 +38,7 @@ export function useCreateWorkspaceScreen() {
         onError: (error) => {
           Alert.alert(
             t(k.workspace.failedToCreate),
-            error instanceof Error ? error.message : t(k.common.unexpectedError),
+            getErrorMessage(error, t(k.common.unexpectedError)),
           );
         },
       },

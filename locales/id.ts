@@ -244,9 +244,7 @@ const id: Translations = {
     workspaceNamePlaceholder: 'mis. Rumah Tangga',
     homeCurrency: 'Mata uang utama',
     members: 'Anggota',
-    membersCount: '%{count} anggota',
     pendingInvites: 'Undangan tertunda',
-    invitesCount: '%{count} tertunda',
     inviteMember: 'Undang anggota',
     inviteByEmail: 'Undang lewat email',
     emailAddress: 'Alamat email',
@@ -264,6 +262,7 @@ const id: Translations = {
     remove: 'Hapus',
     revoke: 'Cabut',
     copyToken: 'Salin token',
+    tokenCopied: 'Disalin',
     inviteCreated: 'Undangan dibuat',
     inviteShareHint:
       'Bagikan token ini kepada penerima. Mereka akan menempelkannya di layar terima.',
@@ -271,7 +270,6 @@ const id: Translations = {
     accepting: 'Memproses…',
     decline: 'Tolak',
     noInvites: 'Tidak ada undangan tertunda',
-    noMembers: 'Belum ada anggota',
     expiresAt: 'Kedaluwarsa %{date}',
     confirmLeave: 'Keluar dari workspace ini?',
     confirmLeaveMessage: 'Anda akan kehilangan akses ke workspace dan transaksinya.',
@@ -300,6 +298,8 @@ const id: Translations = {
     errorInviteRevoked: 'Undangan ini telah dicabut',
     errorEmailMismatch: 'Undangan dikirim ke email yang berbeda',
     errorInviteNotFound: 'Undangan tidak ditemukan',
+    errorDeleteHasData:
+      'Workspace ini masih memiliki kategori atau transaksi, jadi belum bisa dihapus.',
   },
 };
 

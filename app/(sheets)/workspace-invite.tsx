@@ -32,7 +32,7 @@ export default function WorkspaceInviteSheet() {
         </FormSection>
         <FormSection>
           <FormButtonRow
-            title={t(k.workspace.copyToken)}
+            title={invite.isCopied ? t(k.workspace.tokenCopied) : t(k.workspace.copyToken)}
             icon={ICONS.copy}
             onPress={invite.copyToken}
           />

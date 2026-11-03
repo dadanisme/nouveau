@@ -241,9 +241,7 @@ const en = {
     workspaceNamePlaceholder: 'e.g. Household',
     homeCurrency: 'Home currency',
     members: 'Members',
-    membersCount: '%{count} members',
     pendingInvites: 'Pending invites',
-    invitesCount: '%{count} pending',
     inviteMember: 'Invite member',
     inviteByEmail: 'Invite by email',
     emailAddress: 'Email address',
@@ -261,13 +259,13 @@ const en = {
     remove: 'Remove',
     revoke: 'Revoke',
     copyToken: 'Copy token',
+    tokenCopied: 'Copied',
     inviteCreated: 'Invite created',
     inviteShareHint: 'Share this token with the invitee. They will paste it on the accept screen.',
     accept: 'Accept',
     accepting: 'Accepting…',
     decline: 'Decline',
     noInvites: 'No pending invites',
-    noMembers: 'No members yet',
     expiresAt: 'Expires %{date}',
     confirmLeave: 'Leave this workspace?',
     confirmLeaveMessage: 'You will lose access to this workspace and its transactions.',
@@ -297,6 +295,8 @@ const en = {
     errorInviteRevoked: 'This invite has been revoked',
     errorEmailMismatch: 'This invite was sent to a different email',
     errorInviteNotFound: 'Invite not found',
+    errorDeleteHasData:
+      'This workspace still has categories or transactions, so it can’t be deleted yet.',
   },
 };
 
