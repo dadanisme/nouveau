@@ -10,6 +10,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { AuthListener } from '@/components/auth-listener';
 import { SplashOverlay } from '@/components/splash-overlay';
 import { ACCENT_COLOR } from '@/constants/accent';
+import { formHeaderBackground } from '@/constants/form-header';
 import { sheetOptions } from '@/constants/sheet-options';
 import { LanguageProvider, useLanguage } from '@/contexts/language';
 import { WorkspaceProvider } from '@/contexts/workspace';
@@ -105,10 +106,14 @@ function RootStack() {
         />
         <Stack.Screen
           name="signup"
+          // A native push from Login: the system back button and swipe-back. No title, since
+          // the form's own headline names the screen; the bar takes the form's background.
           options={{
-            headerShown: false,
-            animationDuration: 300,
-            gestureEnabled: false,
+            title: '',
+            headerShadowVisible: false,
+            headerStyle: {
+              backgroundColor: formHeaderBackground(colorScheme === 'dark' ? 'dark' : 'light'),
+            },
           }}
         />
         <Stack.Screen

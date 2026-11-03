@@ -1,4 +1,9 @@
-import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import {
+  GoogleSignin,
+  isCancelledResponse,
+  isErrorWithCode,
+  statusCodes,
+} from '@react-native-google-signin/google-signin';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { supabase } from '@/lib/supabase';
@@ -48,13 +53,30 @@ export function useSignUpWithEmail() {
   });
 }
 
+/**
+ * How a provider sign-in (Google, Apple) ended. Dismissing the provider's sheet resolves
+ * `'cancelled'` instead of failing, so callers show no error for it.
+ */
+export type ProviderSignInResult = 'signedIn' | 'cancelled';
+
 export function useSignInWithGoogle() {
   return useMutation({
-    mutationFn: async () => {
+    mutationFn: async (): Promise<ProviderSignInResult> => {
       await GoogleSignin.hasPlayServices();
-      const response = await GoogleSignin.signIn();
 
-      if (!response.data?.idToken) {
+      let response;
+      try {
+        response = await GoogleSignin.signIn();
+      } catch (error) {
+        // Older native paths reject on cancel instead of resolving a cancelled response.
+        if (isErrorWithCode(error) && error.code === statusCodes.SIGN_IN_CANCELLED) {
+          return 'cancelled';
+        }
+        throw error;
+      }
+      if (isCancelledResponse(response)) return 'cancelled';
+
+      if (!response.data.idToken) {
         throw new Error('No ID token received from Google Sign-In');
       }
 
@@ -63,6 +85,7 @@ export function useSignInWithGoogle() {
         token: response.data.idToken,
       });
       if (error) throw error;
+      return 'signedIn';
     },
   });
 }

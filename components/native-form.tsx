@@ -9,6 +9,7 @@ import {
   Label,
   Picker,
   ProgressView,
+  SecureField,
   Section,
   Spacer,
   SwipeActions,
@@ -16,6 +17,8 @@ import {
   TextField,
   useNativeState,
   VStack,
+  type SecureFieldRef,
+  type TextFieldRef,
 } from '@expo/ui/swift-ui';
 import {
   accessibilityAddTraits,
@@ -40,7 +43,7 @@ import {
   textInputAutocapitalization,
   tint,
 } from '@expo/ui/swift-ui/modifiers';
-import { useEffect, useRef } from 'react';
+import { useEffect, useImperativeHandle, useRef } from 'react';
 import { PlatformColor, StyleSheet } from 'react-native';
 
 import type {
@@ -53,6 +56,7 @@ import type {
   FormRowAction,
   FormSectionProps,
   FormSegmentedRowProps,
+  FormTextFieldContentType,
   FormTextFieldRowProps,
   NativeFormProps,
 } from '@/components/native-form-types';
@@ -298,24 +302,44 @@ export function FormListRow({
   );
 }
 
+const IOS_CONTENT_TYPE = {
+  emailAddress: 'emailAddress',
+  username: 'username',
+  newUsername: 'username',
+  password: 'password',
+  newPassword: 'newPassword',
+} as const satisfies Record<FormTextFieldContentType, string>;
+
 /** A single-line text field row (see `FormTextFieldRowProps`). */
 export function FormTextFieldRow({
+  ref,
   placeholder,
   label,
   value,
   defaultValue = '',
   onChangeText,
   keyboard = 'default',
+  secure,
+  contentType,
   autoCapitalize,
   autoFocus,
   maxLength,
   submitLabel,
   onSubmit,
+  disabled: isDisabled,
 }: FormTextFieldRowProps) {
   const initial = value ?? defaultValue;
   const text = useNativeState(initial);
   // The last text the field reported, so only outside `value` changes are written back to it.
   const lastText = useRef(initial);
+  const textField = useRef<TextFieldRef>(null);
+  const secureField = useRef<SecureFieldRef>(null);
+
+  useImperativeHandle(
+    ref,
+    () => ({ focus: () => void (textField.current ?? secureField.current)?.focus() }),
+    [],
+  );
 
   useEffect(() => {
     if (value === undefined || value === lastText.current) return;
@@ -324,31 +348,48 @@ export function FormTextFieldRow({
   }, [value, text]);
 
   const isEmail = keyboard === 'email';
-  const capitalization = autoCapitalize ?? (isEmail ? 'none' : 'sentences');
+  const isPlain = isEmail || secure;
+  const capitalization = autoCapitalize ?? (isPlain ? 'none' : 'sentences');
+  const autofill = contentType ?? (isEmail ? 'emailAddress' : undefined);
+
+  const handleTextChange = (next: string) => {
+    lastText.current = next;
+    onChangeText(next);
+  };
+  const modifiers = [
+    accessibilityLabel(label ?? placeholder),
+    textInputAutocapitalization(capitalization === 'none' ? 'never' : capitalization),
+    ...(isPlain ? [autocorrectionDisabled(true)] : []),
+    ...(isEmail ? [keyboardType('email-address')] : []),
+    ...(autofill ? [textContentType(IOS_CONTENT_TYPE[autofill])] : []),
+    ...(submitLabel ? [submitLabelModifier(submitLabel)] : []),
+    ...(onSubmit ? [onSubmitModifier(onSubmit)] : []),
+    disabled(isDisabled ?? false),
+  ];
+
+  if (secure) {
+    return (
+      <SecureField
+        ref={secureField}
+        text={text}
+        placeholder={placeholder}
+        autoFocus={autoFocus}
+        maxLength={maxLength}
+        onTextChange={handleTextChange}
+        modifiers={modifiers}
+      />
+    );
+  }
 
   return (
     <TextField
+      ref={textField}
       text={text}
       placeholder={placeholder}
       autoFocus={autoFocus}
       maxLength={maxLength}
-      onTextChange={(next) => {
-        lastText.current = next;
-        onChangeText(next);
-      }}
-      modifiers={[
-        accessibilityLabel(label ?? placeholder),
-        textInputAutocapitalization(capitalization === 'none' ? 'never' : capitalization),
-        ...(isEmail
-          ? [
-              keyboardType('email-address'),
-              textContentType('emailAddress'),
-              autocorrectionDisabled(true),
-            ]
-          : []),
-        ...(submitLabel ? [submitLabelModifier(submitLabel)] : []),
-        ...(onSubmit ? [onSubmitModifier(onSubmit)] : []),
-      ]}
+      onTextChange={handleTextChange}
+      modifiers={modifiers}
     />
   );
 }

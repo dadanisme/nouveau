@@ -1,274 +1,70 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
-import { Image } from 'expo-image';
-import { useRouter } from 'expo-router';
-import { useState } from 'react';
-import {
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { useRef } from 'react';
 
-import { Button } from '@/components/button';
-import { colors, design } from '@/constants/colors';
+import { AuthForm, AuthFormSection, AuthSwitchRow } from '@/components/auth-form';
+import { FormPrimaryButtonRow } from '@/components/form-primary-button-row';
+import { FormTextFieldRow } from '@/components/native-form';
+import type { FormTextFieldRowRef } from '@/components/native-form-types';
+import { GoogleSignInButton } from '@/components/google-sign-in-button';
 import { useLanguage } from '@/contexts/language';
-import { useSignInWithEmail, useSignInWithGoogle } from '@/hooks/use-auth';
+import { useLoginScreen } from '@/hooks/use-login-screen';
 import { k } from '@/locales/keys';
 
+// The form is the screen's root view (no header: this is the signed-out root).
 export default function LoginScreen() {
-  const signInWithEmail = useSignInWithEmail();
-  const signInWithGoogle = useSignInWithGoogle();
-  const router = useRouter();
   const { t } = useLanguage();
-
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-
-  const isSubmitting = signInWithEmail.isPending || signInWithGoogle.isPending;
-
-  const handleEmailSignIn = () => {
-    if (!email.trim() || !password.trim()) {
-      Alert.alert(t(k.login.missingFields), t(k.login.missingFieldsMessage));
-      return;
-    }
-
-    signInWithEmail.mutate(
-      { email: email.trim(), password },
-      {
-        onError: (error) => {
-          Alert.alert(
-            t(k.login.signInFailed),
-            error instanceof Error ? error.message : t(k.common.unexpectedError),
-          );
-        },
-      },
-    );
-  };
-
-  const handleGoogleSignIn = () => {
-    signInWithGoogle.mutate(undefined, {
-      onError: (error) => {
-        Alert.alert(
-          t(k.login.signInFailed),
-          error instanceof Error ? error.message : t(k.common.unexpectedError),
-        );
-      },
-    });
-  };
+  // Return-key flow: Next on the email field moves focus to the password field.
+  const passwordField = useRef<FormTextFieldRowRef>(null);
+  const screen = useLoginScreen();
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.content}>
-          <Text style={styles.heading}>{t(k.login.heading)}</Text>
-          <Text style={styles.subtitle}>{t(k.login.subtitle)}</Text>
+    <AuthForm title={t(k.login.heading)} subtitle={t(k.login.subtitle)} insetTop>
+      <AuthFormSection>
+        <FormTextFieldRow
+          placeholder={t(k.login.email)}
+          keyboard="email"
+          contentType="username"
+          submitLabel="next"
+          onChangeText={screen.setEmail}
+          onSubmit={() => passwordField.current?.focus()}
+          disabled={screen.isSubmitting}
+        />
+        <FormTextFieldRow
+          ref={passwordField}
+          placeholder={t(k.login.password)}
+          secure
+          contentType="password"
+          submitLabel="go"
+          onChangeText={screen.setPassword}
+          onSubmit={screen.signIn}
+          disabled={screen.isSubmitting}
+        />
+      </AuthFormSection>
 
-          <View style={styles.form}>
-            <View style={styles.inputWrapper}>
-              <TextInput
-                style={styles.input}
-                placeholder={t(k.login.email)}
-                placeholderTextColor={colors.gray[400]}
-                value={email}
-                onChangeText={setEmail}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoComplete="email"
-                editable={!isSubmitting}
-              />
-            </View>
+      <AuthFormSection>
+        <FormPrimaryButtonRow
+          title={t(k.login.signIn)}
+          loading={screen.isSigningIn}
+          disabled={screen.isSubmitting}
+          onPress={screen.signIn}
+        />
+        <AuthSwitchRow
+          prompt={t(k.login.noAccount)}
+          action={t(k.login.signUp)}
+          disabled={screen.isSubmitting}
+          onPress={screen.openSignUp}
+        />
+      </AuthFormSection>
 
-            <View style={styles.inputWrapper}>
-              <TextInput
-                style={[styles.input, styles.passwordInput]}
-                placeholder={t(k.login.password)}
-                placeholderTextColor={colors.gray[400]}
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry={!showPassword}
-                autoCapitalize="none"
-                autoComplete="current-password"
-                editable={!isSubmitting}
-              />
-              <Pressable
-                style={styles.eyeButton}
-                onPress={() => setShowPassword(!showPassword)}
-                hitSlop={8}
-              >
-                <Ionicons
-                  name={showPassword ? 'eye-off-outline' : 'eye-outline'}
-                  size={20}
-                  color={colors.gray[500]}
-                />
-              </Pressable>
-            </View>
-
-            <Button onPress={handleEmailSignIn} disabled={isSubmitting}>
-              <Text style={styles.primaryButtonText}>
-                {isSubmitting ? t(k.common.pleaseWait) : t(k.login.signIn)}
-              </Text>
-            </Button>
-
-            <Pressable onPress={() => router.push('/signup')} disabled={isSubmitting}>
-              <Text style={styles.toggleText}>
-                {t(k.login.noAccount)}
-                <Text style={styles.toggleTextBold}>{t(k.login.signUp)}</Text>
-              </Text>
-            </Pressable>
-          </View>
-
-          <View style={styles.divider}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>{t(k.login.orContinueWith)}</Text>
-            <View style={styles.dividerLine} />
-          </View>
-
-          <View style={styles.buttons}>
-            <Button variant="outline" onPress={handleGoogleSignIn}>
-              <Image
-                source={{
-                  uri: 'https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg',
-                }}
-                style={styles.googleIcon}
-              />
-              <Text style={styles.oauthButtonText}>{t(k.login.signInWithGoogle)}</Text>
-            </Button>
-
-            <Button variant="dark" disabled>
-              <Ionicons name="logo-apple" size={20} color={colors.white} />
-              <Text style={styles.appleButtonText}>{t(k.login.signInWithApple)}</Text>
-            </Button>
-          </View>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+      <AuthFormSection title={t(k.login.orContinueWith)}>
+        {/* Sign in with Apple (#35) goes HERE, above Google: Apple requires it to be at least as
+            prominent as other third-party sign-in options. Same full-width, 50pt-high clear row
+            as the Google button (SOCIAL_BUTTON_HEIGHT). */}
+        <GoogleSignInButton
+          title={t(k.login.signInWithGoogle)}
+          disabled={screen.isSubmitting}
+          onPress={screen.signInWithGoogle}
+        />
+      </AuthFormSection>
+    </AuthForm>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    paddingBottom: design.spacing.xl,
-  },
-  hero: {
-    height: 180,
-    marginHorizontal: design.spacing.lg,
-    marginTop: design.spacing.lg,
-    borderRadius: design.radius.lg,
-    borderWidth: design.borderWidth,
-    borderColor: colors.black,
-    overflow: 'hidden',
-    ...design.shadow,
-  },
-  heroGradient: {
-    flex: 1,
-    backgroundColor: colors.primary.DEFAULT,
-  },
-  content: {
-    paddingHorizontal: design.spacing.lg,
-    paddingTop: design.spacing.lg,
-  },
-  heading: {
-    fontSize: design.fontSize['2xl'],
-    fontWeight: '700',
-    lineHeight: 40,
-    color: colors.gray[900],
-  },
-  subtitle: {
-    fontSize: design.fontSize.sm,
-    color: colors.gray[500],
-    marginTop: design.spacing.sm,
-    lineHeight: 22,
-  },
-  form: {
-    marginTop: design.spacing.lg,
-    gap: design.spacing.sm + design.spacing.xs,
-  },
-  inputWrapper: {
-    position: 'relative',
-  },
-  input: {
-    borderWidth: design.borderWidth,
-    borderColor: colors.black,
-    borderRadius: design.radius.md,
-    backgroundColor: colors.white,
-    padding: design.spacing.md,
-    fontSize: design.fontSize.md,
-    color: colors.gray[900],
-    ...design.shadow,
-  },
-  passwordInput: {
-    paddingRight: 48,
-  },
-  eyeButton: {
-    position: 'absolute',
-    right: design.spacing.md,
-    top: 0,
-    bottom: 0,
-    justifyContent: 'center',
-  },
-  primaryButtonText: {
-    fontSize: design.fontSize.md,
-    fontWeight: '700',
-    color: colors.black,
-  },
-  toggleText: {
-    textAlign: 'center',
-    fontSize: design.fontSize.sm,
-    color: colors.gray[500],
-  },
-  toggleTextBold: {
-    fontWeight: '700',
-    color: colors.gray[800],
-  },
-  divider: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: design.spacing.lg,
-    gap: design.spacing.sm,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: colors.gray[300],
-  },
-  dividerText: {
-    fontSize: design.fontSize.xs,
-    color: colors.gray[400],
-  },
-  buttons: {
-    gap: design.spacing.sm + design.spacing.xs,
-  },
-  googleIcon: {
-    width: 20,
-    height: 20,
-  },
-  oauthButtonText: {
-    fontSize: design.fontSize.md,
-    fontWeight: '600',
-    color: colors.gray[800],
-  },
-  appleButtonText: {
-    fontSize: design.fontSize.md,
-    fontWeight: '600',
-    color: colors.white,
-  },
-});
