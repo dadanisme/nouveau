@@ -40,11 +40,16 @@ export function processAmountKeyPress(prev: string, key: string, decimals = 0): 
   return prev + key;
 }
 
-export function formatCompactAmount(value: number): string {
-  const prefix = i18n.t(k.currency.prefix);
-  const billion = i18n.t(k.currency.billion);
-  const million = i18n.t(k.currency.million);
-  const thousand = i18n.t(k.currency.thousand);
+/**
+ * "Rp1.2M" / "Rp1,2jt". `locale` pins the suffixes to that language; pass the in-app locale from
+ * `useLanguage()` where the result is memoized, so it updates when the language changes.
+ */
+export function formatCompactAmount(value: number, locale?: string): string {
+  const options = locale ? { locale } : undefined;
+  const prefix = i18n.t(k.currency.prefix, options);
+  const billion = i18n.t(k.currency.billion, options);
+  const million = i18n.t(k.currency.million, options);
+  const thousand = i18n.t(k.currency.thousand, options);
 
   if (value >= 1_000_000_000) {
     const compact = value / 1_000_000_000;

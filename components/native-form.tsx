@@ -32,8 +32,10 @@ import {
   frame,
   keyboardType,
   labelsHidden,
+  lineLimit,
   listRowBackground,
   onSubmit as onSubmitModifier,
+  monospacedDigit,
   padding,
   pickerStyle,
   refreshable,
@@ -54,10 +56,12 @@ import type {
   FormNoticeRowProps,
   FormPickerRowProps,
   FormRowAction,
+  FormProgressRowProps,
   FormSectionProps,
   FormSegmentedRowProps,
   FormTextFieldContentType,
   FormTextFieldRowProps,
+  FormValueRowProps,
   NativeFormProps,
 } from '@/components/native-form-types';
 import { ACCENT_COLOR } from '@/constants/accent';
@@ -415,6 +419,58 @@ export function FormSegmentedRow<T extends string>({
       ))}
     </Picker>
   );
+}
+
+/** A read-only label/value row (e.g. a total); a positive value reads in the system green. */
+export function FormValueRow({ title, value, tone = 'default', emphasized }: FormValueRowProps) {
+  const weight = emphasized ? 'semibold' : undefined;
+  return (
+    <HStack>
+      <Text modifiers={[PRIMARY, font({ textStyle: 'body', weight })]}>{title}</Text>
+      <Spacer />
+      <Text
+        modifiers={[
+          foregroundStyle(PlatformColor(tone === 'positive' ? 'systemGreen' : 'label')),
+          font({ textStyle: 'body', weight }),
+          monospacedDigit(),
+        ]}
+      >
+        {value}
+      </Text>
+    </HStack>
+  );
+}
+
+/** A row with a symbol, title, trailing value and a linear `ProgressView` in the symbol's color. */
+export function FormProgressRow({ title, symbol, value, progress, onPress }: FormProgressRowProps) {
+  const content = (
+    <VStack alignment="leading" spacing={8}>
+      <HStack spacing={12}>
+        {symbol ? (
+          <Image
+            systemName={symbol.sf}
+            color={symbol.color}
+            modifiers={[frame({ width: SYMBOL_WIDTH, height: SYMBOL_WIDTH })]}
+          />
+        ) : null}
+        <Text modifiers={[PRIMARY, lineLimit(1)]}>{title}</Text>
+        <Spacer />
+        <Text modifiers={[SECONDARY, monospacedDigit()]}>{value}</Text>
+        {onPress ? (
+          <Image
+            systemName="chevron.right"
+            modifiers={[font({ textStyle: 'footnote', weight: 'semibold' }), TERTIARY]}
+          />
+        ) : null}
+      </HStack>
+      <ProgressView
+        value={Math.min(Math.max(progress, 0), 1)}
+        modifiers={symbol?.color ? [tint(symbol.color)] : undefined}
+      />
+    </VStack>
+  );
+
+  return onPress ? <Button onPress={onPress}>{content}</Button> : content;
 }
 
 /** An empty state (`ContentUnavailableView`) on a clear row. */
