@@ -125,6 +125,13 @@ function RootStack() {
             title: (route.params as { id?: string } | undefined)?.id
               ? t(k.addTransaction.editTransaction)
               : t(k.addTransaction.addTransaction),
+            // Android form sheets have no native header, which would drop the title and the
+            // edit menu, so Android gets a full-screen modal (M3 full-screen dialog) instead.
+            presentation: Platform.OS === 'ios' ? 'formSheet' : 'modal',
+            // The form is a full-height number pad layout, so a single large detent keeps
+            // every row reachable; swipe down (or the grabber) dismisses.
+            sheetAllowedDetents: [1.0],
+            sheetGrabberVisible: true,
             // The form doesn't scroll, so keep the header opaque (iOS 26 defaults to
             // transparent) and lay the form out below it.
             headerTransparent: false,
