@@ -127,6 +127,14 @@ Use the platform component, not a custom look-alike. Check Context7 for the exac
 | Charts                        | Swift Charts via a local Expo module (#37)         | Compose (#37)                  |
 | Icons                         | SF Symbols                                         | Material Symbols               |
 
+### Forms and lists (#32)
+
+Full-screen forms and grouped lists use the shared primitives in `components/native-form{,.android}.tsx` (same props on both platforms): `NativeForm`, `FormSection({title?, footer?})`, `FormNavRow`, `FormPickerRow`, `FormButtonRow({role?: 'destructive'})`, `FormNoticeRow`. Icons are `{ sf: '<SF Symbol>', md: require('@/assets/icons/<name>.xml') }`.
+
+- iOS: `Host style={{ flex: 1 }}` → SwiftUI `Form` → `Section`s, as the screen's root view. The native large title collapses with the Form scroll on iOS 18 and 27 with no workaround.
+- Android: `Host` → Compose `LazyColumn` → section header `Text` + M3 `ListItem`s; palette is the system one with only `primary` set to the accent.
+- Inside an iOS `Button`, hierarchical text styles pick up the accent, so row text uses explicit `label` / `secondaryLabel` colors.
+
 ### Color, type, accent, icons
 
 - **Type:** system font and system text styles only, with Dynamic Type respected. No custom font sizes.
@@ -164,7 +172,7 @@ Removed in #39. Don't add new uses. Only touch these to delete them or to keep a
 | `icon-grid.tsx`, `color-grid.tsx`, `category-grid.tsx`, `constants/category-icons.ts`, `constants/category-colors.ts` | native icon grid + ~8 system colors via `utils/` mapping |
 | `skeleton.tsx`, `summary-card-skeleton.tsx`, `transaction-group-skeleton.tsx`, `transaction-item-skeleton.tsx`        | native placeholders                                      |
 | `monthly-trend-chart.tsx`, `category-bar-list.tsx`                                                                    | Swift Charts / Compose (#37)                             |
-| `transaction-item.tsx`, `avatar.tsx`, `workspace-members-section.tsx`, `workspace-invites-section.tsx`                | native rows, rebuilt in their screen issue               |
+| `transaction-item.tsx`, `workspace-members-section.tsx`, `workspace-invites-section.tsx`                              | native rows, rebuilt in their screen issue               |
 | Month pan gesture on Transactions                                                                                     | header picker + chevrons                                 |
 | `@expo/vector-icons` (Ionicons) in UI                                                                                 | SF Symbols / Material Symbols                            |
 | `<StatusBar style="dark" />`, cream splash background `#FFF9EB`                                                       | system appearance                                        |
