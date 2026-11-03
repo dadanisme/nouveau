@@ -1,4 +1,4 @@
-const { withDangerousMod } = require('expo/config-plugins');
+const { withDangerousMod, withXcodeProject } = require('expo/config-plugins');
 const fs = require('fs');
 const path = require('path');
 
@@ -15,8 +15,22 @@ const END = '# <<< with-ios-deployment-target';
  *
  * This walks every target in the generated Pods project and raises the floor. Keep
  * `deploymentTarget` in sync with the `expo-build-properties` value in app.json.
+ *
+ * `expo-build-properties` only sets the app target. The share extension target sets no
+ * deployment target of its own and inherits the project-level value from the template, so
+ * this also sets it on every build configuration in the app's Xcode project.
  */
-function withIosDeploymentTarget(config, { deploymentTarget = '16.0' } = {}) {
+function withIosDeploymentTarget(config, { deploymentTarget = '17.0' } = {}) {
+  config = withXcodeProject(config, (config) => {
+    const configurations = config.modResults.pbxXCBuildConfigurationSection();
+    for (const entry of Object.values(configurations)) {
+      if (entry && typeof entry === 'object' && entry.buildSettings) {
+        entry.buildSettings.IPHONEOS_DEPLOYMENT_TARGET = deploymentTarget;
+      }
+    }
+    return config;
+  });
+
   return withDangerousMod(config, [
     'ios',
     (config) => {

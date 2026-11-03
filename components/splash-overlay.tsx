@@ -62,7 +62,7 @@ export function SplashOverlay({ isReady }: SplashOverlayProps) {
 
 const styles = StyleSheet.create({
   container: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     zIndex: 9999,
     backgroundColor: colors.background,
     justifyContent: 'center',
