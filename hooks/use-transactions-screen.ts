@@ -24,7 +24,6 @@ export function useTransactionsScreen() {
   const { year: viewYear, month: viewMonth } = view;
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
   const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
-  const [filterSheetVisible, setFilterSheetVisible] = useState(false);
 
   // Category IDs are workspace-scoped — drop the filter when switching workspaces
   useEffect(() => {
@@ -38,7 +37,7 @@ export function useTransactionsScreen() {
   const filterType = activeFilter === 'all' ? undefined : activeFilter;
   const filteredQuery = useTransactions(currentWorkspaceId, viewYear, viewMonth, filterType);
 
-  // Categories for the filter sheet
+  // Categories for the filter menu
   const { data: categories = [] } = useCategories(currentWorkspaceId);
 
   const allTransactions = allQuery.data;
@@ -93,6 +92,13 @@ export function useTransactionsScreen() {
     return Object.values(groups).sort((a, b) => b.dateKey.localeCompare(a.dateKey));
   }, [filteredTransactions, categoryFilter]);
 
+  // Picking a type drops a category filter of the other type (it could never match).
+  function selectFilterType(type: FilterType) {
+    setActiveFilter(type);
+    const category = categories.find((c) => c.id === categoryFilter);
+    if (type !== 'all' && category && category.type !== type) setCategoryFilter(null);
+  }
+
   const goToPreviousMonth = useCallback(() => {
     setView(({ year, month }) =>
       month === 0 ? { year: year - 1, month: 11 } : { year, month: month - 1 },
@@ -109,12 +115,13 @@ export function useTransactionsScreen() {
     view,
     monthLabel,
     activeFilter,
-    setActiveFilter,
+    setActiveFilter: selectFilterType,
     categoryFilter,
     setCategoryFilter,
-    categories,
-    filterSheetVisible,
-    setFilterSheetVisible,
+    // With a type filter on, only that type's categories can match, so offer only those.
+    categories:
+      activeFilter === 'all' ? categories : categories.filter((c) => c.type === activeFilter),
+    isFilterActive: activeFilter !== 'all' || categoryFilter !== null,
     totals,
     balance,
     groupedTransactions,

@@ -26,6 +26,8 @@ const id: Translations = {
     nextMonth: 'Bulan berikutnya',
     filter: 'Filter',
     type: 'Tipe',
+    filterActive: 'Filter, aktif',
+    allCategories: 'Semua kategori',
   },
   insights: {
     title: 'Wawasan',
@@ -38,6 +40,7 @@ const id: Translations = {
     nextYear: 'Tahun berikutnya',
     noData: 'Tidak ada data untuk periode ini',
     viewInsights: 'Lihat wawasan',
+    recategorizeHint: 'Ketuk transaksi untuk mengganti kategorinya',
   },
   addTransaction: {
     addTransaction: 'Tambah Transaksi',

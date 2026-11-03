@@ -24,6 +24,8 @@ const en = {
     nextMonth: 'Next month',
     filter: 'Filter',
     type: 'Type',
+    filterActive: 'Filter, active',
+    allCategories: 'All categories',
   },
   insights: {
     title: 'Insights',
@@ -36,6 +38,7 @@ const en = {
     nextYear: 'Next year',
     noData: 'No data for this period',
     viewInsights: 'View insights',
+    recategorizeHint: 'Tap a transaction to change its category',
   },
   addTransaction: {
     addTransaction: 'Add Transaction',
