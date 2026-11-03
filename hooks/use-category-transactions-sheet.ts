@@ -1,19 +1,10 @@
 import { useIsFocused, useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useMemo, useRef } from 'react';
-import { Alert } from 'react-native';
 
 import { useWorkspace } from '@/contexts/workspace';
 import { useCategories } from '@/hooks/use-categories';
 import { useDeleteConfirmation } from '@/hooks/use-delete-confirmation';
-import { useSheetResult } from '@/hooks/use-sheet-result';
-import {
-  useTransactions,
-  useTransactionsByYear,
-  type TransactionWithCategory,
-} from '@/hooks/use-transactions';
-import { useUpdateTransaction } from '@/hooks/use-update-transaction';
-import i18n from '@/lib/i18n';
-import { k } from '@/locales/keys';
+import { useTransactions, useTransactionsByYear } from '@/hooks/use-transactions';
 import { formatPeriodLabel, type PeriodMode } from '@/utils/date';
 import { parseIntParam } from '@/utils/params';
 import { toTransactionRowData } from '@/utils/transaction';
@@ -29,9 +20,9 @@ export interface CategoryTransactionsSheetParams {
 
 /**
  * Screen hook for the `category-transactions` sheet route (Insights drill-down). Re-reads the
- * period's transactions through the same React Query keys as Insights (a cache hit), lists the
- * category's rows, recategorizes a row through the `category-picker` sheet, and deletes behind a
- * native confirmation. Closes itself once the category has no rows left in the period.
+ * period's transactions through the same React Query keys as Insights (a cache hit) and lists the
+ * category's rows. A tap edits the transaction and View Proofs opens its proofs, each after this
+ * sheet closes; Delete confirms natively. Closes itself once the category has no rows left.
  */
 export function useCategoryTransactionsSheet() {
   const router = useRouter();
@@ -56,8 +47,7 @@ export function useCategoryTransactionsSheet() {
     [periodTransactions, categoryId],
   );
 
-  // Close once the last row is recategorized or deleted. Wait until this sheet is on top again,
-  // so a closing category picker isn't the one that gets popped.
+  // Close once the last row is deleted (only while this sheet is on top, so the pop is its own).
   const closedRef = useRef(false);
   const isEmpty = periodTransactions !== undefined && transactions.length === 0;
   useEffect(() => {
@@ -67,42 +57,23 @@ export function useCategoryTransactionsSheet() {
     }
   }, [isEmpty, isFocused, router]);
 
-  const updateTransaction = useUpdateTransaction();
-  const recategorizeTargetRef = useRef<TransactionWithCategory | null>(null);
+  // One sheet at a time (HIG): Edit Transaction and the proof viewer open once this sheet has
+  // closed, instead of over it.
+  function openAfterClosing(open: () => void) {
+    if (closedRef.current) return;
+    closedRef.current = true;
+    router.back();
+    open();
+  }
 
-  const categoryPickerRequestId = useSheetResult('category-picker', ({ category: picked }) => {
-    const target = recategorizeTargetRef.current;
-    recategorizeTargetRef.current = null;
-    if (!target || picked.id === target.category.id) return;
-    updateTransaction.mutate(
-      { id: target.id, category_id: picked.id },
-      {
-        onError: (error) => {
-          Alert.alert(
-            i18n.t(k.addTransaction.failedToUpdate),
-            error instanceof Error ? error.message : i18n.t(k.common.unexpectedError),
-          );
-        },
-      },
+  function editTransaction(transactionId: string) {
+    openAfterClosing(() =>
+      router.push({ pathname: '/add-transaction', params: { id: transactionId } }),
     );
-  });
-
-  function recategorize(transactionId: string) {
-    const transaction = transactions.find((tx) => tx.id === transactionId);
-    if (!transaction) return;
-    recategorizeTargetRef.current = transaction;
-    router.push({
-      pathname: '/category-picker',
-      params: {
-        type: transaction.type,
-        selectedId: transaction.category.id,
-        requestId: categoryPickerRequestId,
-      },
-    });
   }
 
   function viewProofs(transactionId: string) {
-    router.push({ pathname: '/proof-viewer', params: { transactionId } });
+    openAfterClosing(() => router.push({ pathname: '/proof-viewer', params: { transactionId } }));
   }
 
   const { requestDelete } = useDeleteConfirmation();
@@ -112,8 +83,9 @@ export function useCategoryTransactionsSheet() {
     periodLabel: formatPeriodLabel(mode, year, month),
     rows: transactions.map((tx) => toTransactionRowData(tx, { showDate: true })),
     isLoading: mode === 'month' ? monthQuery.isLoading : yearQuery.isLoading,
-    recategorize,
+    editTransaction,
     viewProofs,
+    close: () => router.back(),
     requestDelete,
   };
 }

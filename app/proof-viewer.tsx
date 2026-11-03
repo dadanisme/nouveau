@@ -36,8 +36,8 @@ const PLACEHOLDER_HEIGHT = 220;
 
 /**
  * The proofs attached to a transaction, one cell each (image, PDF or HTML receipt), in a modal.
- * Done (iOS) / back (Android) closes it; the header's Save to Photos and Share actions use the
- * system photo library and share sheet.
+ * Close (iOS) / back (Android) closes it, or Back where Edit Transaction pushes it; the header's
+ * Save to Photos and Share actions use the system photo library and share sheet.
  */
 export default function ProofViewerScreen() {
   const { transactionId } = useLocalSearchParams<{ transactionId: string }>();

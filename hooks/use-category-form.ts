@@ -1,13 +1,14 @@
 import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useRef, useState } from 'react';
-import { Alert, Keyboard } from 'react-native';
+import { Alert, Keyboard, Platform } from 'react-native';
 
 import { useWorkspace } from '@/contexts/workspace';
 import { useSession } from '@/hooks/use-auth';
 import { useCategories } from '@/hooks/use-categories';
 import { useCategoryDeleteConfirmation } from '@/hooks/use-category-delete-confirmation';
 import { useAddCategory, useUpdateCategory } from '@/hooks/use-category-mutations';
+import { useDiscardGuard } from '@/hooks/use-discard-guard';
 import { useSheetResult } from '@/hooks/use-sheet-result';
 import i18n from '@/lib/i18n';
 import { k } from '@/locales/keys';
@@ -28,6 +29,11 @@ export type CategoryFormSheetParams = {
 
 type CategoryType = 'income' | 'expense';
 
+/** The Ionicon name the form seeds from a stored category icon. */
+function seededIcon(category: Tables<'categories'>): string | null {
+  return category.icon ? (parseIcon(category.icon)?.name ?? null) : null;
+}
+
 function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : i18n.t(k.common.unexpectedError);
 }
@@ -36,8 +42,9 @@ function errorMessage(error: unknown): string {
  * Screen hook for the `category-form` sheet route: add (no `id`) or edit/delete a category.
  *
  * The edited category is read once from the categories cache and seeded into the form, so a later
- * refetch (or the delete itself) never resets what the user typed. The icon and color pickers are
- * sheet routes stacked over this one; their results come back through `useSheetResult`.
+ * refetch (or the delete itself) never resets what the user typed. The icon and color pickers push
+ * inside this sheet's Stack on iOS (root sheets on Android); their results come back through
+ * `useSheetResult`. Leaving with unsaved changes (Cancel, swipe-down) is confirmed first.
  */
 export function useCategoryForm() {
   const router = useRouter();
@@ -64,7 +71,7 @@ export function useCategoryForm() {
     setName(cachedCategory.name);
     setType(cachedCategory.type as CategoryType);
     setColor(cachedCategory.color);
-    setIcon(cachedCategory.icon ? (parseIcon(cachedCategory.icon)?.name ?? null) : null);
+    setIcon(seededIcon(cachedCategory));
   }
 
   const iconRequestId = useSheetResult('icon-picker', ({ icon: picked }) => setIcon(picked));
@@ -74,10 +81,22 @@ export function useCategoryForm() {
   const isPending =
     addCategory.isPending || updateCategory.isPending || deleteConfirmation.isPending;
 
+  const isDirty = editingCategory
+    ? name.trim() !== editingCategory.name.trim() ||
+      type !== editingCategory.type ||
+      color !== editingCategory.color ||
+      icon !== seededIcon(editingCategory)
+    : !isEditing &&
+      (name.trim() !== '' || type !== 'expense' || color !== DEFAULT_CATEGORY_COLOR || !!icon);
+  const leave = useDiscardGuard(isDirty);
+  /** Save needs a name (HIG: enable it only once the required data is in). */
+  const canSave = name.trim().length > 0 && !isPending && !(isEditing && !editingCategory);
+
+  /** After a save or delete: closes without the unsaved-changes prompt. */
   function close() {
     if (closedRef.current) return;
     closedRef.current = true;
-    router.back();
+    leave(() => router.back());
   }
 
   function onSaved() {
@@ -87,10 +106,7 @@ export function useCategoryForm() {
 
   function handleSubmit() {
     const trimmedName = name.trim();
-    if (!trimmedName) {
-      Alert.alert(i18n.t(k.categories.invalidName), i18n.t(k.categories.invalidNameMessage));
-      return;
-    }
+    if (!canSave) return;
 
     const userId = session?.user.id;
     if (!currentWorkspaceId || !userId) return;
@@ -129,10 +145,12 @@ export function useCategoryForm() {
     deleteConfirmation.requestDelete(editingCategory, close);
   }
 
+  // iOS pushes the pickers inside this sheet's Stack (one sheet at a time, HIG); Android keeps
+  // its picker sheets.
   function openIconPicker() {
     Keyboard.dismiss();
     router.push({
-      pathname: '/icon-picker',
+      pathname: Platform.OS === 'ios' ? '/category-form/icon-picker' : '/icon-picker',
       params: { selected: icon ?? '', color, requestId: iconRequestId },
     });
   }
@@ -140,7 +158,7 @@ export function useCategoryForm() {
   function openColorPicker() {
     Keyboard.dismiss();
     router.push({
-      pathname: '/color-picker',
+      pathname: Platform.OS === 'ios' ? '/category-form/color-picker' : '/color-picker',
       params: { selected: color, requestId: colorRequestId },
     });
   }
@@ -163,11 +181,14 @@ export function useCategoryForm() {
     colorLabelKey,
     isPending,
     isEditing,
+    canSave,
     /** Editing, but the category isn't in the cache yet. */
     isLoading: isEditing && !editingCategory,
     setName,
     setType,
     handleSubmit,
+    /** Cancel: leaves the form; unsaved changes are confirmed first. */
+    cancel: () => router.back(),
     requestDelete,
     openIconPicker,
     openColorPicker,

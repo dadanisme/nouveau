@@ -1,7 +1,7 @@
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { Alert, Keyboard } from 'react-native';
+import { Alert, Keyboard, Platform } from 'react-native';
 
 import { useLanguage } from '@/contexts/language';
 import { useWorkspace } from '@/contexts/workspace';
@@ -12,6 +12,7 @@ import { k } from '@/locales/keys';
 import { useCategories } from '@/hooks/use-categories';
 import { useClassifyDescription } from '@/hooks/use-classify-description';
 import { useDeleteTransaction } from '@/hooks/use-delete-transaction';
+import { useDiscardGuard } from '@/hooks/use-discard-guard';
 import { useExchangeRate } from '@/hooks/use-exchange-rate';
 import { useSheetResult } from '@/hooks/use-sheet-result';
 import { useTransaction } from '@/hooks/use-transaction';
@@ -32,6 +33,19 @@ type TransactionType = 'income' | 'expense';
 
 function isTransactionType(value: string): value is TransactionType {
   return value === 'income' || value === 'expense';
+}
+
+/** What the form would save, to tell whether it has unsaved changes. */
+function formSnapshot(
+  type: TransactionType,
+  amountString: string,
+  description: string,
+  categoryId: string | null,
+  date: Date,
+): string {
+  // Compare the amount as a number: the field may regroup its text without changing the value.
+  const amount = parseFloat(amountString) || 0;
+  return [type, amount, description.trim(), categoryId ?? '', toLocalDateString(date)].join('|');
 }
 
 function showError(title: string, error: unknown) {
@@ -71,6 +85,10 @@ export function useTransactionForm(transactionId?: string, initialDate?: string)
   // The amount field owns its (grouped) text natively; bumping this reloads it from the form after
   // the form sets the amount itself (edit prefill, "add more" reset).
   const [fieldsKey, setFieldsKey] = useState(0);
+  // The values the form started from (or was last reset to); anything else is unsaved.
+  const [baseline, setBaseline] = useState(() =>
+    formSnapshot(type, amountString, description, null, date),
+  );
   const userPickedCategoryRef = useRef(false);
   const lastClassifiedDescriptionRef = useRef<string | null>(null);
 
@@ -99,6 +117,15 @@ export function useTransactionForm(transactionId?: string, initialDate?: string)
 
     const matchedCategory = categories.find((c) => c.id === existingTransaction.category_id);
     if (matchedCategory) setSelectedCategory(matchedCategory);
+    setBaseline(
+      formSnapshot(
+        existingTransaction.type as TransactionType,
+        String(existingTransaction.amount),
+        existingTransaction.description ?? '',
+        matchedCategory?.id ?? null,
+        new Date(existingTransaction.date.split('T')[0] + 'T00:00:00'),
+      ),
+    );
 
     setPrefilled(true);
     setFieldsKey((key) => key + 1);
@@ -138,8 +165,14 @@ export function useTransactionForm(transactionId?: string, initialDate?: string)
     setAmountString('');
     setDescription('');
     setSelectedCategory(null);
+    setBaseline(formSnapshot(type, '', '', null, date));
     setFieldsKey((key) => key + 1);
   }
+
+  const isDirty =
+    formSnapshot(type, amountString, description, selectedCategory?.id ?? null, date) !== baseline;
+  // Swipe-down, Cancel and Back confirm before dropping unsaved changes.
+  const leave = useDiscardGuard(isDirty);
 
   async function handleSubmit(mode: 'save' | 'add-more' = 'save') {
     const amount = parseFloat(amountString);
@@ -192,7 +225,7 @@ export function useTransactionForm(transactionId?: string, initialDate?: string)
         {
           onSuccess: () => {
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-            router.back();
+            leave(() => router.back());
           },
           onError: (error) => {
             showError(i18n.t(k.addTransaction.failedToUpdate), error);
@@ -218,7 +251,7 @@ export function useTransactionForm(transactionId?: string, initialDate?: string)
             if (mode === 'add-more') {
               resetForm();
             } else {
-              router.back();
+              leave(() => router.back());
             }
           },
           onError: (error) => {
@@ -235,7 +268,7 @@ export function useTransactionForm(transactionId?: string, initialDate?: string)
     deleteTransaction.mutate(transactionId, {
       onSuccess: () => {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        router.back();
+        leave(() => router.back());
       },
       onError: (error) => {
         showError(i18n.t(k.addTransaction.failedToDelete), error);
@@ -254,15 +287,20 @@ export function useTransactionForm(transactionId?: string, initialDate?: string)
     );
   }
 
+  // iOS pushes what the sheet opens inside the sheet's own Stack (one sheet at a time, HIG);
+  // Android keeps the modal and picker sheet over its full-screen modal.
   function openProofs() {
     if (!transactionId) return;
-    router.push({ pathname: '/proof-viewer', params: { transactionId } });
+    router.push({
+      pathname: Platform.OS === 'ios' ? '/add-transaction/proofs' : '/proof-viewer',
+      params: { transactionId },
+    });
   }
 
   function openCategoryPicker() {
     Keyboard.dismiss();
     router.push({
-      pathname: '/category-picker',
+      pathname: Platform.OS === 'ios' ? '/add-transaction/category-picker' : '/category-picker',
       params: {
         currentType: type,
         selectedId: selectedCategory?.id ?? '',
@@ -318,6 +356,8 @@ export function useTransactionForm(transactionId?: string, initialDate?: string)
     handleDelete,
     setDescription,
     confirmDelete,
+    /** Cancel: leaves the form; unsaved changes are confirmed first. */
+    cancel: () => router.back(),
     openProofs,
     openCategoryPicker,
   };

@@ -1,12 +1,10 @@
-import { Button, Form, Grid, Host, Image, Section, Text, VStack } from '@expo/ui/swift-ui';
+import { Button, Form, Grid, Host, Image, Section, VStack } from '@expo/ui/swift-ui';
 import {
   accessibilityAddTraits,
   accessibilityLabel,
   background,
   buttonStyle,
-  font,
   frame,
-  padding,
   shapes,
   strokeBorder,
 } from '@expo/ui/swift-ui/modifiers';
@@ -14,7 +12,6 @@ import { PlatformColor, StyleSheet, type ColorValue } from 'react-native';
 
 import { ACCENT_COLOR } from '@/constants/accent';
 import { useLanguage } from '@/contexts/language';
-import { k } from '@/locales/keys';
 import { chunk } from '@/utils/array';
 import {
   getIconAccessibilityLabel,
@@ -56,15 +53,6 @@ export function IconPickerGrid({
           background(PlatformColor('systemGroupedBackground'), { ignoresSafeAreaEdges: 'all' }),
         ]}
       >
-        <Text
-          modifiers={[
-            font({ textStyle: 'headline' }),
-            padding({ top: 20, bottom: 4 }),
-            accessibilityAddTraits(['isHeader']),
-          ]}
-        >
-          {t(k.categories.chooseIcon)}
-        </Text>
         <Form>
           {groups.map((group) => (
             <Section key={group.labelKey} title={t(group.labelKey)}>

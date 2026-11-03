@@ -4,6 +4,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Alert } from 'react-native';
 
+import { useDiscardGuard } from '@/hooks/use-discard-guard';
 import { useCreateInvite } from '@/hooks/use-workspace-invites';
 import i18n from '@/lib/i18n';
 import { k } from '@/locales/keys';
@@ -18,7 +19,8 @@ export interface WorkspaceInviteSheetParams {
 
 /**
  * Screen hook for the `workspace-invite` sheet route: invites an email address to the workspace,
- * then shows the invite token to copy. A failed invite shows a native alert.
+ * then shows the invite token to copy. A failed invite shows a native alert. Leaving with a typed,
+ * unsent address (Cancel, swipe-down) is confirmed first.
  */
 export function useWorkspaceInviteSheet() {
   const router = useRouter();
@@ -29,6 +31,7 @@ export function useWorkspaceInviteSheet() {
   const [isCopied, setIsCopied] = useState(false);
 
   const canSubmit = !!workspaceId && !!email.trim() && !createInvite.isPending;
+  useDiscardGuard(!createdToken && !!email.trim());
 
   function submit() {
     const trimmed = email.trim();
@@ -73,6 +76,7 @@ export function useWorkspaceInviteSheet() {
     isPending: createInvite.isPending,
     submit,
     copyToken,
+    /** Cancel (before sending) or Close (after): unsent input is confirmed first. */
     close: () => router.back(),
   };
 }

@@ -5,6 +5,7 @@ import { Alert } from 'react-native';
 
 import { useLanguage } from '@/contexts/language';
 import { useWorkspace } from '@/contexts/workspace';
+import { useDiscardGuard } from '@/hooks/use-discard-guard';
 import { useCreateWorkspace } from '@/hooks/use-workspaces';
 import { k } from '@/locales/keys';
 import { getErrorMessage } from '@/utils/error';
@@ -12,7 +13,10 @@ import { getHomeCurrencyOptions } from '@/utils/workspace';
 
 const DEFAULT_CURRENCY = 'IDR';
 
-/** Screen hook for Create Workspace: name + home currency; creating switches to it and closes. */
+/**
+ * Screen hook for Create Workspace: name + home currency; creating switches to it and closes.
+ * Going back with a typed name or a changed currency is confirmed first.
+ */
 export function useCreateWorkspaceScreen() {
   const router = useRouter();
   const { t } = useLanguage();
@@ -23,6 +27,9 @@ export function useCreateWorkspaceScreen() {
   const [currency, setCurrency] = useState(DEFAULT_CURRENCY);
 
   const canSubmit = !createWorkspace.isPending && name.trim().length > 0;
+  const leave = useDiscardGuard(name.trim().length > 0 || currency !== DEFAULT_CURRENCY, {
+    pushed: true,
+  });
 
   function submit() {
     const trimmed = name.trim();
@@ -33,7 +40,7 @@ export function useCreateWorkspaceScreen() {
         onSuccess: async (newId) => {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
           if (newId) await switchWorkspace(newId);
-          router.back();
+          leave(() => router.back());
         },
         onError: (error) => {
           Alert.alert(

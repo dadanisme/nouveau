@@ -6,6 +6,7 @@ import { Alert } from 'react-native';
 import { useLanguage } from '@/contexts/language';
 import { useWorkspace } from '@/contexts/workspace';
 import { useSession } from '@/hooks/use-auth';
+import { useDiscardGuard } from '@/hooks/use-discard-guard';
 import { useRevokeInvite, useWorkspaceInvites } from '@/hooks/use-workspace-invites';
 import {
   useLeaveWorkspace,
@@ -30,7 +31,7 @@ const FOREIGN_KEY_VIOLATION = '23503';
  * Screen hook for Workspace Settings (`?id=`): the owner edits the name and home currency (saved
  * from the header), removes members and revokes or sends invites, and deletes a shared workspace;
  * a member sees read-only details and can leave. Destructive actions confirm with a native alert,
- * failures show one.
+ * failures show one. Going back with an unsaved name or currency is confirmed first.
  */
 export function useWorkspaceSettingsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -63,6 +64,7 @@ export function useWorkspaceSettingsScreen() {
   const isDirty =
     !!workspace && (name.trim() !== workspace.name || currency !== workspace.home_currency);
   const canSave = isOwner && isDirty && name.trim().length > 0 && !updateWorkspace.isPending;
+  const leave = useDiscardGuard(isOwner && isDirty, { pushed: true });
 
   function showError(title: string, error: unknown) {
     Alert.alert(title, getErrorMessage(error, t(k.common.unexpectedError)));
@@ -102,7 +104,7 @@ export function useWorkspaceSettingsScreen() {
         allWorkspaces.find((w) => w.id !== removedId);
       if (fallback) await switchWorkspace(fallback.id);
     }
-    router.back();
+    leave(() => router.back());
   }
 
   function confirmLeave() {

@@ -1,13 +1,5 @@
 import { Form, HStack, Host, Image, Picker, Text, VStack } from '@expo/ui/swift-ui';
-import {
-  accessibilityAddTraits,
-  background,
-  font,
-  labelsHidden,
-  padding,
-  pickerStyle,
-  tag,
-} from '@expo/ui/swift-ui/modifiers';
+import { background, labelsHidden, pickerStyle, tag } from '@expo/ui/swift-ui/modifiers';
 import { PlatformColor, StyleSheet } from 'react-native';
 
 import { ACCENT_COLOR } from '@/constants/accent';
@@ -40,15 +32,6 @@ export function ColorPickerList({ colors, selectedId, onSelect }: ColorPickerLis
           background(PlatformColor('systemGroupedBackground'), { ignoresSafeAreaEdges: 'all' }),
         ]}
       >
-        <Text
-          modifiers={[
-            font({ textStyle: 'headline' }),
-            padding({ top: 20, bottom: 4 }),
-            accessibilityAddTraits(['isHeader']),
-          ]}
-        >
-          {t(k.categories.chooseColor)}
-        </Text>
         <Form>
           <Picker<CategorySystemColorId | null>
             label={t(k.categories.color)}
