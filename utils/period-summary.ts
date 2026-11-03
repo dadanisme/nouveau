@@ -65,7 +65,7 @@ export function toSpendBreakdownRows(
       symbol: {
         sf: symbol.sf,
         material: symbol.material,
-        color: getCategoryColor(spend.id ? spend.color : null),
+        color: getCategoryColor(spend.color),
       },
       amount: formatCompactAmount(spend.amount, locale),
       share: spend.percentage / 100,

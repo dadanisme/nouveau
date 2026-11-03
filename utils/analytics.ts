@@ -1,4 +1,3 @@
-import { colors } from '@/constants/colors';
 import type { TransactionWithCategory } from '@/hooks/use-transactions';
 import i18n from '@/lib/i18n';
 import { k } from '@/locales/keys';
@@ -7,7 +6,8 @@ export interface CategorySpend {
   /** Absent for the synthetic "Others" bucket */
   id?: string;
   name: string;
-  color: string;
+  /** The category's stored hex. Absent for "Others", which renders in the neutral fallback. */
+  color?: string;
   amount: number;
   percentage: number;
 }
@@ -81,7 +81,6 @@ export function computeExpenseBreakdown(
     })),
     {
       name: i18n.t(k.transactions.others),
-      color: colors.gray[400],
       amount: othersAmount,
       percentage: (othersAmount / expenseTotal) * 100,
     },

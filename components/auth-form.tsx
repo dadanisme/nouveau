@@ -9,6 +9,7 @@ import {
   listRowSeparator,
   multilineTextAlignment,
   scrollDismissesKeyboard,
+  scrollEdgeEffectStyle,
 } from '@expo/ui/swift-ui/modifiers';
 import { PlatformColor, StyleSheet } from 'react-native';
 
@@ -41,7 +42,10 @@ export type AuthFormProps = {
 export function AuthForm({ title, subtitle, children }: AuthFormProps) {
   return (
     <Host style={styles.fill} seedColor={ACCENT_COLOR}>
-      <Form modifiers={[scrollDismissesKeyboard('interactively')]}>
+      {/* iOS 26+: blur scrolled content under the status bar and the floating back button. */}
+      <Form
+        modifiers={[scrollDismissesKeyboard('interactively'), scrollEdgeEffectStyle('soft', 'top')]}
+      >
         <Section>
           <VStack spacing={8} modifiers={[frame({ maxWidth: Infinity }), ...CLEAR_ROW]}>
             <Text

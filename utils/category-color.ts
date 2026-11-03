@@ -43,54 +43,48 @@ export const CATEGORY_SYSTEM_COLORS: readonly CategorySystemColor[] = [
 export const DEFAULT_CATEGORY_COLOR = CATEGORY_SYSTEM_COLORS[0].hex;
 
 /**
- * Every hex the legacy mobile/web palette could store (`web/src/lib/category-colors.ts`), mapped to
- * the nearest system color by hue. Keys are uppercase.
+ * Hue ranges (degrees, upper bound exclusive) for mapping a stored hex to the nearest system color.
+ * The bounds are set so every hex the legacy mobile/web palette could store
+ * (`web/src/lib/category-colors.ts`) lands on the color it was designed as: Tailwind amber on
+ * orange, lime and emerald on green, cyan on teal, sky and indigo on blue, fuchsia on purple, rose
+ * on pink (iOS systemPink is a rose-pink). Seeded pastels (`#FF6B6B`, `#4ECDC4` …) follow the same
+ * ranges.
  */
-const PALETTE_HEX_TO_SYSTEM: Record<string, CategorySystemColorId> = {
-  // Reds
-  '#EF4444': 'red',
-  '#DC2626': 'red',
-  // Oranges (Tailwind amber #F59E0B sits on iOS systemOrange's hue)
-  '#F97316': 'orange',
-  '#EA580C': 'orange',
-  '#F59E0B': 'orange',
-  // Yellows
-  '#EAB308': 'yellow',
-  '#FACC15': 'yellow',
-  '#CA8A04': 'yellow',
-  // Greens (incl. emerald and lime)
-  '#22C55E': 'green',
-  '#16A34A': 'green',
-  '#10B981': 'green',
-  '#059669': 'green',
-  '#84CC16': 'green',
-  // Teals and cyans
-  '#14B8A6': 'teal',
-  '#06B6D4': 'teal',
-  '#0891B2': 'teal',
-  // Blues (incl. sky and indigo)
-  '#0EA5E9': 'blue',
-  '#3B82F6': 'blue',
-  '#2563EB': 'blue',
-  '#6366F1': 'blue',
-  // Purples (incl. fuchsia)
-  '#8B5CF6': 'purple',
-  '#7C3AED': 'purple',
-  '#A855F7': 'purple',
-  '#D946EF': 'purple',
-  '#C026D3': 'purple',
-  // Pinks (incl. rose; iOS systemPink is a rose-pink)
-  '#EC4899': 'pink',
-  '#DB2777': 'pink',
-  '#F43F5E': 'pink',
-  '#E11D48': 'pink',
-  // Neutrals (slate and stone)
-  '#78716C': 'gray',
-  '#64748B': 'gray',
-  '#475569': 'gray',
-  '#1F2937': 'gray',
-  '#44403C': 'gray',
-};
+const HUE_RANGES: readonly [maxHue: number, id: CategorySystemColorId][] = [
+  [15, 'red'],
+  [40, 'orange'],
+  [75, 'yellow'],
+  [165, 'green'],
+  [196, 'teal'],
+  [250, 'blue'],
+  [315, 'purple'],
+  [355, 'pink'],
+  [360, 'red'],
+];
+
+/** Below this chroma (max − min channel, 0–1) a hex reads as a neutral (slate, stone, near-white). */
+const NEUTRAL_CHROMA = 0.2;
+
+const HEX_PATTERN = /^#([0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/i;
+
+/** The nearest system color id for a valid hex, by hue (neutrals map to gray). Alpha is ignored. */
+function nearestSystemColorId(hex: string): CategorySystemColorId {
+  const digits = hex.slice(1);
+  const full = digits.length === 3 ? [...digits].map((d) => d + d).join('') : digits.slice(0, 6);
+  const [r, g, b] = [0, 2, 4].map((i) => parseInt(full.slice(i, i + 2), 16) / 255);
+  const max = Math.max(r, g, b);
+  const chroma = max - Math.min(r, g, b);
+  if (chroma < NEUTRAL_CHROMA) return 'gray';
+
+  const sector =
+    max === r
+      ? ((g - b) / chroma + 6) % 6
+      : max === g
+        ? (b - r) / chroma + 2
+        : (r - g) / chroma + 4;
+  const hue = sector * 60;
+  return HUE_RANGES.find(([maxHue]) => hue < maxHue)?.[1] ?? 'red';
+}
 
 const SYSTEM_COLORS_BY_ID = Object.fromEntries(
   CATEGORY_SYSTEM_COLORS.map((color) => [color.id, color]),
@@ -98,11 +92,14 @@ const SYSTEM_COLORS_BY_ID = Object.fromEntries(
 
 const FALLBACK_SYSTEM_COLOR = SYSTEM_COLORS_BY_ID.gray;
 
-/** The system color a stored `categories.color` hex maps to, or null for a custom hex. */
+/**
+ * The system color a stored `categories.color` hex is shown as: the nearest of the 9 by hue, or
+ * null for a missing or malformed value. Display only: the stored hex is never rewritten (the web
+ * app renders it as stored), so only an explicit pick in the color picker writes a new value.
+ */
 export function getCategorySystemColor(hex: string | null | undefined): CategorySystemColor | null {
-  if (!hex) return null;
-  const id = PALETTE_HEX_TO_SYSTEM[hex.toUpperCase()];
-  return id ? SYSTEM_COLORS_BY_ID[id] : null;
+  if (!hex || !HEX_PATTERN.test(hex)) return null;
+  return SYSTEM_COLORS_BY_ID[nearestSystemColorId(hex)];
 }
 
 /** The system color for an id, e.g. a native picker's selection. */
@@ -123,13 +120,10 @@ export function systemColorValue(color: CategorySystemColor): ColorValue {
 }
 
 /**
- * Display color for a stored `categories.color` hex: palette hexes render as their system color,
- * any other valid hex as stored, and a missing or malformed one as gray. Works as an RN color
- * and as an `@expo/ui` color: SwiftUI takes the iOS `PlatformColor`, Compose the Android hex.
+ * Display color for a stored `categories.color` hex: its nearest system color, and gray for a
+ * missing or malformed one. Works as an RN color and as an `@expo/ui` color: SwiftUI takes the iOS
+ * `PlatformColor`, Compose the Android hex.
  */
 export function getCategoryColor(hex: string | null | undefined): ColorValue {
-  const system = getCategorySystemColor(hex);
-  if (system) return systemColorValue(system);
-  if (hex && /^#([0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/i.test(hex)) return hex;
-  return systemColorValue(FALLBACK_SYSTEM_COLOR);
+  return systemColorValue(getCategorySystemColor(hex) ?? FALLBACK_SYSTEM_COLOR);
 }

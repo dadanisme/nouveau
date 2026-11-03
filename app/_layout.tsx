@@ -9,7 +9,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { AuthListener } from '@/components/auth-listener';
 import { SplashOverlay } from '@/components/splash-overlay';
-import { ACCENT_COLOR } from '@/constants/accent';
+import { ACCENT_HEX } from '@/constants/accent';
 import { formHeaderBackground } from '@/constants/form-header';
 import { sheetOptions } from '@/constants/sheet-options';
 import { LanguageProvider, useLanguage } from '@/contexts/language';
@@ -23,8 +23,8 @@ const queryClient = new QueryClient();
 
 // React Navigation themes with the brand accent as the tint (header buttons, back
 // chevron). Every other color stays the system default for the appearance.
-const LIGHT_THEME = { ...DefaultTheme, colors: { ...DefaultTheme.colors, primary: ACCENT_COLOR } };
-const DARK_THEME = { ...DarkTheme, colors: { ...DarkTheme.colors, primary: ACCENT_COLOR } };
+const LIGHT_THEME = { ...DefaultTheme, colors: { ...DefaultTheme.colors, primary: ACCENT_HEX } };
+const DARK_THEME = { ...DarkTheme, colors: { ...DarkTheme.colors, primary: ACCENT_HEX } };
 
 function ShareIntentNavigator() {
   const { hasShareIntent } = useShareIntentContext();
@@ -77,7 +77,9 @@ function RootStack() {
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DARK_THEME : LIGHT_THEME}>
-      <StatusBar style="auto" />
+      {/* iOS leaves the status bar to UIKit (view-controller-based appearance, app.json), so it
+          turns light over a full-height sheet's black backdrop. Android sets it per appearance. */}
+      {Platform.OS === 'android' && <StatusBar style="auto" />}
       <Stack
         screenOptions={{
           // The screen below these is the tab shell, which has no title of its own, so
@@ -97,8 +99,17 @@ function RootStack() {
         />
         <Stack.Screen
           name="login"
+          // iOS: an empty native bar, as on Signup, so scrolled content doesn't run under the
+          // status bar (it blurs behind the bar on iOS 26+). Android pads the form itself.
           options={{
-            headerShown: false,
+            headerShown: Platform.OS === 'ios',
+            title: '',
+            // The signed-out root: AuthGuard replaces into it, so there is nothing to go back to.
+            headerBackVisible: false,
+            headerShadowVisible: false,
+            headerStyle: {
+              backgroundColor: formHeaderBackground(colorScheme === 'dark' ? 'dark' : 'light'),
+            },
             animation: 'flip',
             animationDuration: 300,
             gestureEnabled: false,
