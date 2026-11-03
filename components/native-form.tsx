@@ -28,6 +28,7 @@ import {
   background,
   badge,
   disabled,
+  fixedSize,
   font,
   foregroundStyle,
   frame,
@@ -455,9 +456,19 @@ export function FormProgressRow({ title, symbol, value, progress, onPress }: For
             modifiers={[frame({ width: SYMBOL_WIDTH, height: SYMBOL_WIDTH })]}
           />
         ) : null}
-        <Text modifiers={[PRIMARY, lineLimit(1)]}>{title}</Text>
-        <Spacer />
-        <Text modifiers={[SECONDARY, monospacedDigit()]}>{value}</Text>
+        {/* Fills the row instead of a Spacer, whose minimum length and extra stack spacing would
+            cost the title ~20pt and truncate names that fit. */}
+        <Text
+          modifiers={[PRIMARY, lineLimit(1), frame({ maxWidth: Infinity, alignment: 'leading' })]}
+        >
+          {title}
+        </Text>
+        {/* Its ideal width, on one line: the title truncates first, and only when space runs out. */}
+        <Text
+          modifiers={[SECONDARY, monospacedDigit(), lineLimit(1), fixedSize({ horizontal: true })]}
+        >
+          {value}
+        </Text>
         {onPress ? (
           <Image
             systemName="chevron.right"
