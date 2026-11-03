@@ -62,8 +62,9 @@ const OTHERS_SYMBOL = { sf: 'ellipsis.circle', material: 'more_horiz' } as const
  */
 export function useTransactionsScreen() {
   const router = useRouter();
-  // `t` follows the in-app language, so the day labels rebuild when it changes.
-  const { t } = useLanguage();
+  // `t` and `locale` follow the in-app language, so the memoized labels and amounts rebuild when
+  // it changes.
+  const { t, locale } = useLanguage();
   const { currentWorkspaceId } = useWorkspace();
   const nav = usePeriodNavigation('month');
   const { year, month } = nav.period;
@@ -96,11 +97,14 @@ export function useTransactionsScreen() {
   const totals = useMemo(() => computeTotals(allTransactions), [allTransactions]);
   const balance = totals.income - totals.expense;
 
-  const summary = {
-    income: formatSignedTransactionAmount(totals.income, true),
-    expense: formatSignedTransactionAmount(totals.expense, false),
-    balance: formatSignedTransactionAmount(Math.abs(balance), balance >= 0),
-  };
+  const summary = useMemo(
+    () => ({
+      income: formatSignedTransactionAmount(totals.income, true, locale),
+      expense: formatSignedTransactionAmount(totals.expense, false, locale),
+      balance: formatSignedTransactionAmount(Math.abs(balance), balance >= 0, locale),
+    }),
+    [totals, balance, locale],
+  );
 
   const breakdown = useMemo((): SpendBreakdownRow[] => {
     const iconById = new Map(categories.map((category) => [category.id, category.icon]));
@@ -108,19 +112,19 @@ export function useTransactionsScreen() {
       const symbol = spend.id ? getCategorySymbol(iconById.get(spend.id)) : OTHERS_SYMBOL;
       return {
         key: spend.id ?? 'others',
-        title: spend.name,
+        title: spend.id ? spend.name : t(k.transactions.others),
         symbol: {
           sf: symbol.sf,
           material: symbol.material,
           // "Others" takes the system gray, not the legacy palette's.
           color: getCategoryColor(spend.id ? spend.color : null),
         },
-        amount: formatCompactAmount(spend.amount),
+        amount: formatCompactAmount(spend.amount, locale),
         share: spend.percentage / 100,
         categoryId: spend.id,
       };
     });
-  }, [allTransactions, categories]);
+  }, [allTransactions, categories, t, locale]);
 
   const daySections = useMemo((): TransactionDaySection[] => {
     if (!filteredTransactions) return [];
@@ -134,17 +138,17 @@ export function useTransactionsScreen() {
       title: formatDayLabel(day.dateKey, now, relative),
       footer: [
         day.expense > 0
-          ? t(k.transactions.daySpent, { amount: formatCompactAmount(day.expense) })
+          ? t(k.transactions.daySpent, { amount: formatCompactAmount(day.expense, locale) })
           : null,
         day.income > 0
-          ? t(k.transactions.dayReceived, { amount: formatCompactAmount(day.income) })
+          ? t(k.transactions.dayReceived, { amount: formatCompactAmount(day.income, locale) })
           : null,
       ]
         .filter(Boolean)
         .join(' · '),
-      rows: day.transactions.map((tx) => toTransactionRowData(tx)),
+      rows: day.transactions.map((tx) => toTransactionRowData(tx, { locale })),
     }));
-  }, [filteredTransactions, categoryFilter, t]);
+  }, [filteredTransactions, categoryFilter, t, locale]);
 
   // Category filter options, one group per type. With Type = All both types show, so they're
   // grouped (an "Other" exists in each); with a type on, only that type's categories can match.

@@ -34,7 +34,13 @@ export default function TransactionsScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: screen.nav.label }} />
+      {/* With the `+` in the header too (iOS 17–26.0), five bar items leave the collapsed title
+          too little room for long months ("September 2026"), so the title is abbreviated there. */}
+      <Stack.Screen
+        options={{
+          title: ADD_ACTION_PLACEMENT === 'toolbar' ? screen.nav.shortLabel : screen.nav.label,
+        }}
+      />
       {periodToolbar.leftToolbar}
       <TransactionsHeaderToolbar
         leadingItems={periodToolbar.rightItems}

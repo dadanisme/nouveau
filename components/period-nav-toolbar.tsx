@@ -31,7 +31,7 @@ export interface PeriodNavToolbar {
  * for the screen to put first in its right toolbar.
  */
 export function usePeriodNavToolbar(nav: PeriodNavigation): PeriodNavToolbar {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   const previousIcon = useSymbolIcon({ sf: 'chevron.left', md: 'chevron_left' });
   const nextIcon = useSymbolIcon({ sf: 'chevron.right', md: 'chevron_right' });
   const menuIcon = useSymbolIcon({ sf: 'calendar', md: 'calendar_month' });
@@ -59,7 +59,13 @@ export function usePeriodNavToolbar(nav: PeriodNavigation): PeriodNavToolbar {
         // No `title`: on a root menu it would also become the bar button's text label.
         accessibilityLabel={`${chooseLabel}, ${nav.label}`}
       >
-        <Stack.Toolbar.MenuAction disabled={nav.isCurrent} onPress={nav.goToCurrent}>
+        {/* Disabled on the current period. Android's toolbar menu draws disabled items at full
+            color, so there it is hidden instead. */}
+        <Stack.Toolbar.MenuAction
+          disabled={nav.isCurrent}
+          hidden={Platform.OS === 'android' && nav.isCurrent}
+          onPress={nav.goToCurrent}
+        >
           {isMonth ? t(k.periodNav.thisMonth) : t(k.periodNav.thisYear)}
         </Stack.Toolbar.MenuAction>
         {isMonth ? (
@@ -71,7 +77,7 @@ export function usePeriodNavToolbar(nav: PeriodNavigation): PeriodNavToolbar {
                   isOn={isSamePeriod('month', nav.period, { year, month })}
                   onPress={() => nav.goTo({ year, month })}
                 >
-                  {formatMonthName(month)}
+                  {formatMonthName(month, locale)}
                 </Stack.Toolbar.MenuAction>
               ))}
             </Stack.Toolbar.Menu>

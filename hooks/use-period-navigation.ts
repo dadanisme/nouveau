@@ -1,5 +1,6 @@
 import { useState } from 'react';
 
+import { useLanguage } from '@/contexts/language';
 import {
   formatPeriodLabel,
   getPeriodMenuYears,
@@ -15,6 +16,8 @@ export interface PeriodNavigation {
   period: Period;
   /** "March 2026" (month mode) or "2026" (year mode). */
   label: string;
+  /** "Mar 2026" (month mode) or "2026", for tight spots such as a crowded nav bar. */
+  shortLabel: string;
   /** Whether the period contains today. */
   isCurrent: boolean;
   goToPrevious: () => void;
@@ -41,11 +44,14 @@ export function usePeriodNavigation(
 ): PeriodNavigation {
   const [period, setPeriod] = useState<Period>(() => initial ?? currentPeriod());
   const today = currentPeriod();
+  // The in-app language, so the labels follow it (they are memoized on their inputs).
+  const { locale } = useLanguage();
 
   return {
     mode,
     period,
-    label: formatPeriodLabel(mode, period.year, period.month),
+    label: formatPeriodLabel(mode, period.year, period.month, { locale }),
+    shortLabel: formatPeriodLabel(mode, period.year, period.month, { short: true, locale }),
     isCurrent: isSamePeriod(mode, period, today),
     goToPrevious: () => setPeriod((current) => shiftPeriod(mode, current, -1)),
     goToNext: () => setPeriod((current) => shiftPeriod(mode, current, 1)),

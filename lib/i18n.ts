@@ -15,8 +15,9 @@ const DATE_LOCALE_MAP: Record<string, string> = {
   id: 'id-ID',
 };
 
-export function getDateLocale(): string {
-  return DATE_LOCALE_MAP[i18n.locale] ?? 'en-US';
+/** The BCP 47 tag for date/number formatting; `locale` defaults to the current app locale. */
+export function getDateLocale(locale: string = i18n.locale): string {
+  return DATE_LOCALE_MAP[locale] ?? 'en-US';
 }
 
 export default i18n;

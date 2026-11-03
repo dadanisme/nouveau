@@ -48,11 +48,19 @@ export function formatMediumDate(dateStr: string): string {
 /** An Insights period: a single month, or a whole year. */
 export type PeriodMode = 'month' | 'year';
 
-/** "March 2026" for a month period (month is 0-based), "2026" for a year period. */
-export function formatPeriodLabel(mode: PeriodMode, year: number, month: number): string {
+/**
+ * "March 2026" for a month period (month is 0-based), "2026" for a year period. `short` gives
+ * "Mar 2026"; `locale` pins the app language (pass it where the result is memoized).
+ */
+export function formatPeriodLabel(
+  mode: PeriodMode,
+  year: number,
+  month: number,
+  { short = false, locale }: { short?: boolean; locale?: string } = {},
+): string {
   if (mode === 'year') return String(year);
-  return new Date(year, month).toLocaleDateString(getDateLocale(), {
-    month: 'long',
+  return new Date(year, month).toLocaleDateString(getDateLocale(locale), {
+    month: short ? 'short' : 'long',
     year: 'numeric',
   });
 }
@@ -75,9 +83,9 @@ export function isSamePeriod(mode: PeriodMode, a: Period, b: Period): boolean {
   return a.year === b.year && (mode === 'year' || a.month === b.month);
 }
 
-/** The localized month name ("March"), month 0-based. */
-export function formatMonthName(month: number): string {
-  return new Date(2000, month).toLocaleDateString(getDateLocale(), { month: 'long' });
+/** The localized month name ("March"), month 0-based; `locale` pins the app language. */
+export function formatMonthName(month: number, locale?: string): string {
+  return new Date(2000, month).toLocaleDateString(getDateLocale(locale), { month: 'long' });
 }
 
 /**

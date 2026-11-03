@@ -6,17 +6,21 @@ import { formatCompactAmount, formatForeignAmount } from '@/utils/currency';
 import { formatShortDate } from '@/utils/date';
 
 /** A signed compact amount: "+Rp50K" for income, "−Rp12K" for an expense. */
-export function formatSignedTransactionAmount(amount: number, isIncome: boolean): string {
-  return `${isIncome ? '+' : '−'}${formatCompactAmount(amount)}`;
+export function formatSignedTransactionAmount(
+  amount: number,
+  isIncome: boolean,
+  locale?: string,
+): string {
+  return `${isIncome ? '+' : '\u2212'}${formatCompactAmount(amount, locale)}`;
 }
-
 /**
  * Display data for a transaction row.
  * @param options.showDate Append the date to the category line (lists not grouped by day).
+ * @param options.locale Pins the compact amount's suffixes (see `formatCompactAmount`).
  */
 export function toTransactionRowData(
   tx: TransactionWithCategory,
-  { showDate = false }: { showDate?: boolean } = {},
+  { showDate = false, locale }: { showDate?: boolean; locale?: string } = {},
 ): TransactionRowData {
   const isIncome = tx.type === 'income';
   const symbol = getCategorySymbol(tx.category.icon);
@@ -32,7 +36,7 @@ export function toTransactionRowData(
       material: symbol.material,
       color: getCategoryColor(tx.category.color),
     },
-    amount: formatSignedTransactionAmount(tx.home_amount, isIncome),
+    amount: formatSignedTransactionAmount(tx.home_amount, isIncome, locale),
     isIncome,
     originalAmount: isForeign ? formatForeignAmount(tx.amount, tx.currency) : undefined,
     hasProofs: (tx.receipt_proofs?.[0]?.count ?? 0) > 0,
