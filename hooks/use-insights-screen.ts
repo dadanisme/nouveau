@@ -1,3 +1,4 @@
+import { useNavigation, type NativeStackNavigationProp } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { useWorkspace } from '@/contexts/workspace';
@@ -20,12 +21,40 @@ import {
 
 export type InsightsMode = 'month' | 'year';
 
-export function useInsightsScreen(initialYear: number, initialMonth: number) {
+type InsightsParams = { year?: string; month?: string };
+
+/**
+ * @param requestedYear / requestedMonth The period asked for through the route params
+ * (e.g. tapping the summary card on Transactions), or null to open on the current month.
+ */
+export function useInsightsScreen(requestedYear: number | null, requestedMonth: number | null) {
   const { currentWorkspaceId } = useWorkspace();
+  const navigation = useNavigation<NativeStackNavigationProp<{ insights: InsightsParams }>>();
 
   const [mode, setMode] = useState<InsightsMode>('month');
-  const [view, setView] = useState({ year: initialYear, month: initialMonth });
+  const [view, setView] = useState(() => {
+    const now = new Date();
+    return { year: requestedYear ?? now.getFullYear(), month: requestedMonth ?? now.getMonth() };
+  });
   const { year: viewYear, month: viewMonth } = view;
+
+  // Insights is a tab, so it stays mounted: a later request for a period arrives as new
+  // params on this same screen. Jump to it when the params change (state adjusted during
+  // render), then clear the params so requesting the same month again is still a change.
+  const requestKey =
+    requestedYear !== null && requestedMonth !== null ? `${requestedYear}-${requestedMonth}` : null;
+  const [handledRequestKey, setHandledRequestKey] = useState(requestKey);
+  if (requestKey !== handledRequestKey) {
+    setHandledRequestKey(requestKey);
+    if (requestedYear !== null && requestedMonth !== null) {
+      setMode('month');
+      setView({ year: requestedYear, month: requestedMonth });
+    }
+  }
+
+  useEffect(() => {
+    if (requestKey !== null) navigation.setParams({ year: undefined, month: undefined });
+  }, [requestKey, navigation]);
 
   // Month mode shares the home screen's query cache (same key) — opening
   // insights on the month already shown at home is an instant cache hit.

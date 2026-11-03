@@ -310,6 +310,5 @@ export function useTransactionForm(transactionId?: string, initialDate?: string)
     closeDatePicker,
     selectDate,
     dismissAlert,
-    goBack: () => router.back(),
   };
 }

@@ -1,22 +1,29 @@
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Stack, useRouter, useSegments } from 'expo-router';
+import { DarkTheme, DefaultTheme, Stack, ThemeProvider, useRouter, useSegments } from 'expo-router';
 import { ShareIntentProvider, useShareIntentContext } from 'expo-share-intent';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
-import { Platform, StyleSheet } from 'react-native';
+import { Platform, StyleSheet, useColorScheme } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { AuthListener } from '@/components/auth-listener';
 import { SplashOverlay } from '@/components/splash-overlay';
-import { LanguageProvider } from '@/contexts/language';
+import { ACCENT_COLOR } from '@/constants/accent';
+import { LanguageProvider, useLanguage } from '@/contexts/language';
 import { WorkspaceProvider } from '@/contexts/workspace';
 import { useSession } from '@/hooks/use-auth';
+import { k } from '@/locales/keys';
 
 SplashScreen.preventAutoHideAsync();
 
 const queryClient = new QueryClient();
+
+// React Navigation themes with the brand accent as the tint (header buttons, back
+// chevron). Every other color stays the system default for the appearance.
+const LIGHT_THEME = { ...DefaultTheme, colors: { ...DefaultTheme.colors, primary: ACCENT_COLOR } };
+const DARK_THEME = { ...DarkTheme, colors: { ...DarkTheme.colors, primary: ACCENT_COLOR } };
 
 function ShareIntentNavigator() {
   const { hasShareIntent } = useShareIntentContext();
@@ -63,12 +70,77 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
   );
 }
 
+function RootStack() {
+  const { t } = useLanguage();
+  const colorScheme = useColorScheme();
+
+  return (
+    <ThemeProvider value={colorScheme === 'dark' ? DARK_THEME : LIGHT_THEME}>
+      <StatusBar style="auto" />
+      <Stack
+        screenOptions={{
+          // The screen below these is the tab shell, which has no title of its own, so
+          // show only the chevron and give it a real label for VoiceOver.
+          headerBackButtonDisplayMode: 'minimal',
+          headerBackTitle: t(k.common.back),
+        }}
+      >
+        <Stack.Screen
+          name="(tabs)"
+          options={{
+            headerShown: false,
+            animation: 'flip',
+            animationDuration: 300,
+            gestureEnabled: false,
+          }}
+        />
+        <Stack.Screen
+          name="login"
+          options={{
+            headerShown: false,
+            animation: 'flip',
+            animationDuration: 300,
+            gestureEnabled: false,
+          }}
+        />
+        <Stack.Screen
+          name="signup"
+          options={{
+            headerShown: false,
+            animationDuration: 300,
+            gestureEnabled: false,
+          }}
+        />
+        <Stack.Screen
+          name="shareintent"
+          options={{
+            headerShown: false,
+            animation: 'fade',
+            animationDuration: 300,
+          }}
+        />
+        <Stack.Screen
+          name="add-transaction"
+          options={({ route }) => ({
+            title: (route.params as { id?: string } | undefined)?.id
+              ? t(k.addTransaction.editTransaction)
+              : t(k.addTransaction.addTransaction),
+            // The form doesn't scroll, so keep the header opaque (iOS 26 defaults to
+            // transparent) and lay the form out below it.
+            headerTransparent: false,
+          })}
+        />
+        <Stack.Screen name="proof-viewer" options={{ title: t(k.proofs.title) }} />
+      </Stack>
+    </ThemeProvider>
+  );
+}
+
 export default function RootLayout() {
   const router = useRouter();
 
   return (
     <GestureHandlerRootView style={styles.root}>
-      <StatusBar style="dark" />
       <LanguageProvider>
         <QueryClientProvider client={queryClient}>
           <ShareIntentProvider
@@ -83,112 +155,7 @@ export default function RootLayout() {
               <AuthListener>
                 <WorkspaceProvider>
                   <AuthGuard>
-                    <Stack>
-                      <Stack.Screen
-                        name="login"
-                        options={{
-                          headerShown: false,
-                          animation: 'flip',
-                          animationDuration: 300,
-                          gestureEnabled: false,
-                        }}
-                      />
-                      <Stack.Screen
-                        name="signup"
-                        options={{
-                          headerShown: false,
-                          animationDuration: 300,
-                          gestureEnabled: false,
-                        }}
-                      />
-                      <Stack.Screen
-                        name="index"
-                        options={{
-                          headerShown: false,
-                          animation: 'flip',
-                          animationDuration: 300,
-                          gestureEnabled: false,
-                        }}
-                      />
-                      <Stack.Screen
-                        name="add-transaction"
-                        options={{
-                          headerShown: false,
-                          animationDuration: 350,
-                        }}
-                      />
-                      <Stack.Screen
-                        name="settings"
-                        options={{
-                          headerShown: false,
-                          animationDuration: 350,
-                        }}
-                      />
-                      <Stack.Screen
-                        name="insights"
-                        options={{
-                          headerShown: false,
-                          animationDuration: 350,
-                        }}
-                      />
-                      <Stack.Screen
-                        name="categories"
-                        options={{
-                          headerShown: false,
-                          animationDuration: 350,
-                        }}
-                      />
-                      <Stack.Screen
-                        name="subscriptions"
-                        options={{
-                          headerShown: false,
-                          animationDuration: 350,
-                        }}
-                      />
-                      <Stack.Screen
-                        name="proof-viewer"
-                        options={{
-                          headerShown: false,
-                          animationDuration: 350,
-                        }}
-                      />
-                      <Stack.Screen
-                        name="shareintent"
-                        options={{
-                          headerShown: false,
-                          animation: 'fade',
-                          animationDuration: 300,
-                        }}
-                      />
-                      <Stack.Screen
-                        name="create-workspace"
-                        options={{
-                          headerShown: false,
-                          animationDuration: 350,
-                        }}
-                      />
-                      <Stack.Screen
-                        name="workspace-settings"
-                        options={{
-                          headerShown: false,
-                          animationDuration: 350,
-                        }}
-                      />
-                      <Stack.Screen
-                        name="workspace-invites"
-                        options={{
-                          headerShown: false,
-                          animationDuration: 350,
-                        }}
-                      />
-                      <Stack.Screen
-                        name="workspaces"
-                        options={{
-                          headerShown: false,
-                          animationDuration: 350,
-                        }}
-                      />
-                    </Stack>
+                    <RootStack />
                   </AuthGuard>
                 </WorkspaceProvider>
               </AuthListener>

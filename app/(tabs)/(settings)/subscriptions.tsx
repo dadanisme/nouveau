@@ -1,5 +1,4 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
@@ -9,9 +8,7 @@ import {
   Text,
   View,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Button } from '@/components/button';
 import { colors, design } from '@/constants/colors';
 import { useLanguage } from '@/contexts/language';
 import { useSession } from '@/hooks/use-auth';
@@ -65,8 +62,6 @@ function SubscriptionRow({
 }
 
 export default function SubscriptionsScreen() {
-  const insets = useSafeAreaInsets();
-  const router = useRouter();
   const { session } = useSession();
   const { t } = useLanguage();
   const {
@@ -87,15 +82,7 @@ export default function SubscriptionsScreen() {
   }, [queryRefetch]);
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
-      <View style={styles.header}>
-        <Button variant="outline" onPress={() => router.back()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={22} color={colors.gray[900]} />
-        </Button>
-        <Text style={styles.headerTitle}>{t(k.subscriptions.title)}</Text>
-        <View style={styles.headerSpacer} />
-      </View>
-
+    <>
       {isLoading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary.DEFAULT} />
@@ -103,17 +90,14 @@ export default function SubscriptionsScreen() {
       ) : (
         <ScrollView
           style={styles.scrollView}
-          contentContainerStyle={[
-            styles.scrollContent,
-            { paddingBottom: insets.bottom + design.spacing.lg },
-          ]}
+          contentInsetAdjustmentBehavior="automatic"
+          contentContainerStyle={styles.scrollContent}
           refreshControl={
             <RefreshControl
               refreshing={isRefreshing}
               onRefresh={refetch}
               tintColor={colors.primary.DEFAULT}
               colors={[colors.primary.DEFAULT]}
-              progressViewOffset={insets.top}
             />
           }
         >
@@ -136,49 +120,25 @@ export default function SubscriptionsScreen() {
           )}
         </ScrollView>
       )}
-    </View>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: design.spacing.lg,
-    paddingVertical: design.spacing.md,
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    paddingVertical: 0,
-    paddingHorizontal: 0,
-    borderRadius: design.radius.sm,
-  },
-  headerTitle: {
-    flex: 1,
-    textAlign: 'center',
-    fontSize: design.fontSize.lg,
-    fontWeight: '800',
-    color: colors.gray[900],
-  },
-  headerSpacer: {
-    width: 40,
-  },
   loadingContainer: {
     flex: 1,
+    backgroundColor: colors.background,
     justifyContent: 'center',
     alignItems: 'center',
   },
   scrollView: {
     flex: 1,
+    backgroundColor: colors.background,
   },
   scrollContent: {
     paddingHorizontal: design.spacing.lg,
     paddingTop: design.spacing.md,
+    paddingBottom: design.spacing.lg,
   },
   listCard: {
     backgroundColor: colors.white,

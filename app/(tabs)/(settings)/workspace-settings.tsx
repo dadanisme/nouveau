@@ -3,12 +3,10 @@ import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Alert } from '@/components/alert';
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
-import { ScreenHeader } from '@/components/screen-header';
 import { WorkspaceInviteSheet } from '@/components/workspace-invite-sheet';
 import { WorkspaceInvitesSection } from '@/components/workspace-invites-section';
 import { WorkspaceMembersSection } from '@/components/workspace-members-section';
@@ -33,7 +31,6 @@ import { k } from '@/locales/keys';
 
 export default function WorkspaceSettingsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const insets = useSafeAreaInsets();
   const router = useRouter();
   const { t } = useLanguage();
   const { session } = useSession();
@@ -195,14 +192,11 @@ export default function WorkspaceSettingsScreen() {
   }, [pendingAction, t]);
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
-      <ScreenHeader title={t(k.workspace.workspaceSettings)} onBack={() => router.back()} />
-
+    <>
       <ScrollView
-        contentContainerStyle={[
-          styles.content,
-          { paddingBottom: insets.bottom + design.spacing.lg },
-        ]}
+        style={styles.container}
+        contentInsetAdjustmentBehavior="automatic"
+        contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.fieldGroup}>
@@ -333,7 +327,7 @@ export default function WorkspaceSettingsScreen() {
         message={alert?.message}
         onDismiss={() => setAlert(null)}
       />
-    </View>
+    </>
   );
 }
 
@@ -345,6 +339,7 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: design.spacing.lg,
     paddingTop: design.spacing.lg,
+    paddingBottom: design.spacing.lg,
     gap: design.spacing.md,
   },
   fieldGroup: {

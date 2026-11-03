@@ -5,7 +5,6 @@ import { useRouter } from 'expo-router';
 import { useCallback, useMemo } from 'react';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { scheduleOnRN } from 'react-native-worklets';
 
 import { BottomSheet } from '@/components/bottom-sheet';
@@ -32,7 +31,6 @@ const SWIPE_DISTANCE_THRESHOLD = 60;
 const SWIPE_VELOCITY_THRESHOLD = 250;
 
 export default function TransactionsScreen() {
-  const insets = useSafeAreaInsets();
   const router = useRouter();
   const { t } = useLanguage();
 
@@ -116,14 +114,16 @@ export default function TransactionsScreen() {
 
   return (
     <GestureDetector gesture={panGesture}>
-      <View style={[styles.container, { paddingTop: insets.top }]}>
+      <View style={styles.container}>
         <ScrollView
           style={styles.scroll}
+          contentInsetAdjustmentBehavior="automatic"
           contentContainerStyle={[
             styles.contentContainer,
-            { paddingBottom: FAB_HEIGHT + insets.bottom + design.spacing.lg },
+            // The tab bar inset comes from contentInsetAdjustmentBehavior (iOS) and the
+            // native tabs' bottom safe area (Android); this only clears the FAB.
+            { paddingBottom: FAB_HEIGHT + design.spacing.lg },
           ]}
-          stickyHeaderIndices={[0]}
           showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl
@@ -134,9 +134,9 @@ export default function TransactionsScreen() {
             />
           }
         >
-          {/* Sticky Header — Filter | Month Nav | Settings */}
-          <View style={styles.stickyHeaderOuter}>
-            <View style={styles.stickyHeaderInner}>
+          {/* Filter | Month Nav */}
+          <View style={styles.navRowOuter}>
+            <View style={styles.navRowInner}>
               <Button
                 variant="outline"
                 accessibilityLabel={t(k.transactions.filter)}
@@ -171,15 +171,8 @@ export default function TransactionsScreen() {
                 </Pressable>
               </View>
 
-              <Button
-                variant="outline"
-                accessibilityLabel={t(k.settings.title)}
-                accessibilityRole="button"
-                onPress={() => router.push('/settings')}
-                style={styles.iconButton}
-              >
-                <Ionicons name="settings-outline" size={22} color={colors.gray[900]} />
-              </Button>
+              {/* Balances the filter button so the month stays centered */}
+              <View style={styles.iconButtonSpacer} />
             </View>
           </View>
 
@@ -192,7 +185,7 @@ export default function TransactionsScreen() {
               expense={totals.expense}
               balance={balance}
               onPress={() =>
-                router.push({
+                router.navigate({
                   pathname: '/insights',
                   params: { year: String(view.year), month: String(view.month) },
                 })
@@ -404,14 +397,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: design.spacing.lg,
     paddingTop: design.spacing.md,
   },
-  stickyHeaderOuter: {
-    backgroundColor: colors.background,
+  navRowOuter: {
     paddingVertical: design.spacing.sm,
-    paddingHorizontal: design.spacing.lg,
-    marginHorizontal: -design.spacing.lg,
     marginBottom: design.spacing.lg,
   },
-  stickyHeaderInner: {
+  navRowInner: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -423,6 +413,9 @@ const styles = StyleSheet.create({
     paddingVertical: 0,
     paddingHorizontal: 0,
     borderRadius: design.radius.sm,
+  },
+  iconButtonSpacer: {
+    width: 44,
   },
   monthNav: {
     flex: 1,

@@ -2,13 +2,11 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { StyleSheet, Text, TextInput, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { Alert } from '@/components/alert';
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
-import { ScreenHeader } from '@/components/screen-header';
 import { colors, design } from '@/constants/colors';
 import { COMMON_CURRENCIES } from '@/constants/currencies';
 import { useLanguage } from '@/contexts/language';
@@ -17,7 +15,6 @@ import { useCreateWorkspace } from '@/hooks/use-workspaces';
 import { k } from '@/locales/keys';
 
 export default function CreateWorkspaceScreen() {
-  const insets = useSafeAreaInsets();
   const router = useRouter();
   const { t } = useLanguage();
   const { switchWorkspace } = useWorkspace();
@@ -51,10 +48,13 @@ export default function CreateWorkspaceScreen() {
   }
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
-      <ScreenHeader title={t(k.workspace.newWorkspace)} onBack={() => router.back()} />
-
-      <View style={styles.content}>
+    <>
+      <ScrollView
+        style={styles.scroll}
+        contentInsetAdjustmentBehavior="automatic"
+        contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="handled"
+      >
         <View style={styles.fieldGroup}>
           <Text style={styles.fieldLabel}>{t(k.workspace.workspaceName)}</Text>
           <Card style={styles.inputCard}>
@@ -104,7 +104,7 @@ export default function CreateWorkspaceScreen() {
             {createWorkspace.isPending ? t(k.common.pleaseWait) : t(k.workspace.create)}
           </Text>
         </Button>
-      </View>
+      </ScrollView>
 
       <Alert
         visible={!!alert}
@@ -112,17 +112,16 @@ export default function CreateWorkspaceScreen() {
         message={alert?.message}
         onDismiss={() => setAlert(null)}
       />
-    </View>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  scroll: {
     flex: 1,
     backgroundColor: colors.background,
   },
   content: {
-    flex: 1,
     paddingHorizontal: design.spacing.lg,
     paddingTop: design.spacing.lg,
     gap: design.spacing.lg,

@@ -12,8 +12,11 @@ const id: Translations = {
     unexpectedError: 'Terjadi kesalahan yang tidak terduga',
     income: 'Pemasukan',
     expense: 'Pengeluaran',
+    moreActions: 'Tindakan lainnya',
+    back: 'Kembali',
   },
   transactions: {
+    title: 'Transaksi',
     noTransactions: 'Tidak ada transaksi',
     all: 'Semua',
     income: 'Pemasukan',

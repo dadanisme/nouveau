@@ -4,7 +4,6 @@ import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Alert } from '@/components/alert';
 import { Avatar } from '@/components/avatar';
@@ -20,7 +19,6 @@ import { useMyPendingInvites } from '@/hooks/use-workspace-invites';
 import { k } from '@/locales/keys';
 
 export default function SettingsScreen() {
-  const insets = useSafeAreaInsets();
   const router = useRouter();
   const { session } = useSession();
   const { data: user, error: userError } = useUserProfile(session?.user.id);
@@ -75,22 +73,15 @@ export default function SettingsScreen() {
     }
   };
 
+  // The ScrollView must be the screen's root view: wrapped in a View, the native header and
+  // tab bar don't track it (no large-title collapse or tab bar minimize, content scrolls
+  // under the title).
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
-      <View style={styles.header}>
-        <Button variant="outline" onPress={() => router.back()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={22} color={colors.gray[900]} />
-        </Button>
-        <Text style={styles.headerTitle}>{t(k.settings.title)}</Text>
-        <View style={styles.headerSpacer} />
-      </View>
-
+    <>
       <ScrollView
         style={styles.scroll}
-        contentContainerStyle={[
-          styles.content,
-          { paddingBottom: insets.bottom + design.spacing.lg },
-        ]}
+        contentInsetAdjustmentBehavior="automatic"
+        contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
         {userError && (
@@ -233,44 +224,19 @@ export default function SettingsScreen() {
         message={alert?.message}
         onDismiss={() => setAlert(null)}
       />
-    </View>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: design.spacing.lg,
-    paddingVertical: design.spacing.md,
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    paddingVertical: 0,
-    paddingHorizontal: 0,
-    borderRadius: design.radius.sm,
-  },
-  headerTitle: {
-    flex: 1,
-    textAlign: 'center',
-    fontSize: design.fontSize.lg,
-    fontWeight: '800',
-    color: colors.gray[900],
-  },
-  headerSpacer: {
-    width: 40,
-  },
   scroll: {
     flex: 1,
+    backgroundColor: colors.background,
   },
   content: {
     paddingHorizontal: design.spacing.lg,
     paddingTop: design.spacing.lg,
+    paddingBottom: design.spacing.lg,
     gap: design.spacing.lg,
   },
   errorCard: {
