@@ -6,3 +6,16 @@ export function getInitials(name: string): string {
     .join('')
     .toUpperCase();
 }
+
+/**
+ * Whether a stored display name only stands in for a real one: empty, the email, or its local
+ * part (what an account created without a name ends up with).
+ */
+export function isPlaceholderDisplayName(
+  displayName: string | null | undefined,
+  email: string | null | undefined,
+): boolean {
+  const name = displayName?.trim().toLowerCase() ?? '';
+  const address = email?.trim().toLowerCase() ?? '';
+  return !name || (!!address && (name === address || name === address.split('@')[0]));
+}

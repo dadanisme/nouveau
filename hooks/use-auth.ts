@@ -4,9 +4,12 @@ import {
   isErrorWithCode,
   statusCodes,
 } from '@react-native-google-signin/google-signin';
+import type { User } from '@supabase/supabase-js';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
+import { isAppleSignInAvailable, requestAppleCredential, type AppleName } from '@/lib/apple-auth';
 import { supabase } from '@/lib/supabase';
+import { isPlaceholderDisplayName } from '@/utils/string';
 
 export function useSession() {
   const { data: session, isLoading } = useQuery({
@@ -85,6 +88,70 @@ export function useSignInWithGoogle() {
         token: response.data.idToken,
       });
       if (error) throw error;
+      return 'signedIn';
+    },
+  });
+}
+
+/** Whether to offer Sign in with Apple: iOS devices that support it (never Android). */
+export function useAppleSignInAvailable() {
+  const { data } = useQuery({
+    queryKey: ['apple-sign-in-available'],
+    queryFn: isAppleSignInAvailable,
+    staleTime: Infinity,
+  });
+  return data ?? false;
+}
+
+/**
+ * Stores the name Apple shares on the first sign-in (it never sends it again), the way names
+ * arrive from Google: `full_name` in the auth user metadata, and `users.display_name`. Neither
+ * overwrites a real name already there. Best effort: a failure here doesn't fail the sign-in.
+ */
+async function saveAppleName(user: User, name: AppleName) {
+  try {
+    if (!user.user_metadata?.full_name) {
+      await supabase.auth.updateUser({
+        data: {
+          full_name: name.fullName,
+          given_name: name.givenName,
+          family_name: name.familyName,
+        },
+      });
+    }
+
+    const { data: profile } = await supabase
+      .from('users')
+      .select('display_name, email')
+      .eq('id', user.id)
+      .maybeSingle();
+    if (profile && isPlaceholderDisplayName(profile.display_name, profile.email ?? user.email)) {
+      await supabase.from('users').update({ display_name: name.fullName }).eq('id', user.id);
+    }
+  } catch (error) {
+    console.warn('Could not save the name from Sign in with Apple', error);
+  }
+}
+
+export function useSignInWithApple() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (): Promise<ProviderSignInResult> => {
+      const credential = await requestAppleCredential();
+      if (credential === 'cancelled') return 'cancelled';
+
+      const { data, error } = await supabase.auth.signInWithIdToken({
+        provider: 'apple',
+        token: credential.identityToken,
+        nonce: credential.rawNonce,
+      });
+      if (error) throw error;
+
+      if (credential.name && data.user) {
+        await saveAppleName(data.user, credential.name);
+        queryClient.invalidateQueries({ queryKey: ['user-profile', data.user.id] });
+      }
       return 'signedIn';
     },
   });
