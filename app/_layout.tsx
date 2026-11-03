@@ -152,6 +152,11 @@ function RootStack() {
         <Stack.Screen name="(sheets)/category-picker" options={sheetOptions([0.5, 1])} />
         <Stack.Screen name="(sheets)/date-picker" options={sheetOptions('fitToContents')} />
         <Stack.Screen name="(sheets)/category-transactions" options={sheetOptions([0.6, 1])} />
+        <Stack.Screen name="(sheets)/workspace-switcher" options={sheetOptions([0.5, 1])} />
+        <Stack.Screen name="(sheets)/workspace-invite" options={sheetOptions('fitToContents')} />
+        <Stack.Screen name="(sheets)/category-form" options={sheetOptions([0.6, 1])} />
+        <Stack.Screen name="(sheets)/icon-picker" options={sheetOptions([0.7, 1])} />
+        <Stack.Screen name="(sheets)/color-picker" options={sheetOptions('fitToContents')} />
       </Stack>
     </ThemeProvider>
   );

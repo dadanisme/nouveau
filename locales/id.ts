@@ -130,6 +130,10 @@ const id: Translations = {
     invalidNameMessage: 'Masukkan nama kategori.',
     failedToSave: 'Gagal Menyimpan',
     failedToUpdate: 'Gagal Memperbarui',
+    failedToDelete: 'Gagal Menghapus',
+    deleteInUseMessage: 'Kategori ini mungkin sedang dipakai oleh transaksi.',
+    chooseIcon: 'Pilih Ikon',
+    chooseColor: 'Pilih Warna',
   },
   subscriptions: {
     title: 'Langganan',

@@ -2,9 +2,8 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { Alert } from '@/components/alert';
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
 import { colors, design } from '@/constants/colors';
@@ -24,7 +23,6 @@ export default function WorkspaceInvitesScreen() {
   const { switchWorkspace } = useWorkspace();
   const { data: invites = [], isLoading } = useMyPendingInvites();
   const acceptInvite = useAcceptInvite();
-  const [alert, setAlert] = useState<{ title: string; message?: string } | null>(null);
   const [acceptingId, setAcceptingId] = useState<string | null>(null);
 
   function handleAccept(invite: WorkspaceInviteWithWorkspace) {
@@ -38,64 +36,55 @@ export default function WorkspaceInvitesScreen() {
       },
       onError: (error) => {
         setAcceptingId(null);
-        setAlert({
-          title: t(k.workspace.failedToAccept),
-          message: error instanceof Error ? error.message : t(k.common.unexpectedError),
-        });
+        Alert.alert(
+          t(k.workspace.failedToAccept),
+          error instanceof Error ? error.message : t(k.common.unexpectedError),
+        );
       },
     });
   }
 
   return (
-    <>
-      <ScrollView
-        style={styles.container}
-        contentInsetAdjustmentBehavior="automatic"
-        contentContainerStyle={styles.content}
-      >
-        {!isLoading && invites.length === 0 && (
-          <View style={styles.empty}>
-            <Ionicons name="mail-outline" size={48} color={colors.gray[300]} />
-            <Text style={styles.emptyText}>{t(k.workspace.noInvites)}</Text>
-          </View>
-        )}
+    <ScrollView
+      style={styles.container}
+      contentInsetAdjustmentBehavior="automatic"
+      contentContainerStyle={styles.content}
+    >
+      {!isLoading && invites.length === 0 && (
+        <View style={styles.empty}>
+          <Ionicons name="mail-outline" size={48} color={colors.gray[300]} />
+          <Text style={styles.emptyText}>{t(k.workspace.noInvites)}</Text>
+        </View>
+      )}
 
-        {invites.map((invite) => (
-          <Card key={invite.id} style={styles.inviteCard}>
-            <View style={styles.inviteHead}>
-              <View style={styles.inviteIcon}>
-                <Ionicons name="people-outline" size={22} color={colors.gray[700]} />
-              </View>
-              <View style={styles.inviteText}>
-                <Text style={styles.inviteName}>
-                  {invite.workspaces?.name ?? t(k.workspace.shared)}
-                </Text>
-                <Text style={styles.inviteMeta}>
-                  {t(k.workspace.expiresAt, { date: formatShortDate(invite.expires_at) })}
-                </Text>
-              </View>
+      {invites.map((invite) => (
+        <Card key={invite.id} style={styles.inviteCard}>
+          <View style={styles.inviteHead}>
+            <View style={styles.inviteIcon}>
+              <Ionicons name="people-outline" size={22} color={colors.gray[700]} />
             </View>
-            <Button
-              variant="primary"
-              onPress={() => handleAccept(invite)}
-              disabled={acceptingId !== null}
-              style={styles.acceptButton}
-            >
-              <Text style={styles.acceptText}>
-                {acceptingId === invite.id ? t(k.workspace.accepting) : t(k.workspace.accept)}
+            <View style={styles.inviteText}>
+              <Text style={styles.inviteName}>
+                {invite.workspaces?.name ?? t(k.workspace.shared)}
               </Text>
-            </Button>
-          </Card>
-        ))}
-      </ScrollView>
-
-      <Alert
-        visible={!!alert}
-        title={alert?.title ?? ''}
-        message={alert?.message}
-        onDismiss={() => setAlert(null)}
-      />
-    </>
+              <Text style={styles.inviteMeta}>
+                {t(k.workspace.expiresAt, { date: formatShortDate(invite.expires_at) })}
+              </Text>
+            </View>
+          </View>
+          <Button
+            variant="primary"
+            onPress={() => handleAccept(invite)}
+            disabled={acceptingId !== null}
+            style={styles.acceptButton}
+          >
+            <Text style={styles.acceptText}>
+              {acceptingId === invite.id ? t(k.workspace.accepting) : t(k.workspace.accept)}
+            </Text>
+          </Button>
+        </Card>
+      ))}
+    </ScrollView>
   );
 }
 

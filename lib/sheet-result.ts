@@ -11,6 +11,8 @@ import type { Tables } from '@/types/supabase';
 export interface SheetResultPayloads {
   'category-picker': { category: Tables<'categories'> };
   'date-picker': { date: Date };
+  'icon-picker': { icon: string };
+  'color-picker': { color: string };
 }
 
 export type SheetKey = keyof SheetResultPayloads;

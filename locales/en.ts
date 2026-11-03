@@ -127,6 +127,10 @@ const en = {
     invalidNameMessage: 'Please enter a category name.',
     failedToSave: 'Failed to Save',
     failedToUpdate: 'Failed to Update',
+    failedToDelete: 'Failed to Delete',
+    deleteInUseMessage: 'This category may be in use by transactions.',
+    chooseIcon: 'Choose Icon',
+    chooseColor: 'Choose Color',
   },
   subscriptions: {
     title: 'Subscriptions',
