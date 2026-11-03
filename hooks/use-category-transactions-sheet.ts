@@ -16,6 +16,7 @@ import i18n from '@/lib/i18n';
 import { k } from '@/locales/keys';
 import { formatPeriodLabel, type PeriodMode } from '@/utils/date';
 import { parseIntParam } from '@/utils/params';
+import { toTransactionRowData } from '@/utils/transaction';
 
 export interface CategoryTransactionsSheetParams {
   categoryId: string;
@@ -86,7 +87,9 @@ export function useCategoryTransactionsSheet() {
     );
   });
 
-  function recategorize(transaction: TransactionWithCategory) {
+  function recategorize(transactionId: string) {
+    const transaction = transactions.find((tx) => tx.id === transactionId);
+    if (!transaction) return;
     recategorizeTargetRef.current = transaction;
     router.push({
       pathname: '/category-picker',
@@ -106,9 +109,8 @@ export function useCategoryTransactionsSheet() {
 
   return {
     categoryName: category?.name ?? transactions[0]?.category.name ?? '',
-    categoryColor: category?.color ?? transactions[0]?.category.color,
     periodLabel: formatPeriodLabel(mode, year, month),
-    transactions,
+    rows: transactions.map((tx) => toTransactionRowData(tx, { showDate: true })),
     isLoading: mode === 'month' ? monthQuery.isLoading : yearQuery.isLoading,
     recategorize,
     viewProofs,

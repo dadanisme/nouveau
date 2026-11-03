@@ -28,6 +28,18 @@ const id: Translations = {
     type: 'Tipe',
     filterActive: 'Filter, aktif',
     allCategories: 'Semua kategori',
+    today: 'Hari ini',
+    yesterday: 'Kemarin',
+    summary: 'Ringkasan',
+    hasProofs: 'Ada bukti',
+    daySpent: 'Keluar %{amount}',
+    dayReceived: 'Masuk %{amount}',
+  },
+  periodNav: {
+    chooseMonth: 'Pilih bulan',
+    chooseYear: 'Pilih tahun',
+    thisMonth: 'Bulan Ini',
+    thisYear: 'Tahun Ini',
   },
   insights: {
     title: 'Wawasan',

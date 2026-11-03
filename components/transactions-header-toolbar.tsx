@@ -1,4 +1,5 @@
 import { Stack } from 'expo-router';
+import type { ReactElement } from 'react';
 import { Platform } from 'react-native';
 
 import { useLanguage } from '@/contexts/language';
@@ -7,6 +8,8 @@ import { useSymbolIcon } from '@/hooks/use-symbol-icon';
 import { k } from '@/locales/keys';
 
 interface TransactionsHeaderToolbarProps {
+  /** `Stack.Toolbar.*` items placed first, e.g. the Android month controls (`usePeriodNavToolbar`). */
+  leadingItems?: ReactElement[];
   /** Show the `+` Add action in the header (iOS before the tab-bar action slot). */
   showAddAction: boolean;
   onAddPress: () => void;
@@ -20,12 +23,14 @@ interface TransactionsHeaderToolbarProps {
 }
 
 /**
- * Right side of the Transactions header: the optional `+` Add action and the filter menu (UIMenu
- * on iOS, Material dropdown on Android) with an inline Type section and a Category submenu. A
- * screen keeps only one `Stack.Toolbar` per placement, so both items live here. Items lay out left
- * to right, so `+` comes last to take the trailing (primary) spot.
+ * Right side of the Transactions header: any leading items (the Android month controls), the
+ * filter menu (UIMenu on iOS, Material dropdown on Android) with an inline Type section and a
+ * Category submenu, and the optional `+` Add action. A screen keeps only one `Stack.Toolbar` per
+ * placement, so all of them live here. Items lay out left to right, so `+` comes last to take the
+ * trailing (primary) spot.
  */
 export function TransactionsHeaderToolbar({
+  leadingItems = [],
   showAddAction,
   onAddPress,
   activeFilter,
@@ -64,10 +69,11 @@ export function TransactionsHeaderToolbar({
     ));
 
   // Android needs the menu icon as an image, so wait for it rather than show an empty slot.
-  if (!filterIcon && !showAddAction) return null;
+  if (!filterIcon && !showAddAction && leadingItems.length === 0) return null;
 
   return (
     <Stack.Toolbar placement="right">
+      {leadingItems}
       {filterIcon && (
         <Stack.Toolbar.Menu
           icon={filterIcon}

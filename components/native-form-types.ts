@@ -23,6 +23,11 @@ export type NativeFormProps = {
   title?: string;
   /** Pull to refresh; the indicator shows until the promise settles. */
   onRefresh?: () => Promise<void>;
+  /**
+   * Extra space under the last row, e.g. `ADD_FAB_CLEARANCE` so it can scroll clear of a
+   * floating action button. Android only: iOS insets come from the tab bar and safe area.
+   */
+  bottomInset?: number;
   children: React.ReactNode;
 };
 
@@ -190,6 +195,33 @@ export type FormSegmentedRowProps<T extends string> = {
   options: readonly FormPickerOption<T>[];
   selection: T;
   onSelectionChange: (value: T) => void;
+};
+
+/**
+ * How a value reads: `positive` is money coming in (iOS system green; Android keeps the
+ * on-surface color, since Material 3 has no success role, and relies on the value's `+` sign).
+ */
+export type FormValueTone = 'default' | 'positive';
+
+export type FormValueRowProps = {
+  title: string;
+  /** The value, shown trailing in the body style. */
+  value: string;
+  tone?: FormValueTone;
+  /** Emphasizes the row, e.g. a total. */
+  emphasized?: boolean;
+};
+
+export type FormProgressRowProps = {
+  title: string;
+  /** Leading glyph; its color also tints the bar. */
+  symbol?: FormSymbol;
+  /** Trailing value, e.g. the amount. */
+  value: string;
+  /** Bar fill, 0–1. */
+  progress: number;
+  /** Makes the row tappable (with a chevron on iOS). */
+  onPress?: () => void;
 };
 
 export type FormEmptyRowProps = {

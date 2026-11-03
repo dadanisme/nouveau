@@ -9,6 +9,7 @@ import {
   Icon,
   IconButton,
   LazyColumn,
+  LinearProgressIndicator,
   ListItem,
   PullToRefreshBox,
   Row,
@@ -31,12 +32,12 @@ import {
   padding,
   selectable,
   semantics,
-  size,
   type ModifierConfig,
 } from '@expo/ui/jetpack-compose/modifiers';
 import { useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { StyleSheet } from 'react-native';
 
+import { ComposeSymbolIcon } from '@/components/compose-symbol-icon';
 import type {
   FormButtonRowProps,
   FormEmptyRowProps,
@@ -46,15 +47,15 @@ import type {
   FormPickerRowProps,
   FormRowAction,
   FormSectionProps,
+  FormProgressRowProps,
   FormSegmentedRowProps,
-  FormSymbol,
   FormTextFieldContentType,
   FormTextFieldRowProps,
+  FormValueRowProps,
   NativeFormProps,
 } from '@/components/native-form-types';
 import { ACCENT_COLOR } from '@/constants/accent';
 import { useLanguage } from '@/contexts/language';
-import { useMaterialSymbolSources } from '@/hooks/use-material-symbol-sources';
 import { k } from '@/locales/keys';
 
 // Material 3 list metrics: 16dp side padding, section headers spaced from the previous group.
@@ -64,9 +65,8 @@ const SIDE = 16;
 // the `primary` role (section headers).
 const COLOR_OVERRIDES: Partial<MaterialColors> = { primary: ACCENT_COLOR as `#${string}` };
 
-// Material 3 metrics: 24dp sheet top padding and leading icons.
+// Material 3 metrics: 24dp sheet top padding.
 const SHEET_TOP = 24;
-const ICON_SIZE = 24;
 // Sheets don't inset for the gesture bar, so the last row clears it.
 const SHEET_BOTTOM = 72;
 
@@ -83,13 +83,16 @@ export function NativeForm(props: NativeFormProps) {
   );
 }
 
-function FormSurface({ title, onRefresh, children }: NativeFormProps) {
+function FormSurface({ title, onRefresh, bottomInset = 0, children }: NativeFormProps) {
   const colors = useMaterialColors();
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const list = (
     <LazyColumn
-      contentPadding={{ top: title ? SHEET_TOP : 0, bottom: title ? SHEET_BOTTOM : 24 }}
+      contentPadding={{
+        top: title ? SHEET_TOP : 0,
+        bottom: (title ? SHEET_BOTTOM : 24) + bottomInset,
+      }}
       modifiers={[fillMaxSize(), background(colors.surface)]}
     >
       {title ? (
@@ -120,14 +123,6 @@ function FormSurface({ title, onRefresh, children }: NativeFormProps) {
       {list}
     </PullToRefreshBox>
   );
-}
-
-/** A Material Symbol from the font, tinted; a same-size blank until its image is ready. */
-function SymbolIcon({ symbol, iconSize = ICON_SIZE }: { symbol: FormSymbol; iconSize?: number }) {
-  const sources = useMaterialSymbolSources([symbol.material], iconSize);
-  const source = sources.get(symbol.material);
-  if (!source) return <Box modifiers={[size(iconSize, iconSize)]} />;
-  return <Icon source={source} size={iconSize} tint={symbol.color} />;
 }
 
 export function FormSection({ title, footer, children }: FormSectionProps) {
@@ -358,7 +353,7 @@ export function FormListRow({
     <ListItem modifiers={modifiers}>
       {symbol ? (
         <ListItem.LeadingContent>
-          <SymbolIcon symbol={symbol} />
+          <ComposeSymbolIcon symbol={symbol} />
         </ListItem.LeadingContent>
       ) : (
         <RowIcon icon={icon} />
@@ -555,6 +550,56 @@ export function FormSegmentedRow<T extends string>({
   );
 }
 
+/** A read-only label/value list item (e.g. a total); the value trails in the on-surface color. */
+export function FormValueRow({ title, value, emphasized }: FormValueRowProps) {
+  const colors = useMaterialColors();
+  const style = { typography: 'bodyLarge', fontWeight: emphasized ? '600' : undefined } as const;
+  return (
+    <ListItem>
+      <ListItem.HeadlineContent>
+        <Text style={style}>{title}</Text>
+      </ListItem.HeadlineContent>
+      <ListItem.TrailingContent>
+        <Text color={colors.onSurface} style={style}>
+          {value}
+        </Text>
+      </ListItem.TrailingContent>
+    </ListItem>
+  );
+}
+
+/** A list item with a symbol, title, trailing value and a linear progress bar in its color. */
+export function FormProgressRow({ title, symbol, value, progress, onPress }: FormProgressRowProps) {
+  const colors = useMaterialColors();
+  return (
+    <ListItem modifiers={onPress ? [clickable(onPress)] : []}>
+      {symbol ? (
+        <ListItem.LeadingContent>
+          <ComposeSymbolIcon symbol={symbol} />
+        </ListItem.LeadingContent>
+      ) : null}
+      <ListItem.HeadlineContent>
+        <Text maxLines={1} overflow="ellipsis">
+          {title}
+        </Text>
+      </ListItem.HeadlineContent>
+      <ListItem.SupportingContent>
+        <LinearProgressIndicator
+          progress={Math.min(Math.max(progress, 0), 1)}
+          color={symbol?.color}
+          trackColor={colors.surfaceContainerHighest}
+          modifiers={[fillMaxWidth(), padding(0, 8, 0, 4)]}
+        />
+      </ListItem.SupportingContent>
+      <ListItem.TrailingContent>
+        <Text color={colors.onSurface} style={{ typography: 'bodyMedium' }}>
+          {value}
+        </Text>
+      </ListItem.TrailingContent>
+    </ListItem>
+  );
+}
+
 /** A centered empty state: large symbol, title and description. */
 export function FormEmptyRow({ title, description, symbol }: FormEmptyRowProps) {
   const colors = useMaterialColors();
@@ -564,7 +609,7 @@ export function FormEmptyRow({ title, description, symbol }: FormEmptyRowProps) 
       verticalArrangement={{ spacedBy: 8 }}
       modifiers={[fillMaxWidth(), padding(SIDE, 48, SIDE, 24)]}
     >
-      <SymbolIcon symbol={{ ...symbol, color: colors.onSurfaceVariant }} iconSize={48} />
+      <ComposeSymbolIcon symbol={{ ...symbol, color: colors.onSurfaceVariant }} iconSize={48} />
       <Text color={colors.onSurface} style={{ typography: 'titleMedium' }}>
         {title}
       </Text>

@@ -175,7 +175,10 @@ function RootStack() {
         {/* Sheet routes (app/(sheets)/*): results come back through lib/sheet-result.ts. */}
         <Stack.Screen name="(sheets)/category-picker" options={sheetOptions([0.5, 1])} />
         <Stack.Screen name="(sheets)/date-picker" options={sheetOptions('fitToContents')} />
-        <Stack.Screen name="(sheets)/category-transactions" options={sheetOptions([0.6, 1])} />
+        <Stack.Screen
+          name="(sheets)/category-transactions"
+          options={sheetOptions([0.6, 1], { nativeBody: true })}
+        />
         <Stack.Screen
           name="(sheets)/workspace-switcher"
           options={sheetOptions([0.5, 1], { nativeBody: true })}

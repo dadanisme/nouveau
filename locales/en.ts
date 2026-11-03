@@ -26,6 +26,18 @@ const en = {
     type: 'Type',
     filterActive: 'Filter, active',
     allCategories: 'All categories',
+    today: 'Today',
+    yesterday: 'Yesterday',
+    summary: 'Summary',
+    hasProofs: 'Has proofs',
+    daySpent: 'Spent %{amount}',
+    dayReceived: 'Received %{amount}',
+  },
+  periodNav: {
+    chooseMonth: 'Choose month',
+    chooseYear: 'Choose year',
+    thisMonth: 'This Month',
+    thisYear: 'This Year',
   },
   insights: {
     title: 'Insights',
