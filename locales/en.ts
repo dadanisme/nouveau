@@ -97,6 +97,7 @@ const en = {
     missingFields: 'Missing Fields',
     missingFieldsMessage: 'Please enter both email and password.',
     signInFailed: 'Sign-In Failed',
+    invalidCredentials: 'The email or password is incorrect.',
     showPassword: 'Show password',
     hidePassword: 'Hide password',
   },

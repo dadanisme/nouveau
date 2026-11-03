@@ -99,6 +99,7 @@ const id: Translations = {
     missingFields: 'Kolom Belum Lengkap',
     missingFieldsMessage: 'Masukkan email dan kata sandi.',
     signInFailed: 'Gagal Masuk',
+    invalidCredentials: 'Email atau kata sandi salah.',
     showPassword: 'Tampilkan kata sandi',
     hidePassword: 'Sembunyikan kata sandi',
   },

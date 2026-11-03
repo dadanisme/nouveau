@@ -5,6 +5,7 @@ import { Alert } from 'react-native';
 import { useLanguage } from '@/contexts/language';
 import { useSignUpWithEmail } from '@/hooks/use-auth';
 import { k } from '@/locales/keys';
+import { getErrorMessage } from '@/utils/error';
 
 /** Screen hook for Signup: the email/new-password form and the switch back to Sign In. */
 export function useSignupScreen() {
@@ -32,7 +33,7 @@ export function useSignupScreen() {
         onError: (error) => {
           Alert.alert(
             t(k.signup.signUpFailed),
-            error instanceof Error ? error.message : t(k.common.unexpectedError),
+            getErrorMessage(error, t(k.common.unexpectedError)),
           );
         },
       },

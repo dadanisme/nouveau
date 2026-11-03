@@ -33,8 +33,12 @@ const ROW_GAP = 8;
 const GROUP_GAP = 24;
 
 // The system (dynamic) palette; the accent only tints, as the `primary` role (filled button,
-// focused field, text buttons).
-const COLOR_OVERRIDES: Partial<MaterialColors> = { primary: ACCENT_COLOR as `#${string}` };
+// focused field, text buttons). `onPrimary` is its pairing: white on the accent in both themes
+// (the dark palette's own onPrimary is a dark tone meant for a light primary).
+const COLOR_OVERRIDES: Partial<MaterialColors> = {
+  primary: ACCENT_COLOR as `#${string}`,
+  onPrimary: '#FFFFFF',
+};
 
 /**
  * The Login / Signup screen: a scrolling Compose column on the `surface` role with a headline,
@@ -46,7 +50,7 @@ export function AuthForm({ title, subtitle, insetTop, children }: AuthFormProps)
 
   return (
     <Host style={styles.fill} colorOverrides={COLOR_OVERRIDES}>
-      <AuthSurface title={title} subtitle={subtitle} top={TOP + (insetTop ? insets.top : 0)}>
+      <AuthSurface title={title} subtitle={subtitle} statusBarInset={insetTop ? insets.top : 0}>
         {children}
       </AuthSurface>
     </Host>
@@ -56,9 +60,9 @@ export function AuthForm({ title, subtitle, insetTop, children }: AuthFormProps)
 function AuthSurface({
   title,
   subtitle,
-  top,
+  statusBarInset,
   children,
-}: Omit<AuthFormProps, 'insetTop'> & { top: number }) {
+}: Omit<AuthFormProps, 'insetTop'> & { statusBarInset: number }) {
   const colors = useMaterialColors();
 
   return (
@@ -67,9 +71,11 @@ function AuthSurface({
       modifiers={[
         fillMaxSize(),
         background(colors.surface),
+        // Outside the scroll viewport, so scrolled content clips below the status bar.
+        padding(0, statusBarInset, 0, 0),
         imePadding(),
         verticalScroll(),
-        padding(0, top, 0, GROUP_GAP),
+        padding(0, TOP, 0, GROUP_GAP),
       ]}
     >
       <Column verticalArrangement={{ spacedBy: 8 }} modifiers={[padding(SIDE, 0, SIDE, 0)]}>

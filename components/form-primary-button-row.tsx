@@ -1,5 +1,6 @@
 import { Button, HStack, ProgressView, Text } from '@expo/ui/swift-ui';
 import {
+  buttonBorderShape,
   buttonStyle,
   controlSize,
   disabled,
@@ -32,6 +33,8 @@ export function FormPrimaryButtonRow({
       onPress={onPress}
       modifiers={[
         buttonStyle('borderedProminent'),
+        // A capsule on every iOS version (iOS 26+ default), matching the provider pills below.
+        buttonBorderShape('capsule'),
         controlSize('large'),
         disabled(Boolean(isDisabled || loading)),
         listRowBackground('clear'),

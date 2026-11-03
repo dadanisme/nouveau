@@ -5,6 +5,7 @@ import { Alert } from 'react-native';
 import { useLanguage } from '@/contexts/language';
 import { useSignInWithEmail, useSignInWithGoogle } from '@/hooks/use-auth';
 import { k } from '@/locales/keys';
+import { getErrorCode, getErrorMessage } from '@/utils/error';
 
 /** Screen hook for Login: the email/password form, Google sign-in and the switch to Sign Up. */
 export function useLoginScreen() {
@@ -19,10 +20,12 @@ export function useLoginScreen() {
   const isSubmitting = signInWithEmail.isPending || signInWithGoogle.isPending;
 
   function showSignInError(error: unknown) {
-    Alert.alert(
-      t(k.login.signInFailed),
-      error instanceof Error ? error.message : t(k.common.unexpectedError),
-    );
+    // Supabase's wrong-password message is English only; the rest pass through as sent.
+    const message =
+      getErrorCode(error) === 'invalid_credentials'
+        ? t(k.login.invalidCredentials)
+        : getErrorMessage(error, t(k.common.unexpectedError));
+    Alert.alert(t(k.login.signInFailed), message);
   }
 
   function signIn() {
