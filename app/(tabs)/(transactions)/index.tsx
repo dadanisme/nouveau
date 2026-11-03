@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import * as Haptics from 'expo-haptics';
-import { useRouter } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import { useCallback, useMemo } from 'react';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
@@ -10,7 +10,8 @@ import { scheduleOnRN } from 'react-native-worklets';
 import { BottomSheet } from '@/components/bottom-sheet';
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
-import { FAB_HEIGHT, FloatingAddButton } from '@/components/floating-add-button';
+import { ADD_FAB_CLEARANCE, AddTransactionFab } from '@/components/add-transaction-fab';
+import { headerActionOptions } from '@/components/header-action';
 import { SummaryCard } from '@/components/summary-card';
 import { SummaryCardSkeleton } from '@/components/summary-card-skeleton';
 import { TransactionGroupSkeleton } from '@/components/transaction-group-skeleton';
@@ -25,10 +26,12 @@ import {
 } from '@/hooks/use-transactions-screen';
 import { k } from '@/locales/keys';
 import { formatCompactAmount } from '@/utils/currency';
+import { getAddActionPlacement } from '@/utils/platform';
 import { toTransactionItemData } from '@/utils/transaction';
 
 const SWIPE_DISTANCE_THRESHOLD = 60;
 const SWIPE_VELOCITY_THRESHOLD = 250;
+const ADD_ACTION_PLACEMENT = getAddActionPlacement();
 
 export default function TransactionsScreen() {
   const router = useRouter();
@@ -63,6 +66,10 @@ export default function TransactionsScreen() {
     ],
     [t],
   );
+
+  function handleAddPress() {
+    router.push('/add-transaction');
+  }
 
   function handleTransactionPress(id: string) {
     router.push({ pathname: '/add-transaction', params: { id } });
@@ -115,14 +122,24 @@ export default function TransactionsScreen() {
   return (
     <GestureDetector gesture={panGesture}>
       <View style={styles.container}>
+        {ADD_ACTION_PLACEMENT === 'toolbar' && (
+          <Stack.Screen
+            options={headerActionOptions({
+              sf: 'plus',
+              md: 'add',
+              label: t(k.addTransaction.addTransaction),
+              onPress: handleAddPress,
+            })}
+          />
+        )}
         <ScrollView
           style={styles.scroll}
           contentInsetAdjustmentBehavior="automatic"
           contentContainerStyle={[
             styles.contentContainer,
             // The tab bar inset comes from contentInsetAdjustmentBehavior (iOS) and the
-            // native tabs' bottom safe area (Android); this only clears the FAB.
-            { paddingBottom: FAB_HEIGHT + design.spacing.lg },
+            // native tabs' bottom safe area (Android); this only clears the Android FAB.
+            { paddingBottom: ADD_FAB_CLEARANCE + design.spacing.lg },
           ]}
           showsVerticalScrollIndicator={false}
           refreshControl={
@@ -224,7 +241,7 @@ export default function TransactionsScreen() {
           )}
         </ScrollView>
 
-        <FloatingAddButton />
+        {ADD_ACTION_PLACEMENT === 'fab' && <AddTransactionFab />}
 
         <BottomSheet
           visible={filterSheetVisible}
