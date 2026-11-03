@@ -11,6 +11,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { AuthListener } from '@/components/auth-listener';
 import { SplashOverlay } from '@/components/splash-overlay';
 import { ACCENT_COLOR } from '@/constants/accent';
+import { sheetOptions } from '@/constants/sheet-options';
 import { LanguageProvider, useLanguage } from '@/contexts/language';
 import { WorkspaceProvider } from '@/contexts/workspace';
 import { useSession } from '@/hooks/use-auth';
@@ -147,6 +148,9 @@ function RootStack() {
           })}
         />
         <Stack.Screen name="proof-viewer" options={{ title: t(k.proofs.title) }} />
+        {/* Sheet routes (app/(sheets)/*): results come back through lib/sheet-result.ts. */}
+        <Stack.Screen name="(sheets)/category-picker" options={sheetOptions([0.5, 1])} />
+        <Stack.Screen name="(sheets)/date-picker" options={sheetOptions('fitToContents')} />
       </Stack>
     </ThemeProvider>
   );

@@ -1,7 +1,7 @@
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { Keyboard } from 'react-native';
+import { Alert, Keyboard } from 'react-native';
 
 import { useWorkspace } from '@/contexts/workspace';
 import { useAddTransaction } from '@/hooks/use-add-transaction';
@@ -12,11 +12,16 @@ import { useCategories } from '@/hooks/use-categories';
 import { useClassifyDescription } from '@/hooks/use-classify-description';
 import { useDeleteTransaction } from '@/hooks/use-delete-transaction';
 import { useExchangeRate } from '@/hooks/use-exchange-rate';
+import { useSheetResult } from '@/hooks/use-sheet-result';
 import { useTransaction } from '@/hooks/use-transaction';
 import { useUpdateTransaction } from '@/hooks/use-update-transaction';
 import type { Tables } from '@/types/supabase';
 import { currencyDecimals, formatDisplayAmount, processAmountKeyPress } from '@/utils/currency';
 import { toLocalDateString } from '@/utils/date';
+
+function showError(title: string, error: unknown) {
+  Alert.alert(title, error instanceof Error ? error.message : i18n.t(k.common.unexpectedError));
+}
 
 export function useTransactionForm(transactionId?: string, initialDate?: string) {
   const router = useRouter();
@@ -44,13 +49,17 @@ export function useTransactionForm(transactionId?: string, initialDate?: string)
   const [description, setDescription] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<Tables<'categories'> | null>(null);
   const [date, setDate] = useState(initialDate ? new Date(initialDate + 'T00:00:00') : new Date());
-  const [showCategoryPicker, setShowCategoryPicker] = useState(false);
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [alertState, setAlertState] = useState<{ title: string; message: string } | null>(null);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [prefilled, setPrefilled] = useState(false);
   const userPickedCategoryRef = useRef(false);
   const lastClassifiedDescriptionRef = useRef<string | null>(null);
+
+  const categoryRequestId = useSheetResult('category-picker', ({ category }) => {
+    userPickedCategoryRef.current = true;
+    setSelectedCategory(category);
+  });
+  const dateRequestId = useSheetResult('date-picker', ({ date: pickedDate }) =>
+    setDate(pickedDate),
+  );
 
   // Prefetched so the rate is ready by the time a foreign-currency edit is saved
   const { data: exchangeRate } = useExchangeRate(
@@ -106,8 +115,6 @@ export function useTransactionForm(transactionId?: string, initialDate?: string)
     setSelectedCategory((prev) => (prev && prev.type !== newType ? null : prev));
   }
 
-  const filteredCategories = categories.filter((c) => c.type === type);
-
   function handleKeyPress(key: string) {
     Keyboard.dismiss();
     if (key === 'backspace') {
@@ -132,17 +139,14 @@ export function useTransactionForm(transactionId?: string, initialDate?: string)
   async function handleSubmit(mode: 'save' | 'add-more' = 'save') {
     const amount = parseFloat(amountString);
     if (!amount || amount <= 0) {
-      setAlertState({
-        title: i18n.t(k.addTransaction.invalidAmount),
-        message: i18n.t(k.addTransaction.invalidAmountMessage),
-      });
+      Alert.alert(
+        i18n.t(k.addTransaction.invalidAmount),
+        i18n.t(k.addTransaction.invalidAmountMessage),
+      );
       return;
     }
     if (!selectedCategory) {
-      setAlertState({
-        title: i18n.t(k.addTransaction.noCategory),
-        message: i18n.t(k.addTransaction.noCategoryMessage),
-      });
+      Alert.alert(i18n.t(k.addTransaction.noCategory), i18n.t(k.addTransaction.noCategoryMessage));
       return;
     }
 
@@ -160,10 +164,10 @@ export function useTransactionForm(transactionId?: string, initialDate?: string)
           : null;
       const rate = exchangeRate ?? impliedRate;
       if (!rate) {
-        setAlertState({
-          title: i18n.t(k.addTransaction.rateUnavailable),
-          message: i18n.t(k.addTransaction.rateUnavailableMessage),
-        });
+        Alert.alert(
+          i18n.t(k.addTransaction.rateUnavailable),
+          i18n.t(k.addTransaction.rateUnavailableMessage),
+        );
         return;
       }
       homeAmount = amount * rate;
@@ -186,10 +190,7 @@ export function useTransactionForm(transactionId?: string, initialDate?: string)
             router.back();
           },
           onError: (error) => {
-            setAlertState({
-              title: i18n.t(k.addTransaction.failedToUpdate),
-              message: error instanceof Error ? error.message : i18n.t(k.common.unexpectedError),
-            });
+            showError(i18n.t(k.addTransaction.failedToUpdate), error);
           },
         },
       );
@@ -216,10 +217,7 @@ export function useTransactionForm(transactionId?: string, initialDate?: string)
             }
           },
           onError: (error) => {
-            setAlertState({
-              title: i18n.t(k.addTransaction.failedToSave),
-              message: error instanceof Error ? error.message : i18n.t(k.common.unexpectedError),
-            });
+            showError(i18n.t(k.addTransaction.failedToSave), error);
           },
         },
       );
@@ -235,45 +233,41 @@ export function useTransactionForm(transactionId?: string, initialDate?: string)
         router.back();
       },
       onError: (error) => {
-        setAlertState({
-          title: i18n.t(k.addTransaction.failedToDelete),
-          message: error instanceof Error ? error.message : i18n.t(k.common.unexpectedError),
-        });
+        showError(i18n.t(k.addTransaction.failedToDelete), error);
       },
     });
   }
 
+  function confirmDelete() {
+    Alert.alert(
+      i18n.t(k.addTransaction.deleteTransaction),
+      i18n.t(k.addTransaction.deleteTransactionMessage),
+      [
+        { text: i18n.t(k.common.cancel), style: 'cancel' },
+        { text: i18n.t(k.common.delete), style: 'destructive', onPress: handleDelete },
+      ],
+    );
+  }
+
+  function openProofs() {
+    if (!transactionId) return;
+    router.push({ pathname: '/proof-viewer', params: { transactionId } });
+  }
+
   function openCategoryPicker() {
     Keyboard.dismiss();
-    setShowCategoryPicker(true);
-  }
-
-  function closeCategoryPicker() {
-    setShowCategoryPicker(false);
-  }
-
-  function selectCategory(category: Tables<'categories'>) {
-    userPickedCategoryRef.current = true;
-    setSelectedCategory(category);
-    setShowCategoryPicker(false);
+    router.push({
+      pathname: '/category-picker',
+      params: { type, selectedId: selectedCategory?.id ?? '', requestId: categoryRequestId },
+    });
   }
 
   function openDatePicker() {
     Keyboard.dismiss();
-    setShowDatePicker(true);
-  }
-
-  function closeDatePicker() {
-    setShowDatePicker(false);
-  }
-
-  function selectDate(selectedDate: Date) {
-    setDate(selectedDate);
-    setShowDatePicker(false);
-  }
-
-  function dismissAlert() {
-    setAlertState(null);
+    router.push({
+      pathname: '/date-picker',
+      params: { value: toLocalDateString(date), requestId: dateRequestId },
+    });
   }
 
   return {
@@ -282,10 +276,6 @@ export function useTransactionForm(transactionId?: string, initialDate?: string)
     description,
     selectedCategory,
     date,
-    showCategoryPicker,
-    showDatePicker,
-    alertState,
-    filteredCategories,
     isPending: addTransaction.isPending || updateTransaction.isPending,
     isSubmitDisabled:
       addTransaction.isPending ||
@@ -295,20 +285,15 @@ export function useTransactionForm(transactionId?: string, initialDate?: string)
     isEditMode,
     isDeleting: deleteTransaction.isPending,
     isLoadingTransaction,
-    showDeleteConfirm,
-    setShowDeleteConfirm,
     handleTypeChange,
     handleKeyPress,
     getDisplayAmount,
     handleSubmit,
     handleDelete,
     setDescription,
+    confirmDelete,
+    openProofs,
     openCategoryPicker,
-    closeCategoryPicker,
-    selectCategory,
     openDatePicker,
-    closeDatePicker,
-    selectDate,
-    dismissAlert,
   };
 }

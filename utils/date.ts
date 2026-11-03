@@ -24,6 +24,13 @@ export function toLocalDateString(date: Date): string {
   return `${y}-${m}-${d}`;
 }
 
+/** Parses a local `YYYY-MM-DD` string to a Date at local midnight; null when missing or malformed. */
+export function parseLocalDateString(value: string | undefined): Date | null {
+  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
+  const date = new Date(value + 'T00:00:00');
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
 export function formatShortDate(dateStr: string): string {
   const date = new Date(dateStr);
   return date.toLocaleDateString(getDateLocale(), { month: 'short', day: 'numeric' });
