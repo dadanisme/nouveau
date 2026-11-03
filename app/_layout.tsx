@@ -105,11 +105,9 @@ function RootStack() {
         />
         <Stack.Screen
           name="signup"
-          options={{
-            headerShown: false,
-            animationDuration: 300,
-            gestureEnabled: false,
-          }}
+          // A native push from Login: the system back button and swipe-back. No title, since
+          // the form's own headline names the screen; the header stays clear until it scrolls.
+          options={{ title: '', headerShadowVisible: false }}
         />
         <Stack.Screen
           name="shareintent"
