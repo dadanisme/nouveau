@@ -146,9 +146,9 @@ The web app reads the same rows, so the stored format **does not change**:
 
 The app maps both to native values in `utils/`: Ionicon name → SF Symbol / Material Symbol (with a fallback for unmapped names), and hex → one of ~8 dynamic system colors. The native icon grid and color picker write Ionicon names and canonical hexes back. Never write SF/Material names or platform colors to the DB (#31).
 
-### Wide layouts
+### Wide layouts (deferred)
 
-**Lay out by space, never by device or pose.** Branch on the available window size, never on device model, `Platform.isPad`, orientation or fold state. The iPhone Duo inner display is just a wider window. When wide: list + detail, a readable-width cap on content, and sheets kept off the fold (#38).
+The migration targets phone-width layouts. iPhone Duo and wide layouts (list + detail, readable-width cap, sheets off the fold) are **deferred** to #38 and only picked up if needed. Until then, keep layouts width-agnostic: never branch on device model, `Platform.isPad`, orientation or fold state.
 
 ## Legacy (being removed, don't extend)
 
@@ -182,7 +182,6 @@ Removed in #39. Don't add new uses. Only touch these to delete them or to keep a
 A UI issue is done when it has been verified with the `device-loop` skill (`.claude/skills/device-loop/`) on every device in the matrix, **each in light and dark**:
 
 - iPhone 17 simulator (iOS 27) and an iPhone simulator on iOS 18.5
-- iPhone Duo simulator, outer and inner display (iOS 27.1)
 - Pixel_9a Android emulator
 
 At the end of each phase, also check on the physical iPhone 15. Run the matrix as parallel sub-agents (one per device), each returning a digest. Also required: `bunx expo lint` is clean, `bun run format` has been run, and new strings exist in both locales.
