@@ -30,7 +30,7 @@ export function useWorkspaceInviteSheet() {
 
   function submit() {
     const trimmed = email.trim();
-    if (!workspaceId || !trimmed) return;
+    if (!workspaceId || !trimmed || createInvite.isPending) return;
     createInvite.mutate(
       { workspace_id: workspaceId, email: trimmed },
       {

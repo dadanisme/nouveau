@@ -238,6 +238,7 @@ const id: Translations = {
     current: 'Workspace saat ini',
     switch: 'Ganti workspace',
     create: 'Buat workspace',
+    createAction: 'Buat',
     newWorkspace: 'Workspace baru',
     workspaceName: 'Nama workspace',
     workspaceNamePlaceholder: 'mis. Rumah Tangga',

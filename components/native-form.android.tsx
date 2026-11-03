@@ -7,9 +7,11 @@ import {
   DropdownMenuItem,
   Host,
   Icon,
+  IconButton,
   LazyColumn,
   ListItem,
   PullToRefreshBox,
+  Row,
   SegmentedButton,
   SingleChoiceSegmentedButtonRow,
   Text,
@@ -25,10 +27,12 @@ import {
   fillMaxSize,
   fillMaxWidth,
   padding,
+  selectable,
   semantics,
   size,
+  type ModifierConfig,
 } from '@expo/ui/jetpack-compose/modifiers';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { StyleSheet } from 'react-native';
 
 import type {
@@ -38,6 +42,7 @@ import type {
   FormNavRowProps,
   FormNoticeRowProps,
   FormPickerRowProps,
+  FormRowAction,
   FormSectionProps,
   FormSegmentedRowProps,
   FormSymbol,
@@ -45,7 +50,9 @@ import type {
   NativeFormProps,
 } from '@/components/native-form-types';
 import { ACCENT_COLOR } from '@/constants/accent';
+import { useLanguage } from '@/contexts/language';
 import { useMaterialSymbolSources } from '@/hooks/use-material-symbol-sources';
+import { k } from '@/locales/keys';
 
 // Material 3 list metrics: 16dp side padding, section headers spaced from the previous group.
 const SIDE = 16;
@@ -257,88 +264,210 @@ export function FormNoticeRow({ text, icon }: FormNoticeRowProps) {
   );
 }
 
+/** An action list for a row: `actions`, then the `onDelete` shorthand (no icon, as before). */
+function rowActions({
+  actions,
+  onDelete,
+  deleteLabel,
+}: Pick<FormListRowProps, 'actions' | 'onDelete' | 'deleteLabel'>): FormRowAction[] {
+  const all = [...(actions ?? [])];
+  if (onDelete) all.push({ title: deleteLabel ?? '', role: 'destructive', onPress: onDelete });
+  return all;
+}
+
+/** Dropdown items for row actions; destructive ones in the error color. */
+function RowActionItems({
+  actions,
+  onClose,
+}: {
+  actions: readonly FormRowAction[];
+  onClose: () => void;
+}) {
+  const colors = useMaterialColors();
+  return (
+    <DropdownMenu.Items>
+      {actions.map((action) => {
+        const color = action.role === 'destructive' ? colors.error : undefined;
+        return (
+          <DropdownMenuItem
+            key={action.title}
+            onClick={() => {
+              onClose();
+              action.onPress();
+            }}
+          >
+            {action.icon ? (
+              <DropdownMenuItem.LeadingIcon>
+                <Icon source={action.icon.md} tint={color} />
+              </DropdownMenuItem.LeadingIcon>
+            ) : null}
+            <DropdownMenuItem.Text>
+              <Text color={color}>{action.title}</Text>
+            </DropdownMenuItem.Text>
+          </DropdownMenuItem>
+        );
+      })}
+    </DropdownMenu.Items>
+  );
+}
+
 /**
- * A clickable list item with an optional colored symbol and value; `onDelete` adds a long-press
- * dropdown menu with the delete action (Compose has no stock swipe-to-dismiss in `@expo/ui`).
+ * The generic list item (see `FormListRowProps`): leading symbol/icon, headline, supporting text,
+ * a trailing value or checkmark. Actions open from a long press on clickable rows (Compose has no
+ * stock swipe-to-dismiss in `@expo/ui`) and from a visible ⋮ button on static rows.
  */
 export function FormListRow({
   title,
+  subtitle,
+  icon,
   symbol,
   value,
+  selected,
   onPress,
+  actions,
   onDelete,
   deleteLabel,
 }: FormListRowProps) {
+  const { t } = useLanguage();
   const colors = useMaterialColors();
   const [menuOpen, setMenuOpen] = useState(false);
+  const all = rowActions({ actions, onDelete, deleteLabel });
+  const hasActions = all.length > 0;
+  const longPressMenu = hasActions && !!onPress;
+  const overflowMenu = hasActions && !onPress;
+  const supporting = subtitle ?? value;
+  const trailingValue = subtitle ? value : undefined;
+
+  let modifiers: ModifierConfig[] = [];
+  if (onPress) {
+    if (longPressMenu) {
+      modifiers = [combinedClickable({ onClick: onPress, onLongClick: () => setMenuOpen(true) })];
+    } else if (selected !== undefined) {
+      modifiers = [selectable(selected, onPress)];
+    } else {
+      modifiers = [clickable(onPress)];
+    }
+  }
 
   const item = (
-    <ListItem
-      modifiers={[
-        onDelete
-          ? combinedClickable({ onClick: onPress, onLongClick: () => setMenuOpen(true) })
-          : clickable(onPress),
-      ]}
-    >
+    <ListItem modifiers={modifiers}>
       {symbol ? (
         <ListItem.LeadingContent>
           <SymbolIcon symbol={symbol} />
         </ListItem.LeadingContent>
-      ) : null}
+      ) : (
+        <RowIcon icon={icon} />
+      )}
       <ListItem.HeadlineContent>
         <Text>{title}</Text>
       </ListItem.HeadlineContent>
-      {value ? (
+      {supporting ? (
         <ListItem.SupportingContent>
-          <Text>{value}</Text>
+          <Text>{supporting}</Text>
         </ListItem.SupportingContent>
+      ) : null}
+      {trailingValue || selected || overflowMenu ? (
+        <ListItem.TrailingContent>
+          <Row verticalAlignment="center">
+            {trailingValue ? (
+              <Text color={colors.onSurfaceVariant} style={{ typography: 'bodyMedium' }}>
+                {trailingValue}
+              </Text>
+            ) : null}
+            {selected ? (
+              <Icon source={require('@/assets/icons/check.xml')} tint={colors.primary} />
+            ) : null}
+            {overflowMenu ? (
+              <DropdownMenu expanded={menuOpen} onDismissRequest={() => setMenuOpen(false)}>
+                <DropdownMenu.Trigger>
+                  <IconButton onClick={() => setMenuOpen(true)}>
+                    <Icon
+                      source={require('@/assets/icons/more_vert.xml')}
+                      contentDescription={t(k.common.moreActions)}
+                    />
+                  </IconButton>
+                </DropdownMenu.Trigger>
+                <RowActionItems actions={all} onClose={() => setMenuOpen(false)} />
+              </DropdownMenu>
+            ) : null}
+          </Row>
+        </ListItem.TrailingContent>
       ) : null}
     </ListItem>
   );
 
-  if (!onDelete) return item;
+  if (!longPressMenu) return item;
 
   return (
     <DropdownMenu expanded={menuOpen} onDismissRequest={() => setMenuOpen(false)}>
       <DropdownMenu.Trigger>{item}</DropdownMenu.Trigger>
-      <DropdownMenu.Items>
-        <DropdownMenuItem
-          onClick={() => {
-            setMenuOpen(false);
-            onDelete();
-          }}
-        >
-          <DropdownMenuItem.Text>
-            <Text color={colors.error}>{deleteLabel ?? ''}</Text>
-          </DropdownMenuItem.Text>
-        </DropdownMenuItem>
-      </DropdownMenu.Items>
+      <RowActionItems actions={all} onClose={() => setMenuOpen(false)} />
     </DropdownMenu>
   );
 }
 
-/** A filled Material text field; the placeholder is its floating label. */
+/**
+ * A single-line filled Material text field (see `FormTextFieldRowProps`); the floating label is
+ * `label`, or the placeholder.
+ */
 export function FormTextFieldRow({
   placeholder,
+  label,
+  value,
   defaultValue = '',
   onChangeText,
+  keyboard = 'default',
+  autoCapitalize,
   autoFocus,
   maxLength,
+  submitLabel = 'done',
+  onSubmit,
 }: FormTextFieldRowProps) {
-  const text = useNativeState(defaultValue);
+  const initial = value ?? defaultValue;
+  const text = useNativeState(initial);
+  // The last text the field reported, so only outside `value` changes are written back to it.
+  const lastText = useRef(initial);
+
+  useEffect(() => {
+    if (value === undefined || value === lastText.current) return;
+    lastText.current = value;
+    text.set(value);
+  }, [value, text]);
+
+  const isEmail = keyboard === 'email';
+  const submit = onSubmit ? () => onSubmit() : undefined;
+
   return (
     <TextField
       value={text}
-      onValueChange={onChangeText}
+      onValueChange={(next) => {
+        lastText.current = next;
+        onChangeText(next);
+      }}
       autoFocus={autoFocus}
       maxLength={maxLength}
       singleLine
-      keyboardOptions={{ capitalization: 'sentences', imeAction: 'done' }}
-      modifiers={[fillMaxWidth(), padding(SIDE, 8, SIDE, 8)]}
+      keyboardOptions={{
+        capitalization: autoCapitalize ?? (isEmail ? 'none' : 'sentences'),
+        autoCorrectEnabled: !isEmail,
+        keyboardType: isEmail ? 'email' : 'text',
+        imeAction: submitLabel,
+      }}
+      keyboardActions={{ onDone: submit, onSend: submit, onNext: submit }}
+      modifiers={[
+        fillMaxWidth(),
+        padding(SIDE, 8, SIDE, 8),
+        ...(isEmail ? [semantics({ contentType: 'emailAddress' })] : []),
+      ]}
     >
       <TextField.Label>
-        <Text>{placeholder}</Text>
+        <Text>{label ?? placeholder}</Text>
       </TextField.Label>
+      {label ? (
+        <TextField.Placeholder>
+          <Text>{placeholder}</Text>
+        </TextField.Placeholder>
+      ) : null}
     </TextField>
   );
 }

@@ -235,6 +235,7 @@ const en = {
     current: 'Current workspace',
     switch: 'Switch workspace',
     create: 'Create workspace',
+    createAction: 'Create',
     newWorkspace: 'New workspace',
     workspaceName: 'Workspace name',
     workspaceNamePlaceholder: 'e.g. Household',

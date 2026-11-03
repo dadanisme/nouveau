@@ -1,151 +1,45 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
-import * as Haptics from 'expo-haptics';
-import { useRouter } from 'expo-router';
-import { useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
-
-import { Button } from '@/components/button';
-import { Card } from '@/components/card';
-import { colors, design } from '@/constants/colors';
-import { useLanguage } from '@/contexts/language';
-import { useWorkspace } from '@/contexts/workspace';
 import {
-  useAcceptInvite,
-  useMyPendingInvites,
-  type WorkspaceInviteWithWorkspace,
-} from '@/hooks/use-workspace-invites';
-import { formatShortDate } from '@/utils/date';
+  FormButtonRow,
+  FormEmptyRow,
+  FormListRow,
+  FormSection,
+  NativeForm,
+} from '@/components/native-form';
+import type { FormSymbol } from '@/components/native-form-types';
+import { useLanguage } from '@/contexts/language';
+import { useWorkspaceInvitesScreen } from '@/hooks/use-workspace-invites-screen';
 import { k } from '@/locales/keys';
 
-export default function WorkspaceInvitesScreen() {
-  const router = useRouter();
-  const { t } = useLanguage();
-  const { switchWorkspace } = useWorkspace();
-  const { data: invites = [], isLoading } = useMyPendingInvites();
-  const acceptInvite = useAcceptInvite();
-  const [acceptingId, setAcceptingId] = useState<string | null>(null);
+const ICONS = {
+  invite: { sf: 'person.2', md: require('@/assets/icons/group.xml') },
+  accept: { sf: 'checkmark', md: require('@/assets/icons/check.xml') },
+} as const;
 
-  function handleAccept(invite: WorkspaceInviteWithWorkspace) {
-    setAcceptingId(invite.id);
-    acceptInvite.mutate(invite.token, {
-      onSuccess: async (newWorkspaceId) => {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        if (newWorkspaceId) await switchWorkspace(newWorkspaceId);
-        setAcceptingId(null);
-        router.back();
-      },
-      onError: (error) => {
-        setAcceptingId(null);
-        Alert.alert(
-          t(k.workspace.failedToAccept),
-          error instanceof Error ? error.message : t(k.common.unexpectedError),
-        );
-      },
-    });
-  }
+const EMPTY_SYMBOL: FormSymbol = { sf: 'envelope', material: 'mail' };
+
+/** Invites sent to me: one section per invite with an inline Accept action. */
+export default function WorkspaceInvitesScreen() {
+  const { t } = useLanguage();
+  const screen = useWorkspaceInvitesScreen();
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentInsetAdjustmentBehavior="automatic"
-      contentContainerStyle={styles.content}
-    >
-      {!isLoading && invites.length === 0 && (
-        <View style={styles.empty}>
-          <Ionicons name="mail-outline" size={48} color={colors.gray[300]} />
-          <Text style={styles.emptyText}>{t(k.workspace.noInvites)}</Text>
-        </View>
-      )}
-
-      {invites.map((invite) => (
-        <Card key={invite.id} style={styles.inviteCard}>
-          <View style={styles.inviteHead}>
-            <View style={styles.inviteIcon}>
-              <Ionicons name="people-outline" size={22} color={colors.gray[700]} />
-            </View>
-            <View style={styles.inviteText}>
-              <Text style={styles.inviteName}>
-                {invite.workspaces?.name ?? t(k.workspace.shared)}
-              </Text>
-              <Text style={styles.inviteMeta}>
-                {t(k.workspace.expiresAt, { date: formatShortDate(invite.expires_at) })}
-              </Text>
-            </View>
-          </View>
-          <Button
-            variant="primary"
-            onPress={() => handleAccept(invite)}
-            disabled={acceptingId !== null}
-            style={styles.acceptButton}
-          >
-            <Text style={styles.acceptText}>
-              {acceptingId === invite.id ? t(k.workspace.accepting) : t(k.workspace.accept)}
-            </Text>
-          </Button>
-        </Card>
+    <NativeForm>
+      {screen.isEmpty ? (
+        <FormSection>
+          <FormEmptyRow title={t(k.workspace.noInvites)} symbol={EMPTY_SYMBOL} />
+        </FormSection>
+      ) : null}
+      {screen.invites.map((invite) => (
+        <FormSection key={invite.id}>
+          <FormListRow title={invite.workspaceName} subtitle={invite.expires} icon={ICONS.invite} />
+          <FormButtonRow
+            title={invite.acceptTitle}
+            icon={ICONS.accept}
+            disabled={invite.acceptDisabled}
+            onPress={invite.accept}
+          />
+        </FormSection>
       ))}
-    </ScrollView>
+    </NativeForm>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  content: {
-    paddingHorizontal: design.spacing.lg,
-    paddingTop: design.spacing.lg,
-    paddingBottom: design.spacing.lg,
-    gap: design.spacing.md,
-  },
-  empty: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: design.spacing.xl * 2,
-    gap: design.spacing.sm + 4,
-  },
-  emptyText: {
-    fontSize: design.fontSize.md,
-    fontWeight: '600',
-    color: colors.gray[400],
-  },
-  inviteCard: {
-    gap: design.spacing.md,
-  },
-  inviteHead: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: design.spacing.sm + 4,
-  },
-  inviteIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: colors.gray[100],
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  inviteText: {
-    flex: 1,
-    gap: 2,
-  },
-  inviteName: {
-    fontSize: design.fontSize.md,
-    fontWeight: '800',
-    color: colors.gray[900],
-  },
-  inviteMeta: {
-    fontSize: design.fontSize.xs,
-    fontWeight: '600',
-    color: colors.gray[500],
-  },
-  acceptButton: {
-    paddingVertical: design.spacing.sm + 2,
-  },
-  acceptText: {
-    fontSize: design.fontSize.md,
-    fontWeight: '800',
-    color: colors.black,
-  },
-});
