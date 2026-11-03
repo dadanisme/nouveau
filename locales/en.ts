@@ -61,7 +61,8 @@ const en = {
     category: 'Category',
     income: 'Income',
     expense: 'Expense',
-    addMore: 'Add More',
+    addMore: 'Save and Add Another',
+    date: 'Date',
     delete: 'Delete',
     viewProofs: 'View Proofs',
     invalidAmount: 'Invalid Amount',
@@ -230,10 +231,11 @@ const en = {
       'November',
       'December',
     ],
-    weekdays: ['S', 'M', 'T', 'W', 'T', 'F', 'S'],
   },
   categoryPicker: {
     title: 'Select Category',
+    empty: 'No Categories',
+    emptyMessage: 'Add categories in Settings > Categories.',
   },
   contextMenu: {
     edit: 'Edit',

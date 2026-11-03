@@ -41,6 +41,7 @@ import {
   padding,
   pickerStyle,
   refreshable,
+  scrollDismissesKeyboard,
   submitLabel as submitLabelModifier,
   tag,
   textContentType,
@@ -82,8 +83,17 @@ const SYMBOL_WIDTH = 28;
  * the native Stack header's large title collapses with its scroll. With `title` (sheets without a
  * header), a headline sits above the form on the grouped background.
  */
-export function NativeForm({ title, onRefresh, children }: NativeFormProps) {
-  const form = <Form modifiers={onRefresh ? [refreshable(onRefresh)] : undefined}>{children}</Form>;
+export function NativeForm({
+  title,
+  onRefresh,
+  dismissesKeyboardOnScroll,
+  children,
+}: NativeFormProps) {
+  const modifiers = [
+    ...(onRefresh ? [refreshable(onRefresh)] : []),
+    ...(dismissesKeyboardOnScroll ? [scrollDismissesKeyboard('interactively')] : []),
+  ];
+  const form = <Form modifiers={modifiers.length ? modifiers : undefined}>{children}</Form>;
 
   return (
     <Host style={styles.fill} seedColor={ACCENT_COLOR}>

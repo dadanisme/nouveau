@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { Alert, Keyboard } from 'react-native';
 
+import { useLanguage } from '@/contexts/language';
 import { useWorkspace } from '@/contexts/workspace';
 import { useAddTransaction } from '@/hooks/use-add-transaction';
 import { useSession } from '@/hooks/use-auth';
@@ -16,8 +17,22 @@ import { useSheetResult } from '@/hooks/use-sheet-result';
 import { useTransaction } from '@/hooks/use-transaction';
 import { useUpdateTransaction } from '@/hooks/use-update-transaction';
 import type { Tables } from '@/types/supabase';
-import { currencyDecimals, formatDisplayAmount, processAmountKeyPress } from '@/utils/currency';
+import type { FormSymbol } from '@/components/native-form-types';
+import { getCategoryColor } from '@/utils/category-color';
+import { getCategorySymbol } from '@/utils/category-icon';
+import {
+  currencyDecimals,
+  getAmountPrefix,
+  getAmountSeparators,
+  isPositiveAmount,
+} from '@/utils/currency';
 import { toLocalDateString } from '@/utils/date';
+
+type TransactionType = 'income' | 'expense';
+
+function isTransactionType(value: string): value is TransactionType {
+  return value === 'income' || value === 'expense';
+}
 
 function showError(title: string, error: unknown) {
   Alert.alert(title, error instanceof Error ? error.message : i18n.t(k.common.unexpectedError));
@@ -27,8 +42,10 @@ export function useTransactionForm(transactionId?: string, initialDate?: string)
   const router = useRouter();
   const { session } = useSession();
   const { currentWorkspaceId, currentWorkspace } = useWorkspace();
+  const { locale } = useLanguage();
 
-  const { data: categories = [] } = useCategories(currentWorkspaceId);
+  const { data: categories = [], isLoading: isLoadingCategories } =
+    useCategories(currentWorkspaceId);
   const addTransaction = useAddTransaction();
   const updateTransaction = useUpdateTransaction();
   const deleteTransaction = useDeleteTransaction();
@@ -43,23 +60,26 @@ export function useTransactionForm(transactionId?: string, initialDate?: string)
   const homeCurrency = existingTransaction?.home_currency ?? currentWorkspace?.home_currency;
   const txCurrency = existingTransaction?.currency ?? homeCurrency;
   const isForeignCurrency = !!txCurrency && !!homeCurrency && txCurrency !== homeCurrency;
+  const foreignCurrency = isForeignCurrency ? txCurrency : undefined;
 
-  const [type, setType] = useState<'income' | 'expense'>('expense');
+  const [type, setType] = useState<TransactionType>('expense');
   const [amountString, setAmountString] = useState('');
   const [description, setDescription] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<Tables<'categories'> | null>(null);
   const [date, setDate] = useState(initialDate ? new Date(initialDate + 'T00:00:00') : new Date());
   const [prefilled, setPrefilled] = useState(false);
+  // The amount field owns its (grouped) text natively and reads its initial value on mount, so it
+  // remounts (new key) whenever the form sets the amount: prefill and "add more" reset.
+  const [fieldsKey, setFieldsKey] = useState(0);
   const userPickedCategoryRef = useRef(false);
   const lastClassifiedDescriptionRef = useRef<string | null>(null);
 
+  // The picker lists every category grouped by type, so picking one sets the type to match.
   const categoryRequestId = useSheetResult('category-picker', ({ category }) => {
     userPickedCategoryRef.current = true;
     setSelectedCategory(category);
+    if (isTransactionType(category.type)) setType(category.type);
   });
-  const dateRequestId = useSheetResult('date-picker', ({ date: pickedDate }) =>
-    setDate(pickedDate),
-  );
 
   // Prefetched so the rate is ready by the time a foreign-currency edit is saved
   const { data: exchangeRate } = useExchangeRate(
@@ -72,7 +92,7 @@ export function useTransactionForm(transactionId?: string, initialDate?: string)
   useEffect(() => {
     if (!existingTransaction || !categories.length || prefilled) return;
 
-    setType(existingTransaction.type as 'income' | 'expense');
+    setType(existingTransaction.type as TransactionType);
     setAmountString(String(existingTransaction.amount));
     setDescription(existingTransaction.description ?? '');
     setDate(new Date(existingTransaction.date.split('T')[0] + 'T00:00:00'));
@@ -81,6 +101,7 @@ export function useTransactionForm(transactionId?: string, initialDate?: string)
     if (matchedCategory) setSelectedCategory(matchedCategory);
 
     setPrefilled(true);
+    setFieldsKey((key) => key + 1);
   }, [existingTransaction, categories, prefilled]);
 
   useEffect(() => {
@@ -100,9 +121,7 @@ export function useTransactionForm(transactionId?: string, initialDate?: string)
           const matched = categories.find((c) => c.id === result.category_id);
           if (!matched) return;
           setSelectedCategory(matched);
-          if (matched.type === 'income' || matched.type === 'expense') {
-            setType(matched.type);
-          }
+          if (isTransactionType(matched.type)) setType(matched.type);
         },
       });
     }, 1000);
@@ -110,30 +129,16 @@ export function useTransactionForm(transactionId?: string, initialDate?: string)
     return () => clearTimeout(timer);
   }, [description, categories, isEditMode, classifyDescription]);
 
-  function handleTypeChange(newType: 'income' | 'expense') {
+  function handleTypeChange(newType: TransactionType) {
     setType(newType);
     setSelectedCategory((prev) => (prev && prev.type !== newType ? null : prev));
-  }
-
-  function handleKeyPress(key: string) {
-    Keyboard.dismiss();
-    if (key === 'backspace') {
-      setAmountString((prev) => prev.slice(0, -1));
-      return;
-    }
-    setAmountString((prev) =>
-      processAmountKeyPress(prev, key, txCurrency ? currencyDecimals(txCurrency) : 0),
-    );
-  }
-
-  function getDisplayAmount(): string {
-    return formatDisplayAmount(amountString, isForeignCurrency ? txCurrency : undefined);
   }
 
   function resetForm() {
     setAmountString('');
     setDescription('');
     setSelectedCategory(null);
+    setFieldsKey((key) => key + 1);
   }
 
   async function handleSubmit(mode: 'save' | 'add-more' = 'save') {
@@ -258,42 +263,60 @@ export function useTransactionForm(transactionId?: string, initialDate?: string)
     Keyboard.dismiss();
     router.push({
       pathname: '/category-picker',
-      params: { type, selectedId: selectedCategory?.id ?? '', requestId: categoryRequestId },
+      params: {
+        currentType: type,
+        selectedId: selectedCategory?.id ?? '',
+        requestId: categoryRequestId,
+      },
     });
   }
 
-  function openDatePicker() {
-    Keyboard.dismiss();
-    router.push({
-      pathname: '/date-picker',
-      params: { value: toLocalDateString(date), requestId: dateRequestId },
-    });
-  }
+  const isPending = addTransaction.isPending || updateTransaction.isPending;
+  const isDeleting = deleteTransaction.isPending;
+  const isValid = isPositiveAmount(amountString) && !!selectedCategory;
+
+  // Edit mode shows a placeholder until the transaction is seeded into the form.
+  const isLoadingForm =
+    isEditMode &&
+    !prefilled &&
+    (isLoadingTransaction ||
+      isLoadingCategories ||
+      (!!existingTransaction && categories.length > 0));
+
+  const categorySymbol: FormSymbol | undefined = selectedCategory
+    ? {
+        ...getCategorySymbol(selectedCategory.icon),
+        color: getCategoryColor(selectedCategory.color),
+      }
+    : undefined;
 
   return {
     type,
     amountString,
     description,
     selectedCategory,
+    categorySymbol,
     date,
-    isPending: addTransaction.isPending || updateTransaction.isPending,
-    isSubmitDisabled:
-      addTransaction.isPending ||
-      updateTransaction.isPending ||
-      !amountString ||
-      amountString === '0',
+    /** Minor units the amount accepts (0 for e.g. IDR). */
+    amountDecimals: txCurrency ? currencyDecimals(txCurrency) : 0,
+    /** Shown before the amount: the locale prefix, or a foreign currency's symbol. */
+    amountPrefix: getAmountPrefix(foreignCurrency),
+    /** How the amount is grouped as it's typed: like the app shows that currency. */
+    amountSeparators: getAmountSeparators(foreignCurrency, locale),
+    fieldsKey,
+    isPending,
+    isSubmitDisabled: isPending || isDeleting || !isValid,
     isEditMode,
-    isDeleting: deleteTransaction.isPending,
-    isLoadingTransaction,
+    isDeleting,
+    isLoadingForm,
     handleTypeChange,
-    handleKeyPress,
-    getDisplayAmount,
+    setAmountString,
+    setDate,
     handleSubmit,
     handleDelete,
     setDescription,
     confirmDelete,
     openProofs,
     openCategoryPicker,
-    openDatePicker,
   };
 }

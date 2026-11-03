@@ -28,6 +28,11 @@ export type NativeFormProps = {
    * floating action button. Android only: iOS insets come from the tab bar and safe area.
    */
   bottomInset?: number;
+  /**
+   * Dragging the form dismisses the keyboard interactively, for keyboards without a return key
+   * (e.g. the decimal pad). iOS only: Android keyboards keep their Done action.
+   */
+  dismissesKeyboardOnScroll?: boolean;
   children: React.ReactNode;
 };
 

@@ -50,9 +50,9 @@ No test framework is configured. The web app in `web/` has its own scripts (`cd 
 Routes live in `app/`. The root `Stack` in `app/_layout.tsx` holds the tab shell and everything presented over it:
 
 - `(tabs)/`: `NativeTabs` with **Transactions / Insights / Settings**, each with its own native Stack (`(transactions)/index.tsx`, `(insights)/insights.tsx`, `(settings)/settings.tsx` plus `categories`, `subscriptions`, `workspaces`, `create-workspace`, `workspace-settings`, `workspace-invites`). `add-action.tsx` is the inert tab-bar Add placeholder.
-- `add-transaction.tsx`: add/edit transaction (`?id=` edits, `?date=` presets the date). A `formSheet` (one full detent, Cancel on the left) on iOS and a full-screen modal on Android, because Android form sheets have no header.
+- `add-transaction.tsx`: add/edit transaction (`?id=` edits, `?date=` presets the date). A `formSheet` (one full detent, Cancel on the left, Save on the right) on iOS and a full-screen modal on Android, because Android form sheets have no header. A native form: amount field with the decimal keyboard (`components/amount-field-row`), the date as an in-form native date picker (`components/date-field-row`, no date sheet), the category through `(sheets)/category-picker`.
 - `proof-viewer.tsx`: a `modal` (Done on the left on iOS, back arrow on Android), opened from rows, the drill-down sheet and the add-transaction sheet.
-- `(sheets)/`: editors and pickers as `formSheet` routes (`category-picker`, `date-picker`, `category-transactions`, `workspace-switcher`, `workspace-invite`, `category-form`, `icon-picker`, `color-picker`). No layout of their own: each is registered in the root Stack with `sheetOptions(detents)` from `constants/sheet-options.ts` (formSheet, no header, grabber). Inputs go in as serializable params (plus a `requestId`); results come back through `lib/sheet-result.ts`: the presenter listens with `useSheetResult(key, requestId, handler)`, the sheet emits with `useSheetResponder` (`hooks/use-sheet-result.ts`) and closes itself.
+- `(sheets)/`: editors and pickers as `formSheet` routes (`category-picker`, `category-transactions`, `workspace-switcher`, `workspace-invite`, `category-form`, `icon-picker`, `color-picker`). No layout of their own: each is registered in the root Stack with `sheetOptions(detents)` from `constants/sheet-options.ts` (formSheet, no header, grabber). Inputs go in as serializable params (plus a `requestId`); results come back through `lib/sheet-result.ts`: the presenter listens with `useSheetResult(key, requestId, handler)`, the sheet emits with `useSheetResponder` (`hooks/use-sheet-result.ts`) and closes itself.
 - `shareintent.tsx`: incoming share intent. `+native-intent.ts` rewrites share-extension URLs to it.
 - `login.tsx`, `signup.tsx`
 
@@ -165,9 +165,6 @@ Removed in #39. Don't add new uses. Only touch these to delete them or to keep a
 | --------------------------------------------------------------------------------------------- | ------------------------------------------------- |
 | `constants/colors.ts` (`colors`, `design`: borders, hard shadows, radii, spacing, font sizes) | semantic system colors + accent, platform metrics |
 | `button.tsx`                                                                                  | `@expo/ui` buttons, header/toolbar items          |
-| `number-pad.tsx`, `processAmountKeyPress`                                                     | system decimal keyboard                           |
-| `calendar-grid.tsx` (in `(sheets)/date-picker`), `hooks/use-calendar.ts`                      | native DatePicker                                 |
-| `category-grid.tsx` (in `(sheets)/category-picker`)                                           | native list with `CategoryIcon` rows              |
 | `monthly-trend-chart.tsx` (hosted in Insights through `FormHostedRow`)                        | Swift Charts / Compose (#37)                      |
 | `@expo/vector-icons` (Ionicons) in UI                                                         | SF Symbols / Material Symbols                     |
 | `<StatusBar style="dark" />`, cream splash background `#FFF9EB`                               | system appearance                                 |
