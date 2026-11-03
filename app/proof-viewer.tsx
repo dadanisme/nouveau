@@ -13,7 +13,8 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
 
-import { ScreenPlaceholder } from '@/components/content-placeholder';
+import { ScreenPlaceholder } from '@/components/screen-placeholder';
+import type { FormSymbol } from '@/components/native-form-types';
 import { useLanguage } from '@/contexts/language';
 import { useProofDownload } from '@/hooks/use-proof-download';
 import { useProofs } from '@/hooks/use-proofs';
@@ -22,10 +23,10 @@ import { useSystemColors } from '@/hooks/use-system-colors';
 import { k } from '@/locales/keys';
 import { isSaveableImage } from '@/utils/file';
 
-const ICONS = {
-  warning: { sf: 'exclamationmark.triangle', md: require('@/assets/icons/warning.xml') },
-  document: { sf: 'doc', md: require('@/assets/icons/description.xml') },
-} as const;
+const SYMBOLS = {
+  warning: { sf: 'exclamationmark.triangle', material: 'warning' },
+  document: { sf: 'doc', material: 'description' },
+} as const satisfies Record<string, FormSymbol>;
 
 // Platform list metrics: 16pt/dp margins, inset-grouped (iOS) / M3 medium (Android) corners.
 const MARGIN = 16;
@@ -92,10 +93,10 @@ export default function ProofViewerScreen() {
         </View>
       )}
 
-      {error && <ScreenPlaceholder title={t(k.proofs.failedToLoad)} icon={ICONS.warning} />}
+      {error && <ScreenPlaceholder title={t(k.proofs.failedToLoad)} symbol={SYMBOLS.warning} />}
 
       {proofs && proofs.length === 0 && (
-        <ScreenPlaceholder title={t(k.proofs.noProofs)} icon={ICONS.document} />
+        <ScreenPlaceholder title={t(k.proofs.noProofs)} symbol={SYMBOLS.document} />
       )}
 
       {hasProofs && (
@@ -151,7 +152,7 @@ export default function ProofViewerScreen() {
               ) : proof.mimeType === 'application/pdf' ? (
                 pdfErrors[proof.id] ? (
                   <View style={styles.placeholderCell}>
-                    <ScreenPlaceholder title={t(k.proofs.pdfFailed)} icon={ICONS.warning} />
+                    <ScreenPlaceholder title={t(k.proofs.pdfFailed)} symbol={SYMBOLS.warning} />
                   </View>
                 ) : (
                   <View style={{ width: contentWidth, height: DOCUMENT_HEIGHT }}>
@@ -173,7 +174,7 @@ export default function ProofViewerScreen() {
                 <View style={styles.placeholderCell}>
                   <ScreenPlaceholder
                     title={t(k.proofs.unsupportedType, { type: proof.mimeType })}
-                    icon={ICONS.document}
+                    symbol={SYMBOLS.document}
                   />
                 </View>
               )}

@@ -1,14 +1,6 @@
-import type { FormIcon } from '@/components/native-form-types';
+import type { FormSymbol } from '@/components/native-form-types';
 
-/** Props shared by the iOS and Android builds of the form extras (refreshable form, rows, placeholders). */
-
-export type RefreshableFormProps = {
-  /** Pull-to-refresh handler; resolves when the refresh is done. */
-  onRefresh: () => Promise<void>;
-  /** Android only: whether the refresh indicator shows (iOS tracks the promise itself). */
-  isRefreshing: boolean;
-  children: React.ReactNode;
-};
+/** Props shared by the iOS and Android builds of the extra form rows and the screen placeholder. */
 
 /** A status glyph trailing a detail row. */
 export type FormRowStatus = {
@@ -21,9 +13,10 @@ export type FormDetailRowProps = {
   title: string;
   /** Secondary line under the title. */
   subtitle?: string;
-  icon?: FormIcon;
+  /** Leading glyph. */
+  symbol?: FormSymbol;
   status?: FormRowStatus;
-  /** Lets the user select and copy the title (e.g. shared text). */
+  /** Lets the user select and copy the title (e.g. shared text). iOS only. */
   selectable?: boolean;
 };
 
@@ -33,8 +26,9 @@ export type FormImageRowProps = {
   accessibilityLabel?: string;
 };
 
-export type ContentPlaceholderProps = {
+/** Same shape as `FormEmptyRowProps`, for screens (or cells) that aren't a form. */
+export type ScreenPlaceholderProps = {
   title: string;
-  message?: string;
-  icon: FormIcon;
+  description?: string;
+  symbol: FormSymbol;
 };

@@ -2,10 +2,11 @@ import { Stack } from 'expo-router';
 import { Fragment } from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
 
-import { ScreenPlaceholder } from '@/components/content-placeholder';
+import { ScreenPlaceholder } from '@/components/screen-placeholder';
 import { FormDetailRow } from '@/components/form-detail-row';
 import { FormImageRow } from '@/components/form-image-row';
 import { FormButtonRow, FormSection, NativeForm } from '@/components/native-form';
+import type { FormSymbol } from '@/components/native-form-types';
 import { useLanguage } from '@/contexts/language';
 import { useShareIntentScreen } from '@/hooks/use-share-intent-screen';
 import { useSymbolIcon } from '@/hooks/use-symbol-icon';
@@ -13,13 +14,17 @@ import { useSystemColors } from '@/hooks/use-system-colors';
 import { k } from '@/locales/keys';
 import { formatFileSize, formatImageMeta, toFileUri } from '@/utils/file';
 
-const ICONS = {
-  empty: { sf: 'square.and.arrow.up', md: require('@/assets/icons/share.xml') },
-  text: { sf: 'text.alignleft', md: require('@/assets/icons/notes.xml') },
-  link: { sf: 'link', md: require('@/assets/icons/link.xml') },
-  pdf: { sf: 'doc.richtext', md: require('@/assets/icons/picture_as_pdf.xml') },
-  file: { sf: 'doc', md: require('@/assets/icons/draft.xml') },
-  scan: { sf: 'doc.viewfinder', md: require('@/assets/icons/document_scanner.xml') },
+const SYMBOLS = {
+  empty: { sf: 'square.and.arrow.up', material: 'share' },
+  text: { sf: 'text.alignleft', material: 'notes' },
+  link: { sf: 'link', material: 'link' },
+  pdf: { sf: 'doc.richtext', material: 'picture_as_pdf' },
+  file: { sf: 'doc', material: 'draft' },
+} as const satisfies Record<string, FormSymbol>;
+
+const SCAN_ICON = {
+  sf: 'doc.viewfinder',
+  md: require('@/assets/icons/document_scanner.xml'),
 } as const;
 
 /**
@@ -72,7 +77,7 @@ export default function ShareIntentScreen() {
             >
               <FormDetailRow
                 title={sharedValue}
-                icon={sharedUrl ? ICONS.link : ICONS.text}
+                symbol={sharedUrl ? SYMBOLS.link : SYMBOLS.text}
                 selectable
               />
             </FormSection>
@@ -99,7 +104,7 @@ export default function ShareIntentScreen() {
                   key={file.path}
                   title={file.fileName}
                   subtitle={formatFileSize(file.size)}
-                  icon={ICONS.pdf}
+                  symbol={SYMBOLS.pdf}
                 />
               ))}
             </FormSection>
@@ -112,7 +117,7 @@ export default function ShareIntentScreen() {
                   key={file.path}
                   title={file.fileName}
                   subtitle={formatFileSize(file.size)}
-                  icon={ICONS.file}
+                  symbol={SYMBOLS.file}
                 />
               ))}
             </FormSection>
@@ -122,7 +127,7 @@ export default function ShareIntentScreen() {
             <FormSection>
               <FormButtonRow
                 title={isScanning ? t(k.shareIntent.scanning) : t(k.shareIntent.scanReceipt)}
-                icon={ICONS.scan}
+                icon={SCAN_ICON}
                 disabled={isScanning}
                 onPress={handleScanReceipt}
               />
@@ -133,8 +138,8 @@ export default function ShareIntentScreen() {
         <View style={[styles.fill, { backgroundColor: groupedBackground }]}>
           <ScreenPlaceholder
             title={t(k.shareIntent.noContent)}
-            message={t(k.shareIntent.noContentMessage)}
-            icon={ICONS.empty}
+            description={t(k.shareIntent.noContentMessage)}
+            symbol={SYMBOLS.empty}
           />
         </View>
       )}

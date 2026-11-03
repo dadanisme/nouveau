@@ -148,7 +148,7 @@ export function FormButtonRow({ title, role, disabled: isDisabled, onPress }: Fo
     <Button
       role={role === 'destructive' ? 'destructive' : 'default'}
       onPress={onPress}
-      modifiers={[disabled(isDisabled)]}
+      modifiers={[disabled(isDisabled ?? false)]}
     >
       <HStack>
         <Spacer />
