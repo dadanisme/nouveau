@@ -114,7 +114,11 @@ function RootStack() {
         <Stack.Screen
           name="shareintent"
           options={{
-            headerShown: false,
+            title: t(k.shareIntent.title),
+            // The screen's own Cancel / close (Stack.Toolbar) dismisses: it resets the share
+            // intent and returns home, which a back gesture would skip.
+            headerBackVisible: false,
+            gestureEnabled: false,
             animation: 'fade',
             animationDuration: 300,
           }}

@@ -1,95 +1,126 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
 import { PdfView } from '@kishannareshpal/expo-pdf';
 import { Image } from 'expo-image';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import {
   ActivityIndicator,
+  Platform,
   ScrollView,
   StyleSheet,
-  Text,
   View,
   useWindowDimensions,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
 
-import { Button } from '@/components/button';
-import { Card } from '@/components/card';
-import { colors, design } from '@/constants/colors';
+import { ScreenPlaceholder } from '@/components/screen-placeholder';
+import type { FormSymbol } from '@/components/native-form-types';
 import { useLanguage } from '@/contexts/language';
-import { k } from '@/locales/keys';
 import { useProofDownload } from '@/hooks/use-proof-download';
 import { useProofs } from '@/hooks/use-proofs';
+import { useSymbolIcon } from '@/hooks/use-symbol-icon';
+import { useSystemColors } from '@/hooks/use-system-colors';
+import { k } from '@/locales/keys';
 import { isSaveableImage } from '@/utils/file';
 
+const SYMBOLS = {
+  warning: { sf: 'exclamationmark.triangle', material: 'warning' },
+  document: { sf: 'doc', material: 'description' },
+} as const satisfies Record<string, FormSymbol>;
+
+// Platform list metrics: 16pt/dp margins, inset-grouped (iOS) / M3 medium (Android) corners.
+const MARGIN = 16;
+const CORNER_RADIUS = Platform.OS === 'ios' ? 10 : 12;
+const DOCUMENT_HEIGHT = 600;
+const PLACEHOLDER_HEIGHT = 220;
+
+/**
+ * The proofs attached to a transaction, one cell each (image, PDF or HTML receipt), in a modal.
+ * Done (iOS) / back (Android) closes it; the header's Save to Photos and Share actions use the
+ * system photo library and share sheet.
+ */
 export default function ProofViewerScreen() {
   const { transactionId } = useLocalSearchParams<{ transactionId: string }>();
-  const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
   const { data: proofs, isLoading, error } = useProofs(transactionId);
   const { isSaving, isSharing, saveAllToPhotos, share } = useProofDownload();
   const { t } = useLanguage();
+  const { groupedBackground, cellBackground } = useSystemColors();
+  const shareIcon = useSymbolIcon({ sf: 'square.and.arrow.up', md: 'share' });
+  const saveIcon = useSymbolIcon({ sf: 'square.and.arrow.down', md: 'download' });
 
+  const hasProofs = !!proofs && proofs.length > 0;
   const hasImages = proofs?.some((p) => isSaveableImage(p.mimeType)) ?? false;
+  const isBusy = isSaving || isSharing;
 
-  const FOOTER_HEIGHT = insets.bottom + design.spacing.md + 48 + design.spacing.md;
-  const contentWidth = width - design.spacing.lg * 2 - design.borderWidth * 2;
+  const contentWidth = width - MARGIN * 2;
   const [webviewHeights, setWebviewHeights] = useState<Record<string, number>>({});
   const [imageAspectRatios, setImageAspectRatios] = useState<Record<string, number>>({});
   const [pdfLoaded, setPdfLoaded] = useState<Record<string, boolean>>({});
   const [pdfErrors, setPdfErrors] = useState<Record<string, boolean>>({});
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: groupedBackground }]}>
       <Stack.Screen
         options={{ title: proofs ? `${t(k.proofs.title)} (${proofs.length})` : t(k.proofs.title) }}
       />
 
+      {hasProofs && (
+        <Stack.Toolbar placement="right">
+          {hasImages && saveIcon && (
+            <Stack.Toolbar.Button
+              icon={saveIcon}
+              accessibilityLabel={isSaving ? t(k.proofs.saving) : t(k.proofs.saveToPhotos)}
+              disabled={isBusy}
+              onPress={() => saveAllToPhotos(proofs)}
+            />
+          )}
+          {shareIcon && (
+            <Stack.Toolbar.Button
+              icon={shareIcon}
+              accessibilityLabel={t(k.proofs.share)}
+              disabled={isBusy}
+              onPress={() => share(proofs)}
+            />
+          )}
+        </Stack.Toolbar>
+      )}
+
       {isLoading && (
         <View style={styles.centered}>
-          <ActivityIndicator size="large" color={colors.primary.DEFAULT} />
+          <ActivityIndicator size="large" />
         </View>
       )}
 
-      {error && (
-        <View style={styles.centered}>
-          <Ionicons name="alert-circle-outline" size={48} color={colors.expense} />
-          <Text style={styles.errorText}>{t(k.proofs.failedToLoad)}</Text>
-        </View>
-      )}
+      {error && <ScreenPlaceholder title={t(k.proofs.failedToLoad)} symbol={SYMBOLS.warning} />}
 
       {proofs && proofs.length === 0 && (
-        <View style={styles.centered}>
-          <Ionicons name="document-outline" size={48} color={colors.gray[300]} />
-          <Text style={styles.emptyText}>{t(k.proofs.noProofs)}</Text>
-        </View>
+        <ScreenPlaceholder title={t(k.proofs.noProofs)} symbol={SYMBOLS.document} />
       )}
 
-      {proofs && proofs.length > 0 && (
+      {hasProofs && (
         <ScrollView
           contentInsetAdjustmentBehavior="automatic"
+          // iOS insets the content itself; Android is edge to edge, so clear the navigation bar.
           contentContainerStyle={[
             styles.scrollContent,
-            { paddingBottom: FOOTER_HEIGHT + design.spacing.lg },
+            Platform.OS === 'android' && { paddingBottom: MARGIN + insets.bottom },
           ]}
-          showsVerticalScrollIndicator={false}
         >
           {proofs.map((proof) => (
-            <Card key={proof.id} style={styles.proofCard}>
+            <View key={proof.id} style={[styles.cell, { backgroundColor: cellBackground }]}>
               {proof.mimeType.startsWith('image/') ? (
                 <Image
                   source={{ uri: proof.url }}
-                  style={[
-                    styles.image,
-                    {
-                      width: contentWidth,
-                      height: imageAspectRatios[proof.id]
-                        ? contentWidth / imageAspectRatios[proof.id]
-                        : contentWidth,
-                    },
-                  ]}
+                  style={{
+                    width: contentWidth,
+                    height: imageAspectRatios[proof.id]
+                      ? contentWidth / imageAspectRatios[proof.id]
+                      : contentWidth,
+                  }}
                   contentFit="contain"
+                  accessibilityLabel={proof.filename}
                   onLoad={(e) => {
                     const { width: w, height: h } = e.source;
                     if (w && h) {
@@ -98,12 +129,10 @@ export default function ProofViewerScreen() {
                   }}
                 />
               ) : proof.mimeType === 'text/html' ? (
-                <View
-                  style={[styles.webviewContainer, { height: webviewHeights[proof.id] || 600 }]}
-                >
+                <View style={{ height: webviewHeights[proof.id] || DOCUMENT_HEIGHT }}>
                   <WebView
                     source={{ uri: proof.url }}
-                    style={styles.webview}
+                    style={styles.fill}
                     originWhitelist={['https://*']}
                     injectedJavaScript={`
                       setTimeout(() => {
@@ -122,71 +151,36 @@ export default function ProofViewerScreen() {
                 </View>
               ) : proof.mimeType === 'application/pdf' ? (
                 pdfErrors[proof.id] ? (
-                  <View style={styles.unsupported}>
-                    <Ionicons name="alert-circle-outline" size={32} color={colors.expense} />
-                    <Text style={styles.unsupportedText}>{t(k.proofs.pdfFailed)}</Text>
+                  <View style={styles.placeholderCell}>
+                    <ScreenPlaceholder title={t(k.proofs.pdfFailed)} symbol={SYMBOLS.warning} />
                   </View>
                 ) : (
-                  <View style={[styles.pdfContainer, { width: contentWidth }]}>
+                  <View style={{ width: contentWidth, height: DOCUMENT_HEIGHT }}>
                     <PdfView
                       uri={proof.url}
                       fitMode="width"
-                      style={styles.pdf}
+                      style={styles.fill}
                       onLoadComplete={() => setPdfLoaded((prev) => ({ ...prev, [proof.id]: true }))}
                       onError={() => setPdfErrors((prev) => ({ ...prev, [proof.id]: true }))}
                     />
                     {!pdfLoaded[proof.id] && (
-                      <View style={styles.pdfOverlay}>
-                        <ActivityIndicator size="large" color={colors.primary.DEFAULT} />
+                      <View style={styles.overlay}>
+                        <ActivityIndicator size="large" />
                       </View>
                     )}
                   </View>
                 )
               ) : (
-                <View style={styles.unsupported}>
-                  <Ionicons name="document-outline" size={32} color={colors.gray[400]} />
-                  <Text style={styles.unsupportedText}>
-                    {t(k.proofs.unsupportedType, { type: proof.mimeType })}
-                  </Text>
+                <View style={styles.placeholderCell}>
+                  <ScreenPlaceholder
+                    title={t(k.proofs.unsupportedType, { type: proof.mimeType })}
+                    symbol={SYMBOLS.document}
+                  />
                 </View>
               )}
-            </Card>
+            </View>
           ))}
         </ScrollView>
-      )}
-
-      {proofs && proofs.length > 0 && (
-        <View style={[styles.footer, { paddingBottom: insets.bottom + design.spacing.md }]}>
-          {hasImages && (
-            <Button
-              onPress={() => saveAllToPhotos(proofs)}
-              disabled={isSaving || isSharing}
-              style={styles.saveButton}
-            >
-              {isSaving ? (
-                <ActivityIndicator size="small" color={colors.gray[900]} />
-              ) : (
-                <Ionicons name="download-outline" size={20} color={colors.gray[900]} />
-              )}
-              <Text style={styles.footerButtonText}>
-                {isSaving ? t(k.proofs.saving) : t(k.proofs.saveToPhotos)}
-              </Text>
-            </Button>
-          )}
-          <Button
-            variant="outline"
-            onPress={() => share(proofs)}
-            disabled={isSaving || isSharing}
-            style={[!hasImages && styles.shareButtonFull]}
-          >
-            {isSharing ? (
-              <ActivityIndicator size="small" color={colors.gray[900]} />
-            ) : (
-              <Ionicons name="share-outline" size={20} color={colors.gray[900]} />
-            )}
-            {!hasImages && <Text style={styles.footerButtonText}>{t(k.proofs.share)}</Text>}
-          </Button>
-        </View>
       )}
     </View>
   );
@@ -195,80 +189,30 @@ export default function ProofViewerScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+  },
+  fill: {
+    flex: 1,
   },
   centered: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: design.spacing.sm + 4,
-  },
-  errorText: {
-    fontSize: design.fontSize.md,
-    fontWeight: '600',
-    color: colors.expense,
-  },
-  emptyText: {
-    fontSize: design.fontSize.md,
-    fontWeight: '600',
-    color: colors.gray[400],
   },
   scrollContent: {
-    paddingHorizontal: design.spacing.lg,
-    gap: design.spacing.md,
+    padding: MARGIN,
+    gap: MARGIN,
   },
-  proofCard: {
-    padding: 0,
+  cell: {
+    borderRadius: CORNER_RADIUS,
+    borderCurve: 'continuous',
     overflow: 'hidden',
   },
-  image: {
-    aspectRatio: undefined,
+  placeholderCell: {
+    height: PLACEHOLDER_HEIGHT,
   },
-  webviewContainer: {
-    overflow: 'hidden',
-  },
-  webview: {
-    flex: 1,
-  },
-  pdfContainer: {
-    height: 600,
-    overflow: 'hidden',
-  },
-  pdf: {
-    flex: 1,
-  },
-  pdfOverlay: {
+  overlay: {
     ...StyleSheet.absoluteFill,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  unsupported: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: design.spacing.xl,
-    gap: design.spacing.sm,
-  },
-  unsupportedText: {
-    fontSize: design.fontSize.sm,
-    fontWeight: '600',
-    color: colors.gray[400],
-  },
-  footer: {
-    flexDirection: 'row',
-    paddingHorizontal: design.spacing.lg,
-    paddingTop: design.spacing.md,
-    gap: design.spacing.sm,
-  },
-  saveButton: {
-    flex: 1,
-    backgroundColor: colors.primary.DEFAULT,
-  },
-  shareButtonFull: {
-    flex: 1,
-  },
-  footerButtonText: {
-    fontSize: design.fontSize.md,
-    fontWeight: '700',
-    color: colors.gray[900],
   },
 });

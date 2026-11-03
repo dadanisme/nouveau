@@ -1,113 +1,37 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
-import { Image } from 'expo-image';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Stack } from 'expo-router';
+import { Fragment } from 'react';
+import { Platform, StyleSheet, View } from 'react-native';
 
-import { Button } from '@/components/button';
-import { Card } from '@/components/card';
-import { colors, design } from '@/constants/colors';
+import { ScreenPlaceholder } from '@/components/screen-placeholder';
+import { FormDetailRow } from '@/components/form-detail-row';
+import { FormImageRow } from '@/components/form-image-row';
+import { FormButtonRow, FormSection, NativeForm } from '@/components/native-form';
+import type { FormSymbol } from '@/components/native-form-types';
 import { useLanguage } from '@/contexts/language';
-import { useShareIntentScreen, type CategorizedFile } from '@/hooks/use-share-intent-screen';
+import { useShareIntentScreen } from '@/hooks/use-share-intent-screen';
+import { useSymbolIcon } from '@/hooks/use-symbol-icon';
+import { useSystemColors } from '@/hooks/use-system-colors';
 import { k } from '@/locales/keys';
-import { formatFileSize } from '@/utils/file';
+import { formatFileSize, formatImageMeta, toFileUri } from '@/utils/file';
 
-function Badge({ label, color }: { label: string; color: string }) {
-  return (
-    <View style={[styles.badge, { backgroundColor: color }]}>
-      <Text style={styles.badgeText}>{label}</Text>
-    </View>
-  );
-}
+const SYMBOLS = {
+  empty: { sf: 'square.and.arrow.up', material: 'share' },
+  text: { sf: 'text.alignleft', material: 'notes' },
+  link: { sf: 'link', material: 'link' },
+  pdf: { sf: 'doc.richtext', material: 'picture_as_pdf' },
+  file: { sf: 'doc', material: 'draft' },
+} as const satisfies Record<string, FormSymbol>;
 
-function TextContent({ text, url }: { text: string | null; url: string | null }) {
-  if (!text && !url) return null;
+const SCAN_ICON = {
+  sf: 'doc.viewfinder',
+  md: require('@/assets/icons/document_scanner.xml'),
+} as const;
 
-  return (
-    <Card style={styles.contentCard}>
-      <Badge label={url ? 'URL' : 'Text'} color={colors.primary.DEFAULT} />
-      <Text style={styles.contentText} selectable>
-        {url ?? text}
-      </Text>
-    </Card>
-  );
-}
-
-function ImageContent({ file }: { file: CategorizedFile }) {
-  return (
-    <Card style={styles.contentCard}>
-      <Badge label="Image" color={colors.income} />
-      <View style={styles.imageContainer}>
-        <Image source={{ uri: file.path }} style={styles.imagePreview} contentFit="contain" />
-      </View>
-      <View style={styles.metaRow}>
-        <Text style={styles.metaText} numberOfLines={1}>
-          {file.fileName}
-        </Text>
-        <Text style={styles.metaDot}>·</Text>
-        <Text style={styles.metaText}>{formatFileSize(file.size)}</Text>
-        {file.width != null && file.height != null && (
-          <>
-            <Text style={styles.metaDot}>·</Text>
-            <Text style={styles.metaText}>
-              {file.width}×{file.height}
-            </Text>
-          </>
-        )}
-      </View>
-    </Card>
-  );
-}
-
-function PdfContent({ file }: { file: CategorizedFile }) {
-  return (
-    <Card style={styles.contentCard}>
-      <Badge label="PDF" color={colors.expense} />
-      <View style={styles.pdfRow}>
-        <View style={styles.pdfIcon}>
-          <Ionicons name="document-text" size={32} color={colors.expense} />
-        </View>
-        <View style={styles.pdfInfo}>
-          <Text style={styles.pdfFileName} numberOfLines={2}>
-            {file.fileName}
-          </Text>
-          <Text style={styles.pdfSize}>{formatFileSize(file.size)}</Text>
-        </View>
-      </View>
-    </Card>
-  );
-}
-
-function FileContent({ file }: { file: CategorizedFile }) {
-  return (
-    <Card style={styles.contentCard}>
-      <Badge label="File" color={colors.gray[600]} />
-      <View style={styles.pdfRow}>
-        <View style={[styles.pdfIcon, { backgroundColor: colors.gray[100] }]}>
-          <Ionicons name="document-outline" size={32} color={colors.gray[600]} />
-        </View>
-        <View style={styles.pdfInfo}>
-          <Text style={styles.pdfFileName} numberOfLines={2}>
-            {file.fileName}
-          </Text>
-          <Text style={styles.pdfSize}>{formatFileSize(file.size)}</Text>
-        </View>
-      </View>
-    </Card>
-  );
-}
-
-function EmptyState({ t }: { t: (scope: string) => string }) {
-  return (
-    <View style={styles.emptyState}>
-      <Ionicons name="share-outline" size={64} color={colors.gray[300]} />
-      <Text style={styles.emptyTitle}>{t(k.shareIntent.noContent)}</Text>
-      <Text style={styles.emptyMessage}>{t(k.shareIntent.noContentMessage)}</Text>
-    </View>
-  );
-}
-
+/**
+ * Content shared into the app, as a native form: a section per kind (text or link, images, PDFs,
+ * other files) and a Scan Receipt action. Cancel (iOS) / close (Android) in the header dismisses.
+ */
 export default function ShareIntentScreen() {
-  const insets = useSafeAreaInsets();
   const { t } = useLanguage();
   const {
     hasShareIntent,
@@ -121,206 +45,108 @@ export default function ShareIntentScreen() {
     handleDismiss,
     handleScanReceipt,
   } = useShareIntentScreen();
+  const closeIcon = useSymbolIcon({ sf: 'xmark', md: 'close' });
+  const { groupedBackground } = useSystemColors();
 
+  const sharedValue = sharedUrl ?? sharedText;
   const hasContent =
     hasShareIntent &&
-    (sharedText || sharedUrl || imageFiles.length || pdfFiles.length || otherFiles.length);
+    Boolean(sharedValue || imageFiles.length || pdfFiles.length || otherFiles.length);
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
-      <View style={styles.header}>
-        <Button variant="outline" onPress={handleDismiss} style={styles.closeButton}>
-          <Ionicons name="close" size={22} color={colors.gray[900]} />
-        </Button>
-        <Text style={styles.headerTitle}>{t(k.shareIntent.title)}</Text>
-        <View style={styles.headerSpacer} />
-      </View>
+    <>
+      <Stack.Toolbar placement="left">
+        {Platform.OS === 'ios' ? (
+          <Stack.Toolbar.Button onPress={handleDismiss}>
+            {canScan ? t(k.common.cancel) : t(k.common.done)}
+          </Stack.Toolbar.Button>
+        ) : closeIcon ? (
+          <Stack.Toolbar.Button
+            icon={closeIcon}
+            accessibilityLabel={t(k.shareIntent.close)}
+            onPress={handleDismiss}
+          />
+        ) : null}
+      </Stack.Toolbar>
 
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={[
-          styles.content,
-          { paddingBottom: insets.bottom + design.spacing.xl },
-        ]}
-        showsVerticalScrollIndicator={false}
-      >
-        {hasContent ? (
-          <>
-            <TextContent text={sharedText} url={sharedUrl} />
-            {imageFiles.map((file, index) => (
-              <ImageContent key={file.path ?? index} file={file} />
-            ))}
-            {pdfFiles.map((file, index) => (
-              <PdfContent key={file.path ?? index} file={file} />
-            ))}
-            {otherFiles.map((file, index) => (
-              <FileContent key={file.path ?? index} file={file} />
-            ))}
-          </>
-        ) : (
-          <EmptyState t={t} />
-        )}
-      </ScrollView>
+      {hasContent ? (
+        <NativeForm>
+          {sharedValue ? (
+            <FormSection
+              title={sharedUrl ? t(k.shareIntent.linkSection) : t(k.shareIntent.textSection)}
+            >
+              <FormDetailRow
+                title={sharedValue}
+                symbol={sharedUrl ? SYMBOLS.link : SYMBOLS.text}
+                selectable
+              />
+            </FormSection>
+          ) : null}
 
-      <View style={[styles.footer, { paddingBottom: insets.bottom + design.spacing.md }]}>
-        {canScan ? (
-          <Button onPress={handleScanReceipt} disabled={isScanning} style={styles.doneButton}>
-            {isScanning ? (
-              <ActivityIndicator size="small" color={colors.gray[900]} />
-            ) : (
-              <Ionicons name="scan" size={20} color={colors.gray[900]} />
-            )}
-            <Text style={styles.doneText}>
-              {isScanning ? t(k.shareIntent.scanning) : t(k.shareIntent.scanReceipt)}
-            </Text>
-          </Button>
-        ) : (
-          <Button onPress={handleDismiss} style={styles.doneButton}>
-            <Text style={styles.doneText}>{t(k.common.done)}</Text>
-          </Button>
-        )}
-      </View>
-    </View>
+          {imageFiles.length > 0 ? (
+            <FormSection title={t(k.shareIntent.imagesSection)}>
+              {imageFiles.map((file) => (
+                <Fragment key={file.path}>
+                  <FormImageRow uri={toFileUri(file.path)} accessibilityLabel={file.fileName} />
+                  <FormDetailRow
+                    title={file.fileName}
+                    subtitle={formatImageMeta(file.size, file.width, file.height)}
+                  />
+                </Fragment>
+              ))}
+            </FormSection>
+          ) : null}
+
+          {pdfFiles.length > 0 ? (
+            <FormSection title={t(k.shareIntent.pdfsSection)}>
+              {pdfFiles.map((file) => (
+                <FormDetailRow
+                  key={file.path}
+                  title={file.fileName}
+                  subtitle={formatFileSize(file.size)}
+                  symbol={SYMBOLS.pdf}
+                />
+              ))}
+            </FormSection>
+          ) : null}
+
+          {otherFiles.length > 0 ? (
+            <FormSection title={t(k.shareIntent.filesSection)}>
+              {otherFiles.map((file) => (
+                <FormDetailRow
+                  key={file.path}
+                  title={file.fileName}
+                  subtitle={formatFileSize(file.size)}
+                  symbol={SYMBOLS.file}
+                />
+              ))}
+            </FormSection>
+          ) : null}
+
+          {canScan ? (
+            <FormSection>
+              <FormButtonRow
+                title={isScanning ? t(k.shareIntent.scanning) : t(k.shareIntent.scanReceipt)}
+                icon={SCAN_ICON}
+                disabled={isScanning}
+                onPress={handleScanReceipt}
+              />
+            </FormSection>
+          ) : null}
+        </NativeForm>
+      ) : (
+        <View style={[styles.fill, { backgroundColor: groupedBackground }]}>
+          <ScreenPlaceholder
+            title={t(k.shareIntent.noContent)}
+            description={t(k.shareIntent.noContentMessage)}
+            symbol={SYMBOLS.empty}
+          />
+        </View>
+      )}
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: design.spacing.lg,
-    paddingVertical: design.spacing.md,
-  },
-  closeButton: {
-    width: 40,
-    height: 40,
-    paddingVertical: 0,
-    paddingHorizontal: 0,
-    borderRadius: design.radius.sm,
-  },
-  headerTitle: {
-    flex: 1,
-    textAlign: 'center',
-    fontSize: design.fontSize.lg,
-    fontWeight: '800',
-    color: colors.gray[900],
-  },
-  headerSpacer: {
-    width: 40,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  content: {
-    paddingHorizontal: design.spacing.lg,
-    gap: design.spacing.lg,
-  },
-  footer: {
-    paddingHorizontal: design.spacing.lg,
-    paddingTop: design.spacing.md,
-  },
-  doneButton: {
-    backgroundColor: colors.primary.DEFAULT,
-  },
-  doneText: {
-    fontSize: design.fontSize.md,
-    fontWeight: '700',
-    color: colors.gray[900],
-  },
-  contentCard: {
-    gap: design.spacing.sm,
-  },
-  badge: {
-    alignSelf: 'flex-start',
-    paddingHorizontal: design.spacing.sm,
-    paddingVertical: design.spacing.xs,
-    borderRadius: design.radius.sm,
-  },
-  badgeText: {
-    fontSize: design.fontSize.xs,
-    fontWeight: '800',
-    color: colors.white,
-  },
-  contentText: {
-    fontSize: design.fontSize.md,
-    fontWeight: '500',
-    color: colors.gray[800],
-    lineHeight: 22,
-  },
-  imageContainer: {
-    aspectRatio: 4 / 3,
-    borderRadius: design.radius.md,
-    overflow: 'hidden',
-    backgroundColor: colors.gray[100],
-  },
-  imagePreview: {
-    width: '100%',
-    height: '100%',
-  },
-  metaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: design.spacing.xs,
-    flexWrap: 'wrap',
-  },
-  metaText: {
-    fontSize: design.fontSize.xs,
-    fontWeight: '600',
-    color: colors.gray[500],
-  },
-  metaDot: {
-    fontSize: design.fontSize.xs,
-    color: colors.gray[400],
-  },
-  pdfRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: design.spacing.md,
-  },
-  pdfIcon: {
-    width: 64,
-    height: 64,
-    borderRadius: design.radius.md,
-    backgroundColor: '#FEF2F2',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  pdfInfo: {
-    flex: 1,
-    gap: 2,
-  },
-  pdfFileName: {
-    fontSize: design.fontSize.md,
-    fontWeight: '700',
-    color: colors.gray[900],
-  },
-  pdfSize: {
-    fontSize: design.fontSize.sm,
-    fontWeight: '500',
-    color: colors.gray[500],
-  },
-  emptyState: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingTop: 120,
-    gap: design.spacing.sm,
-  },
-  emptyTitle: {
-    fontSize: design.fontSize.lg,
-    fontWeight: '800',
-    color: colors.gray[400],
-    marginTop: design.spacing.sm,
-  },
-  emptyMessage: {
-    fontSize: design.fontSize.md,
-    fontWeight: '500',
-    color: colors.gray[400],
-    textAlign: 'center',
-    paddingHorizontal: design.spacing.xl,
-  },
+  fill: { flex: 1 },
 });

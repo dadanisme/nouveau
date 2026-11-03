@@ -163,6 +163,8 @@ const en = {
     unknownFeature: 'Unknown Feature',
     noSubscriptions: 'No subscriptions',
     noSubscriptionsMessage: "You don't have any feature subscriptions yet",
+    active: 'Active',
+    loadFailed: "Couldn't load subscriptions",
   },
   proofs: {
     title: 'Receipt Proofs',
@@ -190,6 +192,12 @@ const en = {
     scanning: 'Scanning...',
     scanReceipt: 'Scan Receipt',
     scanFailed: 'Scan Failed',
+    close: 'Close',
+    textSection: 'Text',
+    linkSection: 'Link',
+    imagesSection: 'Images',
+    pdfsSection: 'PDFs',
+    filesSection: 'Files',
   },
   datePicker: {
     months: [
