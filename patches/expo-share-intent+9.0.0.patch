@@ -1,6 +1,6 @@
 --- a/node_modules/expo-share-intent/plugin/build/ios/ShareExtensionViewController.swift
 +++ b/node_modules/expo-share-intent/plugin/build/ios/ShareExtensionViewController.swift
-@@ -16,6 +16,7 @@
+@@ -17,6 +17,7 @@
    var sharedMedia: [SharedMediaFile] = []
    var sharedWebUrl: [WebUrl] = []
    var sharedText: [String] = []
@@ -8,7 +8,7 @@
    let imageContentType: String = UTType.image.identifier
    let videoContentType: String = UTType.movie.identifier
    let textContentType: String = UTType.text.identifier
-@@ -40,7 +41,9 @@
+@@ -52,7 +53,9 @@
          dismissWithError(message: "No content found")
          return
        }
@@ -18,7 +18,7 @@
          if attachment.hasItemConformingToTypeIdentifier(imageContentType) {
            await handleImages(content: content, attachment: attachment, index: index)
          } else if attachment.hasItemConformingToTypeIdentifier(videoContentType) {
-@@ -100,16 +103,8 @@
+@@ -112,16 +115,8 @@
          as? String
        {
          Task { @MainActor in
@@ -36,7 +36,7 @@
          }
        } else {
          NSLog("[ERROR] Cannot load text content !\(String(describing: content))")
-@@ -123,16 +118,8 @@
+@@ -135,16 +130,8 @@
      Task.detached {
        if let item = try! await attachment.loadItem(forTypeIdentifier: self.urlContentType) as? URL {
          Task { @MainActor in
@@ -54,7 +54,7 @@
          }
        } else {
          NSLog("[ERROR] Cannot load url content !\(String(describing: content))")
-@@ -151,7 +138,6 @@
+@@ -163,7 +150,6 @@
          as? NSDictionary
        {
          Task { @MainActor in
@@ -62,7 +62,7 @@
            if let results = item[NSExtensionJavaScriptPreprocessingResultsKey]
              as? NSDictionary
            {
-@@ -160,19 +146,12 @@
+@@ -172,19 +158,12 @@
              )
              self.sharedWebUrl.append(
                WebUrl(url: results["baseURI"] as! String, meta: results["meta"] as! String))
@@ -83,7 +83,7 @@
          }
        } else {
          NSLog("[ERROR] Cannot load preprocessing content !\(String(describing: content))")
-@@ -299,13 +278,7 @@
+@@ -311,13 +290,7 @@
                  mimeType: mimeType, type: .image))
            }
  
@@ -98,7 +98,7 @@
          }
        } catch {
          NSLog("[ERROR] handleImages: Exception loading image item: \(error)")
-@@ -384,14 +357,7 @@
+@@ -396,14 +369,7 @@
              self.sharedMedia.append(sharedFile)
            }
  
@@ -114,7 +114,7 @@
          }
        } else {
          NSLog("[ERROR] Cannot load video content !\(String(describing: content))")
-@@ -453,11 +419,46 @@
+@@ -465,11 +431,46 @@
            type: .file))
      }
  
@@ -295,4 +295,3 @@
      options.debug &&
          console.debug("useShareIntent[parsed] ", JSON.stringify(result, null, 2));
      return result;
-

@@ -64,6 +64,8 @@ export default function WorkspaceSettingsScreen() {
 
   useEffect(() => {
     if (workspace) {
+      // Seeds the form from the loaded workspace; this screen is rebuilt natively in its own issue.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setName(workspace.name);
       setCurrency(workspace.home_currency);
     }

@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import * as MediaLibrary from 'expo-media-library';
+import * as MediaLibrary from 'expo-media-library/legacy';
 import * as Sharing from 'expo-sharing';
 
 import { type Proof } from '@/hooks/use-proofs';

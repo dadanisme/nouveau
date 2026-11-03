@@ -31,6 +31,8 @@ export function Alert({ visible, title, message, actions, onDismiss }: AlertProp
 
   useEffect(() => {
     if (visible) {
+      // Legacy component (removed in #39); keeps the Modal mounted for the exit animation.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setModalVisible(true);
       setContentVisible(true);
     } else {

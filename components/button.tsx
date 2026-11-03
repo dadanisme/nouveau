@@ -1,4 +1,10 @@
-import { Pressable, StyleSheet, type PressableProps, type ViewStyle } from 'react-native';
+import {
+  Pressable,
+  StyleSheet,
+  type PressableProps,
+  type StyleProp,
+  type ViewStyle,
+} from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 
 import { colors, design } from '@/constants/colors';
@@ -9,7 +15,7 @@ const SHADOW_OFFSET = design.shadowOffset;
 
 interface ButtonProps extends Omit<PressableProps, 'style'> {
   variant?: 'primary' | 'outline' | 'dark';
-  style?: ViewStyle | (ViewStyle | false | undefined)[];
+  style?: StyleProp<ViewStyle>;
   children: React.ReactNode;
 }
 
