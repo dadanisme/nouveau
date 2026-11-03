@@ -25,10 +25,11 @@ import type {
 } from '@/components/auth-form';
 import { ACCENT_COLOR } from '@/constants/accent';
 
-// Material 3 form metrics: 24dp side margins, 16dp between fields, 24dp between groups.
-const SIDE = 24;
+// Material 3 compact metrics: 16dp side margins, applied per row (as the native-form text field
+// rows do, which carry their own 16dp side and 8dp vertical padding); 24dp between groups.
+const SIDE = 16;
 const TOP = 24;
-const FIELD_GAP = 16;
+const ROW_GAP = 8;
 const GROUP_GAP = 24;
 
 // The system (dynamic) palette; the accent only tints, as the `primary` role (filled button,
@@ -68,10 +69,10 @@ function AuthSurface({
         background(colors.surface),
         imePadding(),
         verticalScroll(),
-        padding(SIDE, top, SIDE, GROUP_GAP),
+        padding(0, top, 0, GROUP_GAP),
       ]}
     >
-      <Column verticalArrangement={{ spacedBy: 8 }}>
+      <Column verticalArrangement={{ spacedBy: 8 }} modifiers={[padding(SIDE, 0, SIDE, 0)]}>
         <Text color={colors.onSurface} style={{ typography: 'headlineMedium' }}>
           {title}
         </Text>
@@ -84,14 +85,18 @@ function AuthSurface({
   );
 }
 
-/** A group of fields or buttons, spaced as M3 form fields. */
+/** A group of fields or buttons. */
 export function AuthFormSection({ title, children }: AuthFormSectionProps) {
   const colors = useMaterialColors();
 
   return (
-    <Column verticalArrangement={{ spacedBy: FIELD_GAP }} modifiers={[fillMaxWidth()]}>
+    <Column verticalArrangement={{ spacedBy: ROW_GAP }} modifiers={[fillMaxWidth()]}>
       {title ? (
-        <Text color={colors.onSurfaceVariant} style={{ typography: 'labelLarge' }}>
+        <Text
+          color={colors.onSurfaceVariant}
+          style={{ typography: 'labelLarge' }}
+          modifiers={[padding(SIDE, 0, SIDE, 0)]}
+        >
           {title}
         </Text>
       ) : null}
@@ -105,7 +110,11 @@ export function AuthSwitchRow({ prompt, action, disabled, onPress }: AuthSwitchR
   const colors = useMaterialColors();
 
   return (
-    <Row horizontalArrangement="center" verticalAlignment="center" modifiers={[fillMaxWidth()]}>
+    <Row
+      horizontalArrangement="center"
+      verticalAlignment="center"
+      modifiers={[fillMaxWidth(), padding(SIDE, 0, SIDE, 0)]}
+    >
       <Text color={colors.onSurfaceVariant} style={{ typography: 'bodyMedium' }}>
         {prompt}
       </Text>

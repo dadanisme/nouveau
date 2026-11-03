@@ -1,5 +1,5 @@
 import { Box, Icon, Row, Shape, Surface, Text } from '@expo/ui/jetpack-compose';
-import { fillMaxWidth, height } from '@expo/ui/jetpack-compose/modifiers';
+import { fillMaxWidth, height, padding } from '@expo/ui/jetpack-compose/modifiers';
 import { useColorScheme } from 'react-native';
 
 import type { GoogleSignInButtonProps } from '@/components/google-sign-in-button';
@@ -8,6 +8,8 @@ import { GOOGLE_BUTTON_COLORS, SOCIAL_BUTTON_HEIGHT } from '@/constants/google-b
 const HEIGHT = SOCIAL_BUTTON_HEIGHT.android;
 const RADIUS = HEIGHT / 2;
 const LOGO_SIZE = 20;
+// The form's 16dp side margin; each row carries its own, like the native-form rows.
+const SIDE = 16;
 const PILL = Shape.RoundedCorner({
   cornerRadii: { topStart: RADIUS, topEnd: RADIUS, bottomStart: RADIUS, bottomEnd: RADIUS },
 });
@@ -28,7 +30,7 @@ export function GoogleSignInButton({ title, disabled, onPress }: GoogleSignInBut
       color={colors.fill}
       contentColor={colors.text}
       border={{ width: 1, color: colors.stroke }}
-      modifiers={[fillMaxWidth(), height(HEIGHT)]}
+      modifiers={[fillMaxWidth(), padding(SIDE, 0, SIDE, 0), height(HEIGHT)]}
     >
       <Box contentAlignment="center" modifiers={[fillMaxWidth(), height(HEIGHT)]}>
         <Row horizontalArrangement={{ spacedBy: 12 }} verticalAlignment="center">

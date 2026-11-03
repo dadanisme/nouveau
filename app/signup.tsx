@@ -2,7 +2,8 @@ import { useRef } from 'react';
 
 import { AuthForm, AuthFormSection, AuthSwitchRow } from '@/components/auth-form';
 import { FormPrimaryButtonRow } from '@/components/form-primary-button-row';
-import { FormTextFieldRow, type FormTextFieldRowRef } from '@/components/form-text-field-row';
+import { FormTextFieldRow } from '@/components/native-form';
+import type { FormTextFieldRowRef } from '@/components/native-form-types';
 import { useLanguage } from '@/contexts/language';
 import { useSignupScreen } from '@/hooks/use-signup-screen';
 import { k } from '@/locales/keys';
@@ -18,23 +19,23 @@ export default function SignUpScreen() {
     <AuthForm title={t(k.signup.heading)} subtitle={t(k.signup.subtitle)}>
       <AuthFormSection>
         <FormTextFieldRow
-          label={t(k.signup.email)}
-          content="newEmail"
-          returnKey="next"
+          placeholder={t(k.signup.email)}
+          keyboard="email"
+          contentType="newUsername"
+          submitLabel="next"
           onChangeText={screen.setEmail}
           onSubmit={() => passwordField.current?.focus()}
           disabled={screen.isSubmitting}
         />
         <FormTextFieldRow
           ref={passwordField}
-          label={t(k.signup.password)}
-          content="newPassword"
-          returnKey="join"
+          placeholder={t(k.signup.password)}
+          secure
+          contentType="newPassword"
+          submitLabel="join"
           onChangeText={screen.setPassword}
           onSubmit={screen.signUp}
           disabled={screen.isSubmitting}
-          showPasswordLabel={t(k.login.showPassword)}
-          hidePasswordLabel={t(k.login.hidePassword)}
         />
       </AuthFormSection>
 

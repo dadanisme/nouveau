@@ -1,4 +1,5 @@
 import type { AndroidSymbol } from 'expo-symbols';
+import type { Ref } from 'react';
 import type { ColorValue, ImageSourcePropType } from 'react-native';
 import type { SFSymbol } from 'sf-symbols-typescript';
 
@@ -115,10 +116,11 @@ export type FormListRowProps = {
 /**
  * A single-line text input row: a SwiftUI `TextField` (iOS), a filled Material text field
  * (Android). Uncontrolled with `defaultValue` (read once on mount); controlled with `value`
- * (outside changes replace the text). Input traits are independent optional flags, so further
- * ones (secure entry, autofill content type) add alongside `keyboard`.
+ * (outside changes replace the text). Input traits are independent optional flags.
  */
 export type FormTextFieldRowProps = {
+  /** Imperative focus, e.g. to move to the next field on the return key. */
+  ref?: Ref<FormTextFieldRowRef>;
   /** Shown while empty; also the label when `label` is unset. */
   placeholder: string;
   /**
@@ -133,15 +135,54 @@ export type FormTextFieldRowProps = {
   onChangeText: (text: string) => void;
   /** `email`: email keyboard, no autocapitalization or autocorrection, email autofill. */
   keyboard?: 'default' | 'email';
+  /**
+   * Masked entry: a SwiftUI `SecureField` (iOS), a password field with the M3 show/hide toggle
+   * (Android). No autocapitalization or autocorrection.
+   */
+  secure?: boolean;
+  /**
+   * The autofill hint, overriding the `email` keyboard's `emailAddress` (see
+   * {@link FormTextFieldContentType}).
+   */
+  contentType?: FormTextFieldContentType;
   /** @default 'sentences' ('none' with the email keyboard) */
   autoCapitalize?: 'none' | 'words' | 'sentences';
   autoFocus?: boolean;
   maxLength?: number;
-  /** The keyboard's return key (unset: iOS shows Return, Android Done). */
-  submitLabel?: 'done' | 'send' | 'next';
+  /**
+   * The keyboard's return key (unset: iOS shows Return, Android Done). Android has no `join`
+   * action and shows Done.
+   */
+  submitLabel?: 'done' | 'send' | 'next' | 'go' | 'join';
   /** Runs when the return key is pressed. */
   onSubmit?: () => void;
+  /** Read-only and dimmed, e.g. while the form submits. */
+  disabled?: boolean;
 };
+
+export type FormTextFieldRowRef = { focus: () => void };
+
+/**
+ * What a text field holds, for password managers and autofill:
+ *
+ * | content type   | iOS `textContentType` | Android autofill `ContentType` |
+ * | -------------- | --------------------- | ------------------------------ |
+ * | `emailAddress` | `emailAddress`        | `EmailAddress`                 |
+ * | `username`     | `username`            | `Username`                     |
+ * | `newUsername`  | `username`            | `NewUsername`                  |
+ * | `password`     | `password`            | `Password`                     |
+ * | `newPassword`  | `newPassword`         | `NewPassword`                  |
+ *
+ * A sign-in form whose identifier is an email marks it `username` (with the `email` keyboard):
+ * iOS pairs saved passwords and passkeys with the `username` field. `newPassword` makes iOS and
+ * Google offer a generated strong password.
+ */
+export type FormTextFieldContentType =
+  | 'emailAddress'
+  | 'username'
+  | 'newUsername'
+  | 'password'
+  | 'newPassword';
 
 export type FormSegmentedRowProps<T extends string> = {
   /** What the control picks, for screen readers (the segments are its only visible labels). */

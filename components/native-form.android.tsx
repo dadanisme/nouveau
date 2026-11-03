@@ -19,6 +19,8 @@ import {
   useMaterialColors,
   useNativeState,
   type MaterialColors,
+  type TextFieldImeAction,
+  type TextFieldRef,
 } from '@expo/ui/jetpack-compose';
 import {
   background,
@@ -32,7 +34,7 @@ import {
   size,
   type ModifierConfig,
 } from '@expo/ui/jetpack-compose/modifiers';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { StyleSheet } from 'react-native';
 
 import type {
@@ -46,6 +48,7 @@ import type {
   FormSectionProps,
   FormSegmentedRowProps,
   FormSymbol,
+  FormTextFieldContentType,
   FormTextFieldRowProps,
   NativeFormProps,
 } from '@/components/native-form-types';
@@ -408,27 +411,54 @@ export function FormListRow({
   );
 }
 
+// Compose autofill hints (`ContentType`), as named by the expo-ui `semantics` modifier.
+const AUTOFILL_HINT: Record<FormTextFieldContentType, string> = {
+  emailAddress: 'email',
+  username: 'username',
+  newUsername: 'username-new',
+  password: 'current-password',
+  newPassword: 'new-password',
+};
+
+// Android IME actions have no "join"; Done submits instead.
+const IME_ACTION: Record<NonNullable<FormTextFieldRowProps['submitLabel']>, TextFieldImeAction> = {
+  done: 'done',
+  send: 'send',
+  next: 'next',
+  go: 'go',
+  join: 'done',
+};
+
 /**
  * A single-line filled Material text field (see `FormTextFieldRowProps`); the floating label is
- * `label`, or the placeholder.
+ * `label`, or the placeholder. Secure fields are masked, with the M3 trailing show/hide toggle.
  */
 export function FormTextFieldRow({
+  ref,
   placeholder,
   label,
   value,
   defaultValue = '',
   onChangeText,
   keyboard = 'default',
+  secure,
+  contentType,
   autoCapitalize,
   autoFocus,
   maxLength,
   submitLabel = 'done',
   onSubmit,
+  disabled,
 }: FormTextFieldRowProps) {
+  const { t } = useLanguage();
   const initial = value ?? defaultValue;
   const text = useNativeState(initial);
   // The last text the field reported, so only outside `value` changes are written back to it.
   const lastText = useRef(initial);
+  const field = useRef<TextFieldRef>(null);
+  const [isRevealed, setIsRevealed] = useState(false);
+
+  useImperativeHandle(ref, () => ({ focus: () => void field.current?.focus() }), []);
 
   useEffect(() => {
     if (value === undefined || value === lastText.current) return;
@@ -437,10 +467,13 @@ export function FormTextFieldRow({
   }, [value, text]);
 
   const isEmail = keyboard === 'email';
+  const isPlain = isEmail || secure;
+  const autofill = contentType ?? (isEmail ? 'emailAddress' : undefined);
   const submit = onSubmit ? () => onSubmit() : undefined;
 
   return (
     <TextField
+      ref={field}
       value={text}
       onValueChange={(next) => {
         lastText.current = next;
@@ -448,18 +481,20 @@ export function FormTextFieldRow({
       }}
       autoFocus={autoFocus}
       maxLength={maxLength}
+      enabled={!disabled}
       singleLine
+      visualTransformation={secure && !isRevealed ? 'password' : 'none'}
       keyboardOptions={{
-        capitalization: autoCapitalize ?? (isEmail ? 'none' : 'sentences'),
-        autoCorrectEnabled: !isEmail,
-        keyboardType: isEmail ? 'email' : 'text',
-        imeAction: submitLabel,
+        capitalization: autoCapitalize ?? (isPlain ? 'none' : 'sentences'),
+        autoCorrectEnabled: !isPlain,
+        keyboardType: secure ? 'password' : isEmail ? 'email' : 'text',
+        imeAction: IME_ACTION[submitLabel],
       }}
-      keyboardActions={{ onDone: submit, onSend: submit, onNext: submit }}
+      keyboardActions={{ onDone: submit, onSend: submit, onNext: submit, onGo: submit }}
       modifiers={[
         fillMaxWidth(),
         padding(SIDE, 8, SIDE, 8),
-        ...(isEmail ? [semantics({ contentType: 'emailAddress' })] : []),
+        ...(autofill ? [semantics({ contentType: AUTOFILL_HINT[autofill] })] : []),
       ]}
     >
       <TextField.Label>
@@ -469,6 +504,20 @@ export function FormTextFieldRow({
         <TextField.Placeholder>
           <Text>{placeholder}</Text>
         </TextField.Placeholder>
+      ) : null}
+      {secure ? (
+        <TextField.TrailingIcon>
+          <IconButton onClick={() => setIsRevealed((revealed) => !revealed)}>
+            <Icon
+              source={
+                isRevealed
+                  ? require('@/assets/icons/visibility_off.xml')
+                  : require('@/assets/icons/visibility.xml')
+              }
+              contentDescription={t(isRevealed ? k.login.hidePassword : k.login.showPassword)}
+            />
+          </IconButton>
+        </TextField.TrailingIcon>
       ) : null}
     </TextField>
   );

@@ -2,7 +2,8 @@ import { useRef } from 'react';
 
 import { AuthForm, AuthFormSection, AuthSwitchRow } from '@/components/auth-form';
 import { FormPrimaryButtonRow } from '@/components/form-primary-button-row';
-import { FormTextFieldRow, type FormTextFieldRowRef } from '@/components/form-text-field-row';
+import { FormTextFieldRow } from '@/components/native-form';
+import type { FormTextFieldRowRef } from '@/components/native-form-types';
 import { GoogleSignInButton } from '@/components/google-sign-in-button';
 import { useLanguage } from '@/contexts/language';
 import { useLoginScreen } from '@/hooks/use-login-screen';
@@ -19,23 +20,23 @@ export default function LoginScreen() {
     <AuthForm title={t(k.login.heading)} subtitle={t(k.login.subtitle)} insetTop>
       <AuthFormSection>
         <FormTextFieldRow
-          label={t(k.login.email)}
-          content="email"
-          returnKey="next"
+          placeholder={t(k.login.email)}
+          keyboard="email"
+          contentType="username"
+          submitLabel="next"
           onChangeText={screen.setEmail}
           onSubmit={() => passwordField.current?.focus()}
           disabled={screen.isSubmitting}
         />
         <FormTextFieldRow
           ref={passwordField}
-          label={t(k.login.password)}
-          content="password"
-          returnKey="go"
+          placeholder={t(k.login.password)}
+          secure
+          contentType="password"
+          submitLabel="go"
           onChangeText={screen.setPassword}
           onSubmit={screen.signIn}
           disabled={screen.isSubmitting}
-          showPasswordLabel={t(k.login.showPassword)}
-          hidePasswordLabel={t(k.login.hidePassword)}
         />
       </AuthFormSection>
 
