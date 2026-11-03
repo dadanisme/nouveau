@@ -150,7 +150,7 @@ The web app reads the same rows, so the stored format **does not change**:
 - `categories.icon`: an Ionicon name, stored as `"Ionicons/<name>"` (nullable, parsed by `utils/icon.ts` `parseIcon`).
 - `categories.color`: a hex string.
 
-The app maps both to native values in `utils/`: Ionicon name → SF Symbol / Material Symbol (with a fallback for unmapped names), and hex → one of ~8 dynamic system colors. The native icon grid and color picker write Ionicon names and canonical hexes back. Never write SF/Material names or platform colors to the DB (#31).
+The app maps both to native values in `utils/`: Ionicon name → SF Symbol / Material Symbol (with a fallback for unmapped names), and hex → one of 9 system colors (other hexes render as stored). Use `getCategorySymbol(icon)` (`utils/category-icon.ts`, returns `{ sf, material }`), `getCategoryColor(hex)` (`utils/category-color.ts`, `PlatformColor` on iOS, palette hex on Android) or `<CategoryIcon icon color />`. The native icon grid and color picker write Ionicon names and canonical palette hexes back. Never write SF/Material names or platform colors to the DB (#31).
 
 ### Wide layouts (deferred)
 
@@ -160,23 +160,23 @@ The migration targets phone-width layouts. iPhone Duo and wide layouts (list + d
 
 Removed in #39. Don't add new uses. Only touch these to delete them or to keep a screen working until its issue lands.
 
-| Legacy                                                                                                                | Native replacement                                       |
-| --------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
-| `constants/colors.ts` (`colors`, `design`: borders, hard shadows, radii, spacing, font sizes)                         | semantic system colors + accent, platform metrics        |
-| `button.tsx`                                                                                                          | `@expo/ui` buttons, header/toolbar items                 |
-| `card.tsx`, `overview-card.tsx`, `summary-card.tsx`                                                                   | native grouped list / form sections                      |
-| `screen-header.tsx`                                                                                                   | native Stack header                                      |
-| `segmented-toggle.tsx`, `type-toggle.tsx`                                                                             | native segmented picker                                  |
-| `number-pad.tsx`, `processAmountKeyPress`                                                                             | system decimal keyboard                                  |
-| `calendar-grid.tsx` (in `(sheets)/date-picker`), `hooks/use-calendar.ts`                                              | native DatePicker                                        |
-| `icon-grid.tsx`, `color-grid.tsx`, `category-grid.tsx`, `constants/category-icons.ts`, `constants/category-colors.ts` | native icon grid + ~8 system colors via `utils/` mapping |
-| `skeleton.tsx`, `summary-card-skeleton.tsx`, `transaction-group-skeleton.tsx`, `transaction-item-skeleton.tsx`        | native placeholders                                      |
-| `monthly-trend-chart.tsx`, `category-bar-list.tsx`                                                                    | Swift Charts / Compose (#37)                             |
-| `transaction-item.tsx`, `workspace-members-section.tsx`, `workspace-invites-section.tsx`                              | native rows, rebuilt in their screen issue               |
-| Month pan gesture on Transactions                                                                                     | header picker + chevrons                                 |
-| `@expo/vector-icons` (Ionicons) in UI                                                                                 | SF Symbols / Material Symbols                            |
-| `<StatusBar style="dark" />`, cream splash background `#FFF9EB`                                                       | system appearance                                        |
-| RN web build (`react-native-web`, `web` script, `app.json` `web`)                                                     | removed; the web app is `web/`                           |
+| Legacy                                                                                                         | Native replacement                                |
+| -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------- |
+| `constants/colors.ts` (`colors`, `design`: borders, hard shadows, radii, spacing, font sizes)                  | semantic system colors + accent, platform metrics |
+| `button.tsx`                                                                                                   | `@expo/ui` buttons, header/toolbar items          |
+| `card.tsx`, `overview-card.tsx`, `summary-card.tsx`                                                            | native grouped list / form sections               |
+| `screen-header.tsx`                                                                                            | native Stack header                               |
+| `segmented-toggle.tsx`, `type-toggle.tsx`                                                                      | native segmented picker                           |
+| `number-pad.tsx`, `processAmountKeyPress`                                                                      | system decimal keyboard                           |
+| `calendar-grid.tsx` (in `(sheets)/date-picker`), `hooks/use-calendar.ts`                                       | native DatePicker                                 |
+| `category-grid.tsx` (in `(sheets)/category-picker`)                                                            | native list with `CategoryIcon` rows              |
+| `skeleton.tsx`, `summary-card-skeleton.tsx`, `transaction-group-skeleton.tsx`, `transaction-item-skeleton.tsx` | native placeholders                               |
+| `monthly-trend-chart.tsx`, `category-bar-list.tsx`                                                             | Swift Charts / Compose (#37)                      |
+| `transaction-item.tsx`, `workspace-members-section.tsx`, `workspace-invites-section.tsx`                       | native rows, rebuilt in their screen issue        |
+| Month pan gesture on Transactions                                                                              | header picker + chevrons                          |
+| `@expo/vector-icons` (Ionicons) in UI                                                                          | SF Symbols / Material Symbols                     |
+| `<StatusBar style="dark" />`, cream splash background `#FFF9EB`                                                | system appearance                                 |
+| RN web build (`react-native-web`, `web` script, `app.json` `web`)                                              | removed; the web app is `web/`                    |
 
 ## Definition of done for UI work
 
