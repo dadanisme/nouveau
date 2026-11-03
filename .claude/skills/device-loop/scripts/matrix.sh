@@ -33,7 +33,7 @@ boot() { local k="$1" id; id="$(resolve "$k")"; [ -n "$id" ] || { echo "$k: devi
     [ -n "$(emu_serial "$id")" ] || android emulator start "$id" | tr "\r" "\n" | tail -1
     echo "$k -> $(emu_serial "$id")"
   else
-    xcrun simctl bootstatus "$id" -b >/dev/null; open -a Simulator 2>/dev/null || true  # headless is fine
+    xcrun simctl bootstatus "$id" -b >/dev/null; open -a DeviceHub 2>/dev/null || true  # Xcode 27 Device Hub shows booted sims
     echo "$k -> $id"
   fi; }
 
