@@ -63,7 +63,8 @@ const id: Translations = {
     category: 'Kategori',
     income: 'Pemasukan',
     expense: 'Pengeluaran',
-    addMore: 'Tambah Lagi',
+    addMore: 'Simpan dan Tambah Lagi',
+    date: 'Tanggal',
     delete: 'Hapus',
     viewProofs: 'Lihat Bukti',
     invalidAmount: 'Jumlah Tidak Valid',
@@ -233,10 +234,11 @@ const id: Translations = {
       'November',
       'Desember',
     ],
-    weekdays: ['M', 'S', 'S', 'R', 'K', 'J', 'S'],
   },
   categoryPicker: {
     title: 'Pilih Kategori',
+    empty: 'Belum Ada Kategori',
+    emptyMessage: 'Tambahkan kategori di Pengaturan > Kategori.',
   },
   contextMenu: {
     edit: 'Edit',

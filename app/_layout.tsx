@@ -146,13 +146,10 @@ function RootStack() {
             // Android form sheets have no native header, which would drop the title and the
             // edit menu, so Android gets a full-screen modal (M3 full-screen dialog) instead.
             presentation: Platform.OS === 'ios' ? 'formSheet' : 'modal',
-            // The form is a full-height number pad layout, so a single large detent keeps
-            // every row reachable; swipe down (or the grabber) dismisses.
+            // One large detent: the amount field opens the keyboard, which needs the full
+            // height to keep the form visible; swipe down (or the grabber) dismisses.
             sheetAllowedDetents: [1.0],
             sheetGrabberVisible: true,
-            // The form doesn't scroll, so keep the header opaque (iOS 26 defaults to
-            // transparent) and lay the form out below it.
-            headerTransparent: false,
           })}
         />
         <Stack.Screen
@@ -173,8 +170,10 @@ function RootStack() {
           })}
         />
         {/* Sheet routes (app/(sheets)/*): results come back through lib/sheet-result.ts. */}
-        <Stack.Screen name="(sheets)/category-picker" options={sheetOptions([0.5, 1])} />
-        <Stack.Screen name="(sheets)/date-picker" options={sheetOptions('fitToContents')} />
+        <Stack.Screen
+          name="(sheets)/category-picker"
+          options={sheetOptions([0.5, 1], { nativeBody: true })}
+        />
         <Stack.Screen
           name="(sheets)/category-transactions"
           options={sheetOptions([0.6, 1], { nativeBody: true })}

@@ -17,7 +17,7 @@ export interface CategoryListItem {
   symbol: FormSymbol;
 }
 
-function toListItem(category: Category): CategoryListItem {
+export function toCategoryListItem(category: Category): CategoryListItem {
   return {
     category,
     symbol: { ...getCategorySymbol(category.icon), color: getCategoryColor(category.color) },
@@ -35,12 +35,12 @@ export function useCategoryManagement() {
   const { requestDelete } = useCategoryDeleteConfirmation();
 
   const expenseCategories = useMemo(
-    () => categories.filter((c) => c.type === 'expense').map(toListItem),
+    () => categories.filter((c) => c.type === 'expense').map(toCategoryListItem),
     [categories],
   );
 
   const incomeCategories = useMemo(
-    () => categories.filter((c) => c.type === 'income').map(toListItem),
+    () => categories.filter((c) => c.type === 'income').map(toCategoryListItem),
     [categories],
   );
 

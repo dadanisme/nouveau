@@ -8,14 +8,6 @@ export function isSameDay(a: Date, b: Date): boolean {
   );
 }
 
-export function getDaysInMonth(year: number, month: number): number {
-  return new Date(year, month + 1, 0).getDate();
-}
-
-export function getFirstDayOfWeek(year: number, month: number): number {
-  return new Date(year, month, 1).getDay();
-}
-
 /** Format a Date as YYYY-MM-DD using local timezone (avoids UTC shift). */
 export function toLocalDateString(date: Date): string {
   const y = date.getFullYear();
@@ -29,6 +21,19 @@ export function parseLocalDateString(value: string | undefined): Date | null {
   if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
   const date = new Date(value + 'T00:00:00');
   return Number.isNaN(date.getTime()) ? null : date;
+}
+
+/**
+ * The local calendar day as UTC midnight (ISO string), the form Compose date pickers take: they
+ * select days as UTC-midnight timestamps.
+ */
+export function toUtcMidnightString(date: Date): string {
+  return `${toLocalDateString(date)}T00:00:00Z`;
+}
+
+/** A Compose date picker's UTC-midnight selection as the same calendar day at local midnight. */
+export function fromUtcMidnight(date: Date): Date {
+  return new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
 }
 
 export function formatShortDate(dateStr: string): string {

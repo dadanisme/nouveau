@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { Alert } from 'react-native';
+import { Alert, Platform } from 'react-native';
 import * as MediaLibrary from 'expo-media-library/legacy';
 import * as Sharing from 'expo-sharing';
 
@@ -18,7 +18,12 @@ export function useProofDownload() {
 
     setIsSaving(true);
     try {
-      const { status } = await MediaLibrary.requestPermissionsAsync();
+      // Ask only for what saving needs: add-only access on iOS, photos on Android 13+ (the default
+      // also asks for music and audio). Android must not pass `writeOnly`: on 13+ it then skips
+      // the granular permissions and the request is denied without a prompt.
+      const { status } = await MediaLibrary.requestPermissionsAsync(Platform.OS === 'ios', [
+        'photo',
+      ]);
       if (status !== 'granted') {
         Alert.alert(i18n.t(k.proofs.permissionDenied), i18n.t(k.proofs.permissionMessage));
         return;

@@ -1,52 +1,58 @@
-import { ScrollView, StyleSheet, Text } from 'react-native';
-
-import { CategoryGrid } from '@/components/category-grid';
-import { colors, design } from '@/constants/colors';
+import {
+  FormEmptyRow,
+  FormListRow,
+  FormLoadingRow,
+  FormSection,
+  NativeForm,
+} from '@/components/native-form';
 import { useLanguage } from '@/contexts/language';
 import { useCategoryPickerSheet } from '@/hooks/use-category-picker-sheet';
 import { k } from '@/locales/keys';
 
+const EMPTY_SYMBOL = { sf: 'square.grid.2x2', material: 'category' } as const;
+
 /**
- * Category picker sheet. Params: `type`, `selectedId`, `requestId`; result: `category-picker`.
- * The grid content is legacy until #29/#31 rebuild it as a native list.
+ * Category picker sheet. Params: `type` (only that type), `currentType` (all types, that one
+ * first), `selectedId`, `requestId`; result: `category-picker`. A native single-choice list with
+ * a section per type: each category's mapped symbol in its color, a checkmark on the selection.
  */
 export default function CategoryPickerSheet() {
   const { t } = useLanguage();
-  const { categories, selectedCategoryId, selectCategory } = useCategoryPickerSheet();
+  const { groups, isLoading, isEmpty, selectedCategoryId, selectCategory } =
+    useCategoryPickerSheet();
 
   return (
-    // The ScrollView is the sheet's first child so iOS can expand the sheet when it is scrolled
-    // to the edge; Android needs nested scrolling inside the sheet's own drag behavior.
-    <ScrollView
-      style={styles.scroll}
-      contentContainerStyle={styles.content}
-      showsVerticalScrollIndicator={false}
-      nestedScrollEnabled
-    >
-      <Text style={styles.title}>{t(k.categoryPicker.title)}</Text>
-      <CategoryGrid
-        categories={categories}
-        selectedCategoryId={selectedCategoryId}
-        onSelect={selectCategory}
-      />
-    </ScrollView>
+    <NativeForm title={t(k.categoryPicker.title)}>
+      {isLoading ? (
+        <FormSection>
+          <FormLoadingRow />
+        </FormSection>
+      ) : isEmpty ? (
+        <FormSection>
+          <FormEmptyRow
+            title={t(k.categoryPicker.empty)}
+            description={t(k.categoryPicker.emptyMessage)}
+            symbol={EMPTY_SYMBOL}
+          />
+        </FormSection>
+      ) : (
+        groups.map((group) => (
+          <FormSection
+            key={group.type}
+            title={t(group.type === 'expense' ? k.common.expense : k.common.income)}
+          >
+            {group.items.map(({ category, symbol }) => (
+              <FormListRow
+                key={category.id}
+                title={category.name}
+                symbol={symbol}
+                selected={category.id === selectedCategoryId}
+                onPress={() => selectCategory(category)}
+              />
+            ))}
+          </FormSection>
+        ))
+      )}
+    </NativeForm>
   );
 }
-
-const styles = StyleSheet.create({
-  scroll: {
-    flex: 1,
-  },
-  content: {
-    paddingTop: design.spacing.xl,
-    paddingHorizontal: design.spacing.lg,
-    paddingBottom: design.spacing.xl,
-  },
-  title: {
-    fontSize: design.fontSize.lg,
-    fontWeight: '800',
-    color: colors.black,
-    textAlign: 'center',
-    marginBottom: design.spacing.md,
-  },
-});
