@@ -39,7 +39,7 @@ No test framework is configured. The web app in `web/` has its own scripts (`cd 
 ## Platform and stack
 
 - **Installed:** Expo SDK 58, React Native 0.88, React 19.3, New Architecture, React Compiler (`experiments.reactCompiler`), Expo Router with typed routes, UIScene lifecycle (required on iOS 27).
-- SDK 58 provides stable `@expo/ui` (`@expo/ui/swift-ui`, `@expo/ui/jetpack-compose`) and stable native tabs; `@expo/ui` is not installed yet (phase 2+). Local Swift/Kotlin Expo modules only for gaps (Swift Charts, #37).
+- SDK 58 provides stable `@expo/ui` (`@expo/ui/swift-ui`, `@expo/ui/jetpack-compose`, installed) and stable native tabs. Local Swift/Kotlin Expo modules only for gaps (Swift Charts, #37).
 - **Targets:** iOS 17+ and Android, both first-class. The iOS deployment target is 17.0 (`app.json` build-properties + `plugins/with-ios-deployment-target.js`, which also covers the share extension).
 - **Web:** the web app is a separate Vite app in `web/` (app.nouveau.my.id) that reads the same Supabase data. The RN web build (`react-native-web`, the `web` script and `app.json` `web` block) is unused and will be removed. Don't maintain it.
 
@@ -62,7 +62,8 @@ Routes live in `app/`. **Current** state: one root `Stack` in `app/_layout.tsx`,
 **Target** (#25–#27):
 
 - `NativeTabs` (expo-router native tabs) with three tabs: **Transactions / Insights / Settings**. Each tab has its own native Stack with native headers.
-- Add action: the tab-bar action slot on iOS 26+ (spike #26), a header toolbar `+` on iOS 17–18, a Material FAB on Android.
+- Add action (#26, `utils/platform.ts` `getAddActionPlacement()`): the tab-bar slot on iOS 26.1+ (a `role="search"` trigger, `disabled`, whose `tabPress` pushes `/add-transaction`; the `add-action` route is an inert placeholder), a header `+` on iOS 17–26.0, an `@expo/ui` Compose FAB on Android (lists keep `ADD_FAB_CLEARANCE` bottom padding).
+- `add-transaction` is a `formSheet` (one full detent, Cancel on the left) on iOS and a full-screen modal on Android, because Android form sheets have no header.
 - Editors and pickers are `presentation: 'formSheet'` routes with detents, not in-screen sheets.
 - Month change: header picker + chevrons. The custom pan gesture goes.
 
@@ -113,21 +114,21 @@ Rules:
 
 Use the platform component, not a custom look-alike. Check Context7 for the exact `@expo/ui` names before you use them. Prefer system animations; use `react-native-reanimated` only where native gives you nothing.
 
-| Need                          | iOS                                               | Android                        |
-| ----------------------------- | ------------------------------------------------- | ------------------------------ |
-| Top-level navigation          | `NativeTabs` (Transactions / Insights / Settings) | same                           |
-| Title, back, header actions   | native Stack header (large titles, toolbar items) | native Stack header            |
-| Add transaction               | tab-bar action slot (26+), toolbar `+` (17–18)    | Material FAB                   |
-| Buttons, toggles, segmented   | `@expo/ui/swift-ui`                               | `@expo/ui/jetpack-compose`     |
-| Forms, settings, grouped rows | SwiftUI `Form`/`List` sections via `@expo/ui`     | Compose list items             |
-| Sheets / pickers / editors    | `presentation: 'formSheet'` route + detents       | same                           |
-| Confirm / destructive prompt  | native alert (`Alert.alert`)                      | same                           |
-| Overflow / row actions        | native menu / context menu                        | Compose dropdown menu          |
-| Amount entry                  | `TextInput` with the system decimal keyboard      | same                           |
-| Date, option picking          | native DatePicker / Picker (`@expo/ui`)           | Compose date picker / picker   |
-| Loading                       | native placeholders / activity indicator          | Compose progress / placeholder |
-| Charts                        | Swift Charts via a local Expo module (#37)        | Compose (#37)                  |
-| Icons                         | SF Symbols                                        | Material Symbols               |
+| Need                          | iOS                                                | Android                        |
+| ----------------------------- | -------------------------------------------------- | ------------------------------ |
+| Top-level navigation          | `NativeTabs` (Transactions / Insights / Settings)  | same                           |
+| Title, back, header actions   | native Stack header (large titles, toolbar items)  | native Stack header            |
+| Add transaction               | tab-bar action slot (26.1+), toolbar `+` (17–26.0) | Material FAB                   |
+| Buttons, toggles, segmented   | `@expo/ui/swift-ui`                                | `@expo/ui/jetpack-compose`     |
+| Forms, settings, grouped rows | SwiftUI `Form`/`List` sections via `@expo/ui`      | Compose list items             |
+| Sheets / pickers / editors    | `presentation: 'formSheet'` route + detents        | same                           |
+| Confirm / destructive prompt  | native alert (`Alert.alert`)                       | same                           |
+| Overflow / row actions        | native menu / context menu                         | Compose dropdown menu          |
+| Amount entry                  | `TextInput` with the system decimal keyboard       | same                           |
+| Date, option picking          | native DatePicker / Picker (`@expo/ui`)            | Compose date picker / picker   |
+| Loading                       | native placeholders / activity indicator           | Compose progress / placeholder |
+| Charts                        | Swift Charts via a local Expo module (#37)         | Compose (#37)                  |
+| Icons                         | SF Symbols                                         | Material Symbols               |
 
 ### Color, type, accent, icons
 
@@ -164,7 +165,6 @@ Removed in #39. Don't add new uses. Only touch these to delete them or to keep a
 | `action-menu.tsx`                                                                                              | native menus                                             |
 | `category-picker.tsx`, `workspace-switcher-sheet.tsx`, `workspace-invite-sheet.tsx`                            | `formSheet` routes with native lists                     |
 | `screen-header.tsx`                                                                                            | native Stack header                                      |
-| `floating-add-button.tsx` (and the `FAB_HEIGHT` padding rule)                                                  | per-platform Add action (see table)                      |
 | `segmented-toggle.tsx`, `type-toggle.tsx`                                                                      | native segmented picker                                  |
 | `number-pad.tsx`, `processAmountKeyPress`                                                                      | system decimal keyboard                                  |
 | `date-picker.tsx`, `hooks/use-calendar.ts`                                                                     | native DatePicker                                        |
