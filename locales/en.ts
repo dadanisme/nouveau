@@ -242,6 +242,8 @@ const en = {
       'This permanently removes the workspace and everything inside it. This cannot be undone.',
     confirmRemove: 'Remove %{name}?',
     confirmRemoveMessage: 'They will lose access to this workspace immediately.',
+    confirmRevoke: 'Revoke the invite for %{email}?',
+    confirmRevokeMessage: 'The invite token will stop working.',
     failedToCreate: 'Failed to create workspace',
     failedToUpdate: 'Failed to update workspace',
     failedToDelete: 'Failed to delete workspace',

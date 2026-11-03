@@ -96,12 +96,21 @@ export default function WorkspaceSettingsScreen() {
 
   function handleRevoke(inviteId: string) {
     if (!workspace) return;
-    revokeInvite.mutate(
-      { id: inviteId, workspace_id: workspace.id },
-      {
-        onError: (error) => {
-          showError(t(k.workspace.failedToRevoke), error);
-        },
+    const workspaceId = workspace.id;
+    const email = invites.find((inv) => inv.id === inviteId)?.email ?? '';
+    confirmDestructive(
+      t(k.workspace.confirmRevoke, { email }),
+      t(k.workspace.confirmRevokeMessage),
+      t(k.workspace.revoke),
+      () => {
+        revokeInvite.mutate(
+          { id: inviteId, workspace_id: workspaceId },
+          {
+            onError: (error) => {
+              showError(t(k.workspace.failedToRevoke), error);
+            },
+          },
+        );
       },
     );
   }

@@ -245,6 +245,8 @@ const id: Translations = {
     confirmDeleteMessage: 'Tindakan ini menghapus workspace beserta semua isinya secara permanen.',
     confirmRemove: 'Hapus %{name}?',
     confirmRemoveMessage: 'Mereka akan kehilangan akses ke workspace ini segera.',
+    confirmRevoke: 'Cabut undangan untuk %{email}?',
+    confirmRevokeMessage: 'Token undangan tidak akan bisa digunakan lagi.',
     failedToCreate: 'Gagal membuat workspace',
     failedToUpdate: 'Gagal memperbarui workspace',
     failedToDelete: 'Gagal menghapus workspace',

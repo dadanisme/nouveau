@@ -6,9 +6,6 @@ import type { CategoryFilterGroup, FilterType } from '@/hooks/use-transactions-s
 import { useSymbolIcon } from '@/hooks/use-symbol-icon';
 import { k } from '@/locales/keys';
 
-/** Above this many categories, the Category section becomes a submenu instead of inline rows. */
-const CATEGORY_INLINE_LIMIT = 6;
-
 interface TransactionsHeaderToolbarProps {
   /** Show the `+` Add action in the header (iOS before the tab-bar action slot). */
   showAddAction: boolean;
@@ -24,9 +21,9 @@ interface TransactionsHeaderToolbarProps {
 
 /**
  * Right side of the Transactions header: the optional `+` Add action and the filter menu (UIMenu
- * on iOS, Material dropdown on Android) with Type and Category sections. A screen keeps only one
- * `Stack.Toolbar` per placement, so both items live here. Items lay out left to right, so `+`
- * comes last to take the trailing (primary) spot.
+ * on iOS, Material dropdown on Android) with an inline Type section and a Category submenu. A
+ * screen keeps only one `Stack.Toolbar` per placement, so both items live here. Items lay out left
+ * to right, so `+` comes last to take the trailing (primary) spot.
  */
 export function TransactionsHeaderToolbar({
   showAddAction,
@@ -53,7 +50,6 @@ export function TransactionsHeaderToolbar({
     { key: 'income', label: t(k.transactions.income) },
   ];
 
-  const categoryCount = categoryGroups.reduce((sum, group) => sum + group.categories.length, 0);
   const isGrouped = categoryGroups.length > 1;
 
   const renderCategoryActions = (group: CategoryFilterGroup) =>
@@ -91,10 +87,9 @@ export function TransactionsHeaderToolbar({
               </Stack.Toolbar.MenuAction>
             ))}
           </Stack.Toolbar.Menu>
-          <Stack.Toolbar.Menu
-            inline={categoryCount <= CATEGORY_INLINE_LIMIT}
-            title={t(k.addTransaction.category)}
-          >
+          {/* Always a submenu, so the menu keeps the same shape whatever the Type filter or the
+              category count. */}
+          <Stack.Toolbar.Menu title={t(k.addTransaction.category)}>
             <Stack.Toolbar.MenuAction
               isOn={categoryFilter === null}
               onPress={() => onCategoryFilterChange(null)}
