@@ -59,6 +59,7 @@ export function useCreateWorkspaceScreen() {
     setCurrency,
     currencyOptions: getHomeCurrencyOptions(),
     canSubmit,
+    isPending: createWorkspace.isPending,
     submit,
   };
 }

@@ -2,6 +2,7 @@ import {
   HStack,
   Text,
   TextField,
+  VStack,
   useNativeState,
   type TextFieldRef,
   type TextFieldSelection,
@@ -11,15 +12,21 @@ import {
   font,
   foregroundStyle,
   keyboardType,
+  lineLimit,
+  minimumScaleFactor,
 } from '@expo/ui/swift-ui/modifiers';
 import { useRef } from 'react';
 import { PlatformColor } from 'react-native';
 import { scheduleOnRN } from 'react-native-worklets';
 
+import { useIsAccessibilityTextSize } from '@/hooks/use-accessibility-text-size';
 import { focusField, useAutoFocus, useResetEffect } from '@/hooks/use-auto-focus';
 import { formatAmountInput, parseAmountInput, type AmountSeparators } from '@/utils/currency';
 
 const AMOUNT_FONT = font({ textStyle: 'largeTitle', weight: 'bold' });
+// One line that shrinks to fit rather than truncating: a long amount at a large text size stays
+// readable in full.
+const FIT_ONE_LINE = [lineLimit(1), minimumScaleFactor(0.5)];
 
 export interface AmountFieldRowProps {
   /** Accessibility label of the field (the visible prefix and placeholder don't name it). */
@@ -44,7 +51,8 @@ export interface AmountFieldRowProps {
  * A large amount field row: the currency prefix and a SwiftUI `TextField` in the large-title
  * style with the system decimal keyboard. The text is regrouped on the UI thread as the user types
  * (the app's separators for the currency, e.g. "1.500.000"), and the parent gets the canonical
- * amount string.
+ * amount string. At accessibility text sizes the prefix sits above the field, so the amount gets
+ * the row's full width.
  */
 export function AmountFieldRow({
   label,
@@ -78,6 +86,7 @@ export function AmountFieldRow({
     });
   };
 
+  const isStacked = useIsAccessibilityTextSize();
   const handleFocusChange = useAutoFocus(ref, autoFocus);
   useResetEffect(resetKey, () => {
     const formatted = formatAmountInput(defaultAmount, separators);
@@ -86,20 +95,39 @@ export function AmountFieldRow({
     if (autoFocus) focusField(ref);
   });
 
-  return (
+  const prefixText = (
+    <Text
+      modifiers={[AMOUNT_FONT, foregroundStyle(PlatformColor('secondaryLabel')), ...FIT_ONE_LINE]}
+    >
+      {prefix}
+    </Text>
+  );
+  const field = (
+    <TextField
+      ref={ref}
+      text={text}
+      selection={selection}
+      placeholder="0"
+      onTextChange={handleTextChange}
+      onFocusChange={handleFocusChange}
+      modifiers={[
+        AMOUNT_FONT,
+        ...FIT_ONE_LINE,
+        keyboardType('decimal-pad'),
+        accessibilityLabel(label),
+      ]}
+    />
+  );
+
+  return isStacked ? (
+    <VStack alignment="leading" spacing={4}>
+      {prefixText}
+      {field}
+    </VStack>
+  ) : (
     <HStack spacing={8}>
-      <Text modifiers={[AMOUNT_FONT, foregroundStyle(PlatformColor('secondaryLabel'))]}>
-        {prefix}
-      </Text>
-      <TextField
-        ref={ref}
-        text={text}
-        selection={selection}
-        placeholder="0"
-        onTextChange={handleTextChange}
-        onFocusChange={handleFocusChange}
-        modifiers={[AMOUNT_FONT, keyboardType('decimal-pad'), accessibilityLabel(label)]}
-      />
+      {prefixText}
+      {field}
     </HStack>
   );
 }

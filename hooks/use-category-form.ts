@@ -180,6 +180,10 @@ export function useCategoryForm() {
     colorSymbol,
     colorLabelKey,
     isPending,
+    /** Saving (add or update) is in flight: the Save row shows its activity indicator. */
+    isSaving: addCategory.isPending || updateCategory.isPending,
+    /** The confirmed delete is in flight. */
+    isDeleting: deleteConfirmation.isPending,
     isEditing,
     canSave,
     /** Editing, but the category isn't in the cache yet. */

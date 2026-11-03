@@ -14,6 +14,7 @@ import { computeExpenseBreakdown, computeTotals } from '@/utils/analytics';
 import { formatCompactAmount } from '@/utils/currency';
 import { formatDayLabel } from '@/utils/date';
 import { formatPeriodSummary, toSpendBreakdownRows } from '@/utils/period-summary';
+import { joinWithDot } from '@/utils/string';
 import { groupTransactionsByDay, toTransactionRowData } from '@/utils/transaction';
 
 export type FilterType = 'all' | 'income' | 'expense';
@@ -97,16 +98,14 @@ export function useTransactionsScreen() {
     return groupTransactionsByDay(displayTransactions).map((day) => ({
       dateKey: day.dateKey,
       title: formatDayLabel(day.dateKey, now, relative),
-      footer: [
+      footer: joinWithDot([
         day.expense > 0
           ? t(k.transactions.daySpent, { amount: formatCompactAmount(day.expense, locale) })
           : null,
         day.income > 0
           ? t(k.transactions.dayReceived, { amount: formatCompactAmount(day.income, locale) })
           : null,
-      ]
-        .filter(Boolean)
-        .join(' · '),
+      ]),
       rows: day.transactions.map((tx) => toTransactionRowData(tx, { locale })),
     }));
   }, [filteredTransactions, categoryFilter, t, locale]);

@@ -36,6 +36,7 @@ export default function WorkspaceInvitesScreen() {
           <FormButtonRow
             title={invite.acceptTitle}
             icon={ICONS.accept}
+            pending={invite.isAccepting}
             disabled={invite.disabled}
             onPress={invite.accept}
           />
@@ -43,6 +44,7 @@ export default function WorkspaceInvitesScreen() {
             title={invite.declineTitle}
             role="destructive"
             icon={ICONS.decline}
+            pending={invite.isDeclining}
             disabled={invite.disabled}
             onPress={invite.decline}
           />

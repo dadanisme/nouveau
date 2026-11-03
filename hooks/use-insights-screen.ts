@@ -10,6 +10,7 @@ import { useTransactions, useTransactionsByYear } from '@/hooks/use-transactions
 import { computeExpenseBreakdown, computeMonthlyTrend, computeTotals } from '@/utils/analytics';
 import type { PeriodMode } from '@/utils/date';
 import { formatPeriodSummary, toSpendBreakdownRows } from '@/utils/period-summary';
+import { joinWithDot } from '@/utils/string';
 
 export type InsightsMode = PeriodMode;
 
@@ -87,7 +88,7 @@ export function useInsightsScreen(requestedYear: number | null, requestedMonth: 
           key: row.key,
           title: row.title,
           symbol: row.symbol,
-          value: `${row.amount} · ${row.shareLabel}`,
+          value: joinWithDot([row.amount, row.shareLabel]),
           share: row.share,
           categoryId: row.categoryId,
         }),

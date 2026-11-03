@@ -192,6 +192,7 @@ export function useWorkspaceSettingsScreen() {
     setCurrency: setCurrencyDraft,
     currencyOptions: getHomeCurrencyOptions(workspace?.home_currency),
     canSave,
+    isSaving: updateWorkspace.isPending,
     save,
     members: memberRows,
     membersTitle: t(k.workspace.members),

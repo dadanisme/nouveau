@@ -38,7 +38,12 @@ export default function CategoryFormSheet() {
       {SHEET_HAS_HEADER ? (
         <>
           <SheetCancelToolbar onPress={form.cancel} />
-          <FormSaveToolbar title={saveTitle} disabled={!form.canSave} onPress={form.handleSubmit} />
+          <FormSaveToolbar
+            title={saveTitle}
+            disabled={!form.canSave}
+            pending={form.isSaving}
+            onPress={form.handleSubmit}
+          />
         </>
       ) : null}
       <NativeForm
@@ -87,6 +92,7 @@ export default function CategoryFormSheet() {
               <FormSection>
                 <FormButtonRow
                   title={saveTitle}
+                  pending={form.isSaving}
                   disabled={!form.canSave}
                   onPress={form.handleSubmit}
                 />
@@ -98,6 +104,7 @@ export default function CategoryFormSheet() {
                 <FormButtonRow
                   title={t(k.categories.deleteCategory)}
                   role="destructive"
+                  pending={form.isDeleting}
                   disabled={form.isPending}
                   onPress={form.requestDelete}
                 />

@@ -4,6 +4,7 @@ import {
   accessibilityLabel,
   background,
   buttonStyle,
+  font,
   frame,
   shapes,
   strokeBorder,
@@ -12,6 +13,7 @@ import { PlatformColor, StyleSheet, type ColorValue } from 'react-native';
 
 import { ACCENT_COLOR } from '@/constants/accent';
 import { useLanguage } from '@/contexts/language';
+import { useIsAccessibilityTextSize, useScaledSize } from '@/hooks/use-accessibility-text-size';
 import { chunk } from '@/utils/array';
 import {
   getIconAccessibilityLabel,
@@ -20,10 +22,15 @@ import {
   type CategoryIconName,
 } from '@/utils/category-icon';
 
-// Six 44pt cells fit a phone-width inset-grouped row; cells stretch to share the row's width.
-const COLUMNS = 6;
+// Five cells of at least 44pt with ~12pt between the bezels fit a phone-width inset-grouped row
+// (cells stretch to share the row's width); three at accessibility text sizes, where the glyphs
+// grow (HIG: "Reduce the number of columns when the font size increases").
+const COLUMNS = 5;
+const ACCESSIBILITY_COLUMNS = 3;
+const CELL_SPACING = 12;
+// The circle's size at the default text size; it grows with the text (up to 2x) so every circle
+// in the grid stays the same size, whatever the glyph's shape.
 const CELL_SIZE = 44;
-const GLYPH_SIZE = 22;
 
 interface IconPickerGridProps {
   groups: readonly CategoryIconGroup[];
@@ -44,6 +51,8 @@ export function IconPickerGrid({
   onSelect,
 }: IconPickerGridProps) {
   const { t } = useLanguage();
+  const columns = useIsAccessibilityTextSize() ? ACCESSIBILITY_COLUMNS : COLUMNS;
+  const cellSize = useScaledSize(CELL_SIZE);
 
   return (
     <Host style={styles.host} seedColor={ACCENT_COLOR}>
@@ -56,8 +65,8 @@ export function IconPickerGrid({
         <Form>
           {groups.map((group) => (
             <Section key={group.labelKey} title={t(group.labelKey)}>
-              <Grid horizontalSpacing={4} verticalSpacing={8}>
-                {chunk(group.icons, COLUMNS).map((row) => (
+              <Grid horizontalSpacing={CELL_SPACING} verticalSpacing={CELL_SPACING}>
+                {chunk(group.icons, columns).map((row) => (
                   <Grid.Row key={row[0]}>
                     {row.map((name) => {
                       const isSelected = name === selectedIcon;
@@ -74,10 +83,11 @@ export function IconPickerGrid({
                         >
                           <Image
                             systemName={getIoniconSymbol(name).sf}
-                            size={GLYPH_SIZE}
                             color={isSelected ? selectedColor : PlatformColor('secondaryLabel')}
                             modifiers={[
-                              frame({ width: CELL_SIZE, height: CELL_SIZE }),
+                              // A text style, so the glyph and its cell grow with Dynamic Type.
+                              font({ textStyle: 'title2' }),
+                              frame({ width: cellSize, height: cellSize }),
                               background(PlatformColor('tertiarySystemFill'), shapes.circle()),
                               ...(isSelected
                                 ? [

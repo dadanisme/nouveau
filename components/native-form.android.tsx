@@ -238,12 +238,19 @@ export function FormPickerRow<T extends string>({
   );
 }
 
-export function FormButtonRow({ title, role, icon, disabled, onPress }: FormButtonRowProps) {
+export function FormButtonRow({
+  title,
+  role,
+  icon,
+  disabled,
+  pending,
+  onPress,
+}: FormButtonRowProps) {
   const colors = useMaterialColors();
   const color = role === 'destructive' ? colors.error : undefined;
   return (
     <ListItem
-      modifiers={disabled ? [] : [clickable(onPress)]}
+      modifiers={disabled || pending ? [] : [clickable(onPress)]}
       colors={color ? { contentColor: color, leadingContentColor: color } : undefined}
     >
       <RowIcon icon={icon} tint={color} />

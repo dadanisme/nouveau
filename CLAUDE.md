@@ -137,6 +137,7 @@ Full-screen forms and grouped lists use the shared primitives in `components/nat
 - iOS: `Host style={{ flex: 1 }}` → SwiftUI `Form` → `Section`s, as the screen's root view. The native large title collapses with the Form scroll on iOS 18 and 27 with no workaround.
 - Android: `Host` → Compose `LazyColumn` → section header `Text` + M3 `ListItem`s; palette is the system one with only `primary` set to the accent.
 - Inside an iOS `Button`, hierarchical text styles pick up the accent, so row text uses explicit `label` / `secondaryLabel` colors.
+- At accessibility text sizes (`useIsAccessibilityTextSize()`, `hooks/use-accessibility-text-size.ts`) iOS rows stack: icon or symbol, then the title, then the value, left-aligned, with no line limits. Row symbols take a text-style font (`components/row-symbol.tsx`), never a fixed `size`; things that can't take a text style (bitmaps, fixed-height controls) scale with `useScaledSize`.
 
 ### Color, type, accent, icons
 

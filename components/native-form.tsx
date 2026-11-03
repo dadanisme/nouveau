@@ -37,6 +37,7 @@ import {
   listRowBackground,
   onSubmit as onSubmitModifier,
   monospacedDigit,
+  multilineTextAlignment,
   pickerStyle,
   refreshable,
   scrollDismissesKeyboard,
@@ -53,6 +54,7 @@ import type {
   FormButtonRowProps,
   FormEmptyRowProps,
   FormHostedRowProps,
+  FormIcon,
   FormListRowProps,
   FormNavRowProps,
   FormNoticeRowProps,
@@ -66,15 +68,36 @@ import type {
   FormValueRowProps,
   NativeFormProps,
 } from '@/components/native-form-types';
+import { RowSymbol } from '@/components/row-symbol';
 import { ACCENT_COLOR } from '@/constants/accent';
+import { useIsAccessibilityTextSize } from '@/hooks/use-accessibility-text-size';
 
 // Explicit label colors: inside a Button, hierarchical styles resolve against the accent tint.
 const PRIMARY = foregroundStyle(PlatformColor('label'));
 const SECONDARY = foregroundStyle(PlatformColor('secondaryLabel'));
 const TERTIARY = foregroundStyle(PlatformColor('tertiaryLabel'));
 
-// Leading glyph box, so titles line up and rows keep one height whatever the symbol's shape.
-const SYMBOL_WIDTH = 28;
+// At accessibility text sizes rows stack: the title on top, its value and other secondary items
+// below, left-aligned, and nothing truncates (HIG typography, Supporting Dynamic Type).
+
+/** A row's `Label` icon on its own line, for the stacked layout: the accent tint, body size. */
+function StackedIcon({ icon }: { icon: FormIcon }) {
+  return (
+    <Image
+      systemName={icon.sf}
+      modifiers={[font({ textStyle: 'body' }), foregroundStyle(ACCENT_COLOR)]}
+    />
+  );
+}
+
+function Chevron() {
+  return (
+    <Image
+      systemName="chevron.right"
+      modifiers={[font({ textStyle: 'footnote', weight: 'semibold' }), TERTIARY]}
+    />
+  );
+}
 
 /**
  * A full-screen SwiftUI grouped `Form` (inset grouped list). Render it as the screen's root so
@@ -104,19 +127,35 @@ export function FormSection({ title, footer, children }: FormSectionProps) {
 
 /** A row that pushes a screen or presents a sheet: label, optional value, chevron. */
 export function FormNavRow({ title, icon, value, badge: count, onPress }: FormNavRowProps) {
+  const isStacked = useIsAccessibilityTextSize();
+  const label = (
+    <Label systemImage={icon?.sf}>
+      <Text modifiers={[PRIMARY]}>{title}</Text>
+    </Label>
+  );
+  const valueText = value ? <Text modifiers={[SECONDARY]}>{value}</Text> : null;
+
   return (
     <Button onPress={onPress} modifiers={count ? [badge(String(count))] : undefined}>
-      <HStack>
-        <Label systemImage={icon?.sf}>
-          <Text modifiers={[PRIMARY]}>{title}</Text>
-        </Label>
-        <Spacer />
-        {value ? <Text modifiers={[SECONDARY]}>{value}</Text> : null}
-        <Image
-          systemName="chevron.right"
-          modifiers={[font({ textStyle: 'footnote', weight: 'semibold' }), TERTIARY]}
-        />
-      </HStack>
+      {isStacked ? (
+        <HStack>
+          {/* The icon on its own line: beside the text it would leave words room to hyphenate only. */}
+          <VStack alignment="leading" spacing={4}>
+            {icon ? <StackedIcon icon={icon} /> : null}
+            <Text modifiers={[PRIMARY]}>{title}</Text>
+            {valueText}
+          </VStack>
+          <Spacer />
+          <Chevron />
+        </HStack>
+      ) : (
+        <HStack>
+          {label}
+          <Spacer />
+          {valueText}
+          <Chevron />
+        </HStack>
+      )}
     </Button>
   );
 }
@@ -129,32 +168,60 @@ export function FormPickerRow<T extends string>({
   selection,
   onSelectionChange,
 }: FormPickerRowProps<T>) {
+  const isStacked = useIsAccessibilityTextSize();
+  const label = <Label title={title} systemImage={icon?.sf} />;
+  const optionViews = options.map((option) => (
+    <Text key={option.value} modifiers={[tag(option.value)]}>
+      {option.label}
+    </Text>
+  ));
+
+  // Stacked, the label sits above the menu button, which then has the row's full width.
+  if (isStacked) {
+    return (
+      <VStack alignment="leading" spacing={4}>
+        {icon ? <StackedIcon icon={icon} /> : null}
+        <Text modifiers={[PRIMARY]}>{title}</Text>
+        <Picker<T>
+          label={label}
+          selection={selection}
+          onSelectionChange={onSelectionChange}
+          modifiers={[labelsHidden(), accessibilityLabel(title)]}
+        >
+          {optionViews}
+        </Picker>
+      </VStack>
+    );
+  }
+
   return (
-    <Picker<T>
-      label={<Label title={title} systemImage={icon?.sf} />}
-      selection={selection}
-      onSelectionChange={onSelectionChange}
-    >
-      {options.map((option) => (
-        <Text key={option.value} modifiers={[tag(option.value)]}>
-          {option.label}
-        </Text>
-      ))}
+    <Picker<T> label={label} selection={selection} onSelectionChange={onSelectionChange}>
+      {optionViews}
     </Picker>
   );
 }
 
-/** A centered action row (e.g. Sign Out). */
-export function FormButtonRow({ title, role, disabled: isDisabled, onPress }: FormButtonRowProps) {
+/**
+ * A centered action row (e.g. Sign Out). While `pending`, it's disabled and shows an activity
+ * indicator beside its (in-progress) title.
+ */
+export function FormButtonRow({
+  title,
+  role,
+  disabled: isDisabled,
+  pending,
+  onPress,
+}: FormButtonRowProps) {
   return (
     <Button
       role={role === 'destructive' ? 'destructive' : 'default'}
       onPress={onPress}
-      modifiers={[disabled(isDisabled ?? false)]}
+      modifiers={[disabled(Boolean(isDisabled || pending))]}
     >
-      <HStack>
+      <HStack spacing={8}>
         <Spacer />
-        <Text>{title}</Text>
+        {pending ? <ProgressView /> : null}
+        <Text modifiers={[multilineTextAlignment('center')]}>{title}</Text>
         <Spacer />
       </HStack>
     </Button>
@@ -202,27 +269,39 @@ export function FormListRow({
   onDelete,
   deleteLabel,
 }: FormListRowProps) {
-  const titleView = subtitle ? (
-    <VStack alignment="leading" spacing={2}>
+  const isStacked = useIsAccessibilityTextSize();
+  const valueText = value ? <Text modifiers={[SECONDARY]}>{value}</Text> : null;
+  const titleView =
+    subtitle || (isStacked && valueText) ? (
+      <VStack alignment="leading" spacing={2}>
+        <Text modifiers={[PRIMARY]}>{title}</Text>
+        {subtitle ? (
+          <Text modifiers={[font({ textStyle: 'subheadline' }), SECONDARY]}>{subtitle}</Text>
+        ) : null}
+        {isStacked ? valueText : null}
+      </VStack>
+    ) : (
       <Text modifiers={[PRIMARY]}>{title}</Text>
-      <Text modifiers={[font({ textStyle: 'subheadline' }), SECONDARY]}>{subtitle}</Text>
-    </VStack>
-  ) : (
-    <Text modifiers={[PRIMARY]}>{title}</Text>
-  );
+    );
+  const leading = icon && !symbol ? <Label systemImage={icon.sf}>{titleView}</Label> : titleView;
 
   const content = (
     <HStack spacing={12}>
-      {symbol ? (
-        <Image
-          systemName={symbol.sf}
-          color={symbol.color}
-          modifiers={[frame({ width: SYMBOL_WIDTH, height: SYMBOL_WIDTH })]}
-        />
-      ) : null}
-      {icon && !symbol ? <Label systemImage={icon.sf}>{titleView}</Label> : titleView}
+      {/* Stacked, the symbol or icon sits above the text so the text keeps the row's full width
+          (a `Label` would center a multi-line title beside its icon). */}
+      {isStacked && (symbol || icon) ? (
+        <VStack alignment="leading" spacing={4}>
+          {symbol ? <RowSymbol symbol={symbol} /> : icon ? <StackedIcon icon={icon} /> : null}
+          {titleView}
+        </VStack>
+      ) : (
+        <>
+          {symbol ? <RowSymbol symbol={symbol} /> : null}
+          {leading}
+        </>
+      )}
       <Spacer />
-      {value ? <Text modifiers={[SECONDARY]}>{value}</Text> : null}
+      {isStacked ? null : valueText}
       {selected ? (
         <Image
           systemName="checkmark"
@@ -232,12 +311,7 @@ export function FormListRow({
           ]}
         />
       ) : null}
-      {onPress && selected === undefined ? (
-        <Image
-          systemName="chevron.right"
-          modifiers={[font({ textStyle: 'footnote', weight: 'semibold' }), TERTIARY]}
-        />
-      ) : null}
+      {onPress && selected === undefined ? <Chevron /> : null}
     </HStack>
   );
 
@@ -408,36 +482,66 @@ export function FormSegmentedRow<T extends string>({
 
 /** A read-only label/value row (e.g. a total); a positive value reads in the system green. */
 export function FormValueRow({ title, value, tone = 'default', emphasized }: FormValueRowProps) {
+  const isStacked = useIsAccessibilityTextSize();
   const weight = emphasized ? 'semibold' : undefined;
+  const titleText = <Text modifiers={[PRIMARY, font({ textStyle: 'body', weight })]}>{title}</Text>;
+  const valueText = (
+    <Text
+      modifiers={[
+        foregroundStyle(PlatformColor(tone === 'positive' ? 'systemGreen' : 'label')),
+        font({ textStyle: 'body', weight }),
+        monospacedDigit(),
+      ]}
+    >
+      {value}
+    </Text>
+  );
+
+  if (isStacked) {
+    return (
+      <VStack
+        alignment="leading"
+        spacing={4}
+        modifiers={[frame({ maxWidth: Infinity, alignment: 'leading' })]}
+      >
+        {titleText}
+        {valueText}
+      </VStack>
+    );
+  }
   return (
     <HStack>
-      <Text modifiers={[PRIMARY, font({ textStyle: 'body', weight })]}>{title}</Text>
+      {titleText}
       <Spacer />
-      <Text
-        modifiers={[
-          foregroundStyle(PlatformColor(tone === 'positive' ? 'systemGreen' : 'label')),
-          font({ textStyle: 'body', weight }),
-          monospacedDigit(),
-        ]}
-      >
-        {value}
-      </Text>
+      {valueText}
     </HStack>
   );
 }
 
 /** A row with a symbol, title, trailing value and a linear `ProgressView` in the symbol's color. */
 export function FormProgressRow({ title, symbol, value, progress, onPress }: FormProgressRowProps) {
-  const content = (
+  const isStacked = useIsAccessibilityTextSize();
+  const bar = (
+    <ProgressView
+      value={Math.min(Math.max(progress, 0), 1)}
+      modifiers={symbol?.color ? [tint(symbol.color)] : undefined}
+    />
+  );
+
+  const content = isStacked ? (
+    <HStack spacing={12}>
+      <VStack alignment="leading" spacing={4}>
+        {symbol ? <RowSymbol symbol={symbol} /> : null}
+        <Text modifiers={[PRIMARY]}>{title}</Text>
+        <Text modifiers={[SECONDARY, monospacedDigit()]}>{value}</Text>
+        {bar}
+      </VStack>
+      {onPress ? <Chevron /> : null}
+    </HStack>
+  ) : (
     <VStack alignment="leading" spacing={8}>
       <HStack spacing={12}>
-        {symbol ? (
-          <Image
-            systemName={symbol.sf}
-            color={symbol.color}
-            modifiers={[frame({ width: SYMBOL_WIDTH, height: SYMBOL_WIDTH })]}
-          />
-        ) : null}
+        {symbol ? <RowSymbol symbol={symbol} /> : null}
         {/* Fills the row instead of a Spacer, whose minimum length and extra stack spacing would
             cost the title ~20pt and truncate names that fit. */}
         <Text
@@ -451,17 +555,9 @@ export function FormProgressRow({ title, symbol, value, progress, onPress }: For
         >
           {value}
         </Text>
-        {onPress ? (
-          <Image
-            systemName="chevron.right"
-            modifiers={[font({ textStyle: 'footnote', weight: 'semibold' }), TERTIARY]}
-          />
-        ) : null}
+        {onPress ? <Chevron /> : null}
       </HStack>
-      <ProgressView
-        value={Math.min(Math.max(progress, 0), 1)}
-        modifiers={symbol?.color ? [tint(symbol.color)] : undefined}
-      />
+      {bar}
     </VStack>
   );
 

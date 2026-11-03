@@ -5,6 +5,7 @@ import { useWorkspace } from '@/contexts/workspace';
 import { useMyWorkspaces } from '@/hooks/use-workspaces';
 import i18n from '@/lib/i18n';
 import { k } from '@/locales/keys';
+import { joinWithDot } from '@/utils/string';
 
 /** Screen hook for the `workspace-switcher` sheet route: switches the active workspace and closes. */
 export function useWorkspaceSwitcherSheet() {
@@ -27,7 +28,10 @@ export function useWorkspaceSwitcherSheet() {
       name: ws.name,
       isPersonal: ws.is_personal,
       // "Personal · IDR"
-      subtitle: `${i18n.t(ws.is_personal ? k.workspace.personal : k.workspace.shared)} · ${ws.home_currency}`,
+      subtitle: joinWithDot([
+        i18n.t(ws.is_personal ? k.workspace.personal : k.workspace.shared),
+        ws.home_currency,
+      ]),
       isActive: ws.id === currentWorkspaceId,
       select: () => selectWorkspace(ws.id),
     })),
