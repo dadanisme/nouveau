@@ -127,10 +127,16 @@ For each shot, check against Apple HIG (iOS: navigation bars/large titles, SF Sy
 Dynamic Type, system materials) and Material 3 (Android: top app bars, 48dp targets, M3 color roles, edge-to-edge
 insets, predictive back). Report deviations per matrix cell, with the screenshot path.
 
-## Known issues (2026-11-02)
+## Known issues (2026-11-03)
 
-- **App crashes at launch on iOS 27 sims** (built with the iOS 27 SDK): `EXC_BREAKPOINT` in
-  `_UIApplicationEvaluateRuntimeIssueForNoSceneLifecycleAdoption` - the app does not adopt the UIScene
-  lifecycle. iPhone 17 and iPhone Duo cannot run the app until that is fixed in app code. iOS 18.5 and Android are fine.
+- The iOS 27 launch crash (`EXC_BREAKPOINT`, no UIScene lifecycle) is fixed by the SDK 58 upgrade (#24). If it
+  reappears, check that prebuild still generates `SceneDelegate.swift`.
 - The app has no native dark theme yet, so dark screenshots currently match light ones (the toggles do work).
+- **iPhone Duo:** AXe taps don't register (`axe type` works); tap with the xcode MCP instead. Long press is
+  `t X Y 1.2`; several taps go in one command separated by spaces, not `;`. There is no CLI/MCP way to unfold,
+  so the inner display (`primary-1`) stays black. Unfold from Xcode's device window by hand, or mark inner UNTESTED.
+- One Metro serves every device: start it once (`bunx expo start --dev-client`) and have parallel per-device
+  agents reuse it. They share the test account, so name test rows per device and delete only your own.
+- A debug Android build opened cold from a share intent stops at the dev-server picker first; connect to Metro and the
+  share screen follows.
 - xcode MCP cannot target the physical iPhone 15 (iOS 26.6.2) or iOS 18.5 sims; use AXe / devicectl there.
