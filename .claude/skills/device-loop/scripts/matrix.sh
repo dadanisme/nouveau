@@ -42,6 +42,7 @@ shut() { local k="$1" id; id="$(resolve "$k")"
   else xcrun simctl shutdown "$id" 2>/dev/null || true; fi; }
 
 KEYS="ios27 ios18 duo pixel"
+MATRIX_KEYS="ios27 ios18 pixel"  # duo deferred (#38): boot it explicitly if needed
 case "${1:-list}" in
   list) for k in $KEYS; do e="$(name_of $k)"; id="$(resolve $k)"
           if [ $k = pixel ]; then st="$( [ -n "$(emu_serial "$id")" ] && echo "Booted $(emu_serial "$id")" || echo Shutdown)"
@@ -49,7 +50,7 @@ case "${1:-list}" in
           printf '%-6s %-28s %-38s %s\n' "$k" "${e/|/ / }" "${id:-MISSING}" "$st"; done ;;
   udid) resolve "$2" ;;
   serial) emu_serial "$(resolve pixel)" ;;
-  boot) [ "$2" = all ] && { for k in $KEYS; do boot $k; done; } || boot "$2" ;;
+  boot) [ "$2" = all ] && { for k in $MATRIX_KEYS; do boot $k; done; } || boot "$2" ;;
   shutdown) [ "$2" = all ] && { for k in $KEYS; do shut $k; done; } || shut "$2" ;;
   *) sed -n '2,8p' "$0"; exit 2 ;;
 esac

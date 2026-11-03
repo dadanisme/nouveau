@@ -1,6 +1,6 @@
 ---
 name: device-loop
-description: Drive the Nouveau app on iOS simulators, the physical iPhone 15 and the Android emulator and capture what it looks like - open the workspace in Xcode via the xcode MCP and show the sims in Device Hub, build/install the dev client (MCP DeviceInteractionInstallAndRun, or xcodebuild + simctl for fan-out), boot the verification matrix (iPhone 17 iOS 27, iPhone 16 iOS 18.5, iPhone Duo outer/inner, Pixel_9a), deep-link to a screen, tap/swipe/type (xcode MCP DeviceInteraction* first, AXe fallback, adb, android CLI), read the UI tree, and take light + dark screenshots to compare against Apple HIG / Material 3. Use for any "run it on device", "check on simulator/emulator", "screenshot the screen", "verify the native UI", "does it look right in dark mode", visual QA, or definition-of-done check for native UI work.
+description: Drive the Nouveau app on iOS simulators, the physical iPhone 15 and the Android emulator and capture what it looks like - open the workspace in Xcode via the xcode MCP and show the sims in Device Hub, build/install the dev client (MCP DeviceInteractionInstallAndRun, or xcodebuild + simctl for fan-out), boot the verification matrix (iPhone 17 iOS 27, iPhone 16 iOS 18.5, Pixel_9a; iPhone Duo deferred), deep-link to a screen, tap/swipe/type (xcode MCP DeviceInteraction* first, AXe fallback, adb, android CLI), read the UI tree, and take light + dark screenshots to compare against Apple HIG / Material 3. Use for any "run it on device", "check on simulator/emulator", "screenshot the screen", "verify the native UI", "does it look right in dark mode", visual QA, or definition-of-done check for native UI work.
 ---
 
 # Device feedback loop
@@ -43,13 +43,13 @@ Scripts live in `.claude/skills/device-loop/scripts/` (call them by absolute pat
 
 ## Verification matrix (definition of done)
 
-| key     | device                                | runtime             | notes                                            |
-| ------- | ------------------------------------- | ------------------- | ------------------------------------------------ |
-| `ios27` | iPhone 17                             | iOS 27.0            | MCP run destination                              |
-| `ios18` | iPhone 16                             | iOS 18.5            | created via `simctl create`; MCP run destination |
-| `duo`   | iPhone Duo (outer + inner)            | iOS 27.1            | MCP outer only, **no AXe**; see section 4        |
-| `pixel` | Pixel_9a AVD                          | Android 16 (API 36) |                                                  |
-| -       | Ramdan's iPhone (iPhone 15, physical) | iOS 26.6.2          | end of every phase; MCP title "Ramdan’s Iphone"  |
+| key     | device                                | runtime             | notes                                             |
+| ------- | ------------------------------------- | ------------------- | ------------------------------------------------- |
+| `ios27` | iPhone 17                             | iOS 27.0            | MCP run destination                               |
+| `ios18` | iPhone 16                             | iOS 18.5            | created via `simctl create`; MCP run destination  |
+| `duo`   | iPhone Duo (outer + inner)            | iOS 27.1            | **deferred (#38)**, not in the DoD; see section 4 |
+| `pixel` | Pixel_9a AVD                          | Android 16 (API 36) |                                                   |
+| -       | Ramdan's iPhone (iPhone 15, physical) | iOS 26.6.2          | end of every phase; MCP title "Ramdan’s Iphone"   |
 
 `XcodeListRunDestinations(workspaceIdentifier)` lists all four iOS targets as eligible (verified 2026-11-03); use its
 `displayTitle` with `XcodeSwitchRunDestination`. DeviceInteraction on iOS 18.5 and the physical phone is not yet
@@ -77,7 +77,7 @@ workspaceIdentifier)` -> `interactionSessionKey` (same as the sessionIdentifier)
 ```bash
 xcodebuild -workspace ios/Nouveau.xcworkspace -scheme Nouveau -configuration Debug \
   -destination "platform=iOS Simulator,id=$($S/matrix.sh udid ios27)" -derivedDataPath ios/build build
-for k in ios27 ios18 duo; do xcrun simctl install "$($S/matrix.sh udid $k)" ios/build/Build/Products/Debug-iphonesimulator/Nouveau.app; done
+for k in ios27 ios18; do xcrun simctl install "$($S/matrix.sh udid $k)" ios/build/Build/Products/Debug-iphonesimulator/Nouveau.app; done
 xcrun simctl launch <udid> com.muhammadramdan.nouveau   # opens dev launcher -> tap the http://<ip>:8081 server
 ```
 
@@ -166,7 +166,7 @@ It sets appearance (`simctl ui <udid> appearance`, `devicectl device settings ap
 `adb exec-out screencap -p`). Reset to light afterwards. Downscale before viewing: `sips -Z 600 in.png --out small.png`.
 `android screen capture --device <serial> -o f.png` also works (`--annotate` + `android screen resolve` for labelled targets).
 
-**iPhone Duo displays**: `simctl io <udid> enumerate` lists them under "Connected Screens" (the names are not in the
+**iPhone Duo displays** (deferred with #38, not part of the definition of done; kept for when Duo work resumes): `simctl io <udid> enumerate` lists them under "Connected Screens" (the names are not in the
 port list): `primary` (1398x2034, outer, active by default) and `primary-1` (2007x2853, inner, black while folded;
 Screen ID `3` also works for `--display`). The outer display is 466x678 pt; there iOS 27.1 shows the tab bar as a
 vertical floating pill at the right edge and header bar buttons as a glass rail on the right (verified 2026-11-03).
