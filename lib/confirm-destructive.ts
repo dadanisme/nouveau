@@ -1,6 +1,5 @@
 import { ActionSheetIOS, Platform } from 'react-native';
 
-import { ACCENT_HEX } from '@/constants/accent';
 import { showAlertDialog } from '@/lib/alert-dialog';
 import i18n from '@/lib/i18n';
 import { k } from '@/locales/keys';
@@ -48,9 +47,8 @@ export function confirmDestructive({
         options: [confirmLabel, cancel],
         destructiveButtonIndex: 0,
         cancelButtonIndex: 1,
-        // ActionSheetIOS only takes a plain color: a DynamicColorIOS is rejected and the sheet
-        // never shows.
-        tintColor: ACCENT_HEX,
+        // No tintColor: the accent (#E24A00) sits next to system red, so a tinted Cancel read as
+        // a second destructive button. The stock tint keeps the confirm the only red choice.
       },
       (index) => {
         if (index === 0) onConfirm();
