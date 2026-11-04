@@ -1,6 +1,5 @@
 import { DatePicker, HStack, Spacer, Text, VStack } from '@expo/ui/swift-ui';
 import {
-  accessibilityLabel,
   datePickerStyle,
   fixedSize,
   foregroundStyle,
@@ -28,19 +27,15 @@ export function DateFieldRow({ title, value, onChange }: DateFieldRowProps) {
     return (
       <VStack alignment="leading" spacing={8}>
         <Text modifiers={[foregroundStyle(PlatformColor('label'))]}>{title}</Text>
-        {/* Its ideal width, then a spacer, so the date button sits at the leading edge. */}
+        {/* Its ideal width, then a spacer, so the date button sits at the leading edge. No
+            `accessibilityLabel`: on top of the hidden title it named the picker "Date, Date". */}
         <HStack>
           <DatePicker
             title={title}
             selection={value}
             displayedComponents={['date']}
             onDateChange={onChange}
-            modifiers={[
-              datePickerStyle('compact'),
-              labelsHidden(),
-              fixedSize(),
-              accessibilityLabel(title),
-            ]}
+            modifiers={[datePickerStyle('compact'), labelsHidden(), fixedSize()]}
           />
           <Spacer />
         </HStack>

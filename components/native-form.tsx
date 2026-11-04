@@ -7,6 +7,7 @@ import {
   HStack,
   Image,
   Label,
+  Menu,
   Picker,
   ProgressView,
   SecureField,
@@ -24,6 +25,7 @@ import {
 import {
   accessibilityAddTraits,
   accessibilityLabel,
+  accessibilityValue,
   autocorrectionDisabled,
   badge,
   disabled,
@@ -177,23 +179,39 @@ export function FormPickerRow<T extends string>({
     </Text>
   ));
 
-  // Stacked, the label sits above the menu button, which then has the row's full width. The
-  // hidden label still names the button for VoiceOver ("Language, English"); overriding it with
-  // `accessibilityLabel` made iOS 18 read the title twice ("Language, Language").
+  // Stacked, the row is a menu whose label is the icon, the title and the current option on their
+  // own lines, with the picker inside it. One button then names the row for VoiceOver ("Language,
+  // English"): beside a labels-hidden `Picker`, the visible title was a second element that
+  // `accessibilityHidden` doesn't remove from a form row.
   if (isStacked) {
+    const current = options.find((option) => option.value === selection)?.label ?? '';
     return (
-      <VStack alignment="leading" spacing={4}>
-        {icon ? <StackedIcon icon={icon} /> : null}
-        <Text modifiers={[PRIMARY]}>{title}</Text>
+      <Menu
+        label={
+          // A menu label centers wrapped lines; the row reads left-aligned like the others.
+          <VStack alignment="leading" spacing={4} modifiers={[multilineTextAlignment('leading')]}>
+            {icon ? <StackedIcon icon={icon} /> : null}
+            <Text modifiers={[PRIMARY]}>{title}</Text>
+            <HStack spacing={4}>
+              <Text>{current}</Text>
+              <Image
+                systemName="chevron.up.chevron.down"
+                modifiers={[font({ textStyle: 'footnote', weight: 'semibold' })]}
+              />
+            </HStack>
+          </VStack>
+        }
+        modifiers={[accessibilityLabel(title), accessibilityValue(current)]}
+      >
         <Picker<T>
-          label={label}
+          label={title}
           selection={selection}
           onSelectionChange={onSelectionChange}
-          modifiers={[labelsHidden()]}
+          modifiers={[pickerStyle('inline')]}
         >
           {optionViews}
         </Picker>
-      </VStack>
+      </Menu>
     );
   }
 
@@ -575,14 +593,17 @@ export function FormHostedRow({ children }: FormHostedRowProps) {
   return <RNHostView matchContents={{ vertical: true }}>{children}</RNHostView>;
 }
 
-/** An empty state (`ContentUnavailableView`) on a clear row. */
+/**
+ * An empty state (`ContentUnavailableView`) on a clear row. Its ideal height, so a long title wraps
+ * instead of truncating (the row otherwise proposes one line to it on iOS 18 and at AX sizes).
+ */
 export function FormEmptyRow({ title, description, symbol }: FormEmptyRowProps) {
   return (
     <ContentUnavailableView
       title={title}
       systemImage={symbol.sf}
       description={description}
-      modifiers={[listRowBackground('clear')]}
+      modifiers={[listRowBackground('clear'), fixedSize({ horizontal: false, vertical: true })]}
     />
   );
 }

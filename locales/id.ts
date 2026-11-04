@@ -279,6 +279,7 @@ const id: Translations = {
       logoUsd: 'Tanda dolar',
       logoBitcoin: 'Bitcoin',
       diamond: 'Berlian',
+      swapHorizontal: 'Transfer',
       people: 'Kelompok',
       person: 'Orang',
       personAdd: 'Tambah orang',
