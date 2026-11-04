@@ -39,7 +39,7 @@ No test framework is configured. The web app in `web/` has its own scripts (`cd 
 ## Platform and stack
 
 - **Installed:** Expo SDK 58, React Native 0.88, React 19.3, New Architecture, React Compiler (`experiments.reactCompiler`), Expo Router with typed routes, UIScene lifecycle (required on iOS 27).
-- SDK 58 provides stable `@expo/ui` (`@expo/ui/swift-ui`, `@expo/ui/jetpack-compose`, installed) and stable native tabs. Local Swift/Kotlin Expo modules only for gaps (Swift Charts, #37).
+- SDK 58 provides stable `@expo/ui` (`@expo/ui/swift-ui`, `@expo/ui/jetpack-compose`, installed) and stable native tabs. Local Swift/Kotlin Expo modules (in `modules/`) only for gaps: `modules/native-charts` (Swift Charts, #37).
 - **Targets:** iOS 17+ and Android, both first-class. The iOS deployment target is 17.0 (`app.json` build-properties + `plugins/with-ios-deployment-target.js`, which also covers the share extension).
 - **Web:** the web app is a separate Vite app in `web/` (app.nouveau.my.id) that reads the same Supabase data. The RN web build (`react-native-web`, the `web` script and `app.json` `web` block) is unused and will be removed. Don't maintain it.
 
@@ -65,7 +65,8 @@ Navigation conventions (#25–#27):
 - Sheet chrome (iOS, `components/sheet-toolbar.tsx`): editors have a leading Cancel (`SheetCancelToolbar`) and a trailing Save/Send (`FormSaveToolbar`), disabled until the required input is there, and commit from the header, not an in-form button. Pickers, viewers and read-only modals have a leading `xmark` Close (`SheetCloseToolbar`) and commit on selection. Android's headerless form sheets keep the in-form heading (`NativeForm title`) and commit row. Sheets and modals leave with `goBackOrHome()` (`lib/navigation.ts`), not `router.back()`: a route opened cold from a deep link has nothing behind it, so it replaces itself with `/`.
 - Unsaved changes: editors (Add/Edit Transaction, category form, invite sheet, Workspace settings, Create workspace) guard swipe-down, Cancel and Back with `useDiscardGuard(isDirty)` (`hooks/use-discard-guard.ts`, `usePreventRemove`): a Discard Changes / Keep Editing action sheet on iOS, an alert on Android. Pushed screens pass `{ pushed: true }`, which turns swipe-back off while dirty (the native swipe-back can't be held). Leave after a save or delete through the `leave(navigate)` it returns.
 - Period change (Transactions, Insights): the period is the nav title, with chevrons and a period menu in the header from `usePeriodNavigation(mode)` + `usePeriodNavToolbar(nav)` (a left toolbar on iOS, leading right-toolbar items on Android). No pan gestures.
-- Content that has no native equivalent yet (the legacy trend chart until #37) sits in a form row through `FormHostedRow` (`RNHostView`).
+- Content that has no native equivalent sits in a form row through `FormHostedRow` (`RNHostView`).
+- Charts are form rows too: `MonthlySpendingChart` (`components/monthly-spending-chart{,.android}.tsx`, Insights year mode) goes straight into a `FormSection`. Its strings (month labels, full amounts for VoiceOver/TalkBack, compact ticks, summary) come from `utils/monthly-chart.ts`.
 
 Provider hierarchy:
 
@@ -92,7 +93,7 @@ Conventions:
 
 ### Utilities
 
-Pure functions live in `utils/`: `analytics` (totals, breakdown, monthly trend), `currency` (formatting, decimals, symbols), `date`, `file`, `icon` (`parseIcon`), `params`, `period-summary` (summary values and spend breakdown rows), `string`, `transaction`. `currency.ts` and `date.ts` use `i18n` for locale-aware formatting. The DB-to-native icon/color mapping also lives here (see below).
+Pure functions live in `utils/`: `analytics` (totals, breakdown, monthly trend), `currency` (formatting, decimals, symbols), `date`, `file`, `icon` (`parseIcon`), `monthly-chart` (the monthly spending chart model and axis ticks), `params`, `period-summary` (summary values and spend breakdown rows), `string`, `transaction`. `currency.ts` and `date.ts` use `i18n` for locale-aware formatting. The DB-to-native icon/color mapping also lives here (see below).
 
 ### Localization
 
@@ -128,7 +129,7 @@ Use the platform component, not a custom look-alike. Check Context7 for the exac
 | Amount entry                  | `TextInput` with the system decimal keyboard       | same                           |
 | Date, option picking          | native DatePicker / Picker (`@expo/ui`)            | Compose date picker / picker   |
 | Loading                       | native placeholders / activity indicator           | Compose progress / placeholder |
-| Charts                        | Swift Charts via a local Expo module (#37)         | Compose (#37)                  |
+| Charts                        | Swift Charts via `modules/native-charts`           | Compose bars (`@expo/ui`)      |
 | Icons                         | SF Symbols                                         | Material Symbols               |
 
 ### Forms and lists (#32)
@@ -170,7 +171,6 @@ Removed in #39. Don't add new uses. Only touch these to delete them or to keep a
 | --------------------------------------------------------------------------------------------- | ------------------------------------------------- |
 | `constants/colors.ts` (`colors`, `design`: borders, hard shadows, radii, spacing, font sizes) | semantic system colors + accent, platform metrics |
 | `splash-overlay.tsx` (legacy colors, RN `Animated`)                                           | system launch screen / native splash              |
-| `monthly-trend-chart.tsx` (hosted in Insights through `FormHostedRow`)                        | Swift Charts / Compose (#37)                      |
 | `@expo/vector-icons` (Ionicons) in UI                                                         | SF Symbols / Material Symbols                     |
 | `<StatusBar style="dark" />`, cream splash background `#FFF9EB`                               | system appearance                                 |
 | RN web build (`react-native-web`, `web` script, `app.json` `web`)                             | removed; the web app is `web/`                    |

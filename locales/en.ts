@@ -57,6 +57,8 @@ const en = {
     balance: 'Balance',
     spendingByCategory: 'Spending by category',
     monthlyTrend: 'Monthly spending',
+    chartTotal: 'Total: %{amount}.',
+    chartHighest: 'Highest: %{month}, %{amount}.',
     previousYear: 'Previous year',
     nextYear: 'Next year',
     noData: 'No data for this period',

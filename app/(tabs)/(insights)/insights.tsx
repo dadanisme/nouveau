@@ -1,9 +1,8 @@
 import { Stack, useLocalSearchParams } from 'expo-router';
 
-import { MonthlyTrendChart } from '@/components/monthly-trend-chart';
+import { MonthlySpendingChart } from '@/components/monthly-spending-chart';
 import {
   FormEmptyRow,
-  FormHostedRow,
   FormLoadingRow,
   FormProgressRow,
   FormSection,
@@ -85,13 +84,10 @@ export default function InsightsScreen() {
 
             {screen.mode === 'year' ? (
               <FormSection title={t(k.insights.monthlyTrend)}>
-                {/* #37: legacy RN chart hosted in the form until Swift Charts / Compose replace it. */}
-                <FormHostedRow>
-                  <MonthlyTrendChart
-                    data={screen.monthlyTrend}
-                    highlightMonth={screen.highlightMonth}
-                  />
-                </FormHostedRow>
+                <MonthlySpendingChart
+                  data={screen.monthlyTrend}
+                  highlightMonth={screen.highlightMonth}
+                />
               </FormSection>
             ) : null}
 

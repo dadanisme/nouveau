@@ -257,8 +257,7 @@ export type FormProgressRowProps = {
 export type FormHostedRowProps = {
   /**
    * A React Native view drawn inside the row. It takes the row's width and sizes the row by its
-   * own height, so give it a fixed or content height. For content with no native equivalent yet
-   * (e.g. a legacy chart).
+   * own height, so give it a fixed or content height. For content with no native equivalent.
    */
   children: React.ReactElement;
 };
