@@ -1,0 +1,57 @@
+import { ActionSheetIOS, Alert, Platform } from 'react-native';
+
+import { ACCENT_HEX } from '@/constants/accent';
+import i18n from '@/lib/i18n';
+import { k } from '@/locales/keys';
+
+type ConfirmDestructiveOptions = {
+  /** Optional heading. Leave it off when the confirm button already says what happens. */
+  title?: string;
+  /** Optional context, e.g. "This can't be undone." */
+  message?: string;
+  /** The red confirm button, named for the action ("Delete Transaction"). */
+  confirmLabel: string;
+  /** Defaults to Cancel. */
+  cancelLabel?: string;
+  onConfirm: () => void;
+};
+
+/**
+ * Confirms a destructive action the person started (a Delete row, menu item or swipe, or leaving
+ * with unsaved changes). iOS: an action sheet with the red confirm button and Cancel (HIG action
+ * sheets, pull-down buttons). Android: an M3 dialog with Cancel and the confirm button.
+ *
+ * Errors and unexpected consequences (e.g. a delete that also removes other data) stay
+ * `Alert.alert`.
+ */
+export function confirmDestructive({
+  title,
+  message,
+  confirmLabel,
+  cancelLabel,
+  onConfirm,
+}: ConfirmDestructiveOptions) {
+  const cancel: string = cancelLabel ?? i18n.t(k.common.cancel);
+  if (Platform.OS === 'ios') {
+    ActionSheetIOS.showActionSheetWithOptions(
+      {
+        title,
+        message,
+        options: [confirmLabel, cancel],
+        destructiveButtonIndex: 0,
+        cancelButtonIndex: 1,
+        // ActionSheetIOS only takes a plain color: a DynamicColorIOS is rejected and the sheet
+        // never shows.
+        tintColor: ACCENT_HEX,
+      },
+      (index) => {
+        if (index === 0) onConfirm();
+      },
+    );
+    return;
+  }
+  Alert.alert(title ?? '', message, [
+    { text: cancel, style: 'cancel' },
+    { text: confirmLabel, style: 'destructive', onPress: onConfirm },
+  ]);
+}

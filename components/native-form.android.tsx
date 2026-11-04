@@ -278,8 +278,16 @@ function rowActions({
   actions,
   onDelete,
   deleteLabel,
-}: Pick<FormListRowProps, 'actions' | 'onDelete' | 'deleteLabel'>): FormRowAction[] {
-  const all = [...(actions ?? [])];
+  onEdit,
+  editLabel,
+}: Pick<
+  FormListRowProps,
+  'actions' | 'onDelete' | 'deleteLabel' | 'onEdit' | 'editLabel'
+>): FormRowAction[] {
+  const all = [
+    ...(onEdit ? [{ title: editLabel ?? '', onPress: onEdit }] : []),
+    ...(actions ?? []),
+  ];
   if (onDelete) all.push({ title: deleteLabel ?? '', role: 'destructive', onPress: onDelete });
   return all;
 }
@@ -334,13 +342,15 @@ export function FormListRow({
   selected,
   onPress,
   actions,
+  onEdit,
+  editLabel,
   onDelete,
   deleteLabel,
 }: FormListRowProps) {
   const { t } = useLanguage();
   const colors = useMaterialColors();
   const [menuOpen, setMenuOpen] = useState(false);
-  const all = rowActions({ actions, onDelete, deleteLabel });
+  const all = rowActions({ actions, onDelete, deleteLabel, onEdit, editLabel });
   const hasActions = all.length > 0;
   const longPressMenu = hasActions && !!onPress;
   const overflowMenu = hasActions && !onPress;

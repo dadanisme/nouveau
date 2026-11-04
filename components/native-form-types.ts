@@ -92,7 +92,7 @@ export type FormRowAction = {
   /** `destructive` renders in the system red / Material error color. */
   role?: 'default' | 'destructive';
   icon?: FormIcon;
-  /** Should confirm (`Alert.alert`) before anything destructive. */
+  /** Should confirm (`confirmDestructive`) before anything destructive. */
   onPress: () => void;
 };
 
@@ -121,8 +121,15 @@ export type FormListRowProps = {
   onPress?: () => void;
   actions?: readonly FormRowAction[];
   /**
+   * An Edit item (pencil) at the top of the long-press menu, so the menu matches the other rows'
+   * Edit / Delete. Menu only: it isn't a swipe action.
+   */
+  onEdit?: () => void;
+  /** Title of the edit item. Required with `onEdit`. */
+  editLabel?: string;
+  /**
    * Shorthand for a trailing destructive delete action, after `actions`. The handler should
-   * confirm (`Alert.alert`) before deleting.
+   * confirm (`confirmDestructive`) before deleting.
    */
   onDelete?: () => void;
   /** Title of the delete action. Required with `onDelete`. */

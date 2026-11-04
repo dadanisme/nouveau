@@ -30,6 +30,8 @@ export default function CategoriesScreen() {
         title={category.name}
         symbol={symbol}
         onPress={() => mgmt.openEditForm(category)}
+        onEdit={() => mgmt.openEditForm(category)}
+        editLabel={t(k.contextMenu.edit)}
         onDelete={() => mgmt.requestDelete(category)}
         deleteLabel={t(k.common.delete)}
       />

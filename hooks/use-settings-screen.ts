@@ -32,8 +32,8 @@ export function useSettingsScreen() {
     Alert.alert(t(k.settings.signOutConfirmTitle), t(k.settings.signOutConfirmMessage), [
       { text: t(k.common.cancel), style: 'cancel' },
       {
+        // Default style: signing out is what the person chose, and it destroys no data (HIG alerts).
         text: t(k.settings.signOut),
-        style: 'destructive',
         onPress: () =>
           signOut.mutate(undefined, {
             onError: (error) => {
