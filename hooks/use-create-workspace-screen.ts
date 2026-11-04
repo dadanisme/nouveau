@@ -1,12 +1,12 @@
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Alert } from 'react-native';
 
 import { useLanguage } from '@/contexts/language';
 import { useWorkspace } from '@/contexts/workspace';
 import { useDiscardGuard } from '@/hooks/use-discard-guard';
 import { useCreateWorkspace } from '@/hooks/use-workspaces';
+import { showAlertDialog } from '@/lib/alert-dialog';
 import { k } from '@/locales/keys';
 import { getErrorMessage } from '@/utils/error';
 import { getHomeCurrencyOptions } from '@/utils/workspace';
@@ -43,7 +43,7 @@ export function useCreateWorkspaceScreen() {
           leave(() => router.back());
         },
         onError: (error) => {
-          Alert.alert(
+          showAlertDialog(
             t(k.workspace.failedToCreate),
             getErrorMessage(error, t(k.common.unexpectedError)),
           );

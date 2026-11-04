@@ -1,7 +1,6 @@
 import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Alert } from 'react-native';
 
 import { useLanguage } from '@/contexts/language';
 import { useWorkspace } from '@/contexts/workspace';
@@ -19,6 +18,7 @@ import {
   useUpdateWorkspace,
   useWorkspace as useWorkspaceQuery,
 } from '@/hooks/use-workspaces';
+import { showAlertDialog } from '@/lib/alert-dialog';
 import { confirmDestructive as confirmDestructiveAction } from '@/lib/confirm-destructive';
 import { k } from '@/locales/keys';
 import { formatShortDate } from '@/utils/date';
@@ -68,7 +68,7 @@ export function useWorkspaceSettingsScreen() {
   const leave = useDiscardGuard(isOwner && isDirty, { pushed: true });
 
   function showError(title: string, error: unknown) {
-    Alert.alert(title, getErrorMessage(error, t(k.common.unexpectedError)));
+    showAlertDialog(title, getErrorMessage(error, t(k.common.unexpectedError)));
   }
 
   /** The destructive confirmation (an action sheet on iOS): Cancel plus a red confirm button. */
@@ -132,7 +132,7 @@ export function useWorkspaceSettingsScreen() {
           onSuccess: () => closeAfterRemoval(workspaceId),
           onError: (error) =>
             getErrorCode(error) === FOREIGN_KEY_VIOLATION
-              ? Alert.alert(t(k.workspace.failedToDelete), t(k.workspace.errorDeleteHasData))
+              ? showAlertDialog(t(k.workspace.failedToDelete), t(k.workspace.errorDeleteHasData))
               : showError(t(k.workspace.failedToDelete), error),
         }),
     );

@@ -65,6 +65,7 @@ import type {
   FormProgressRowProps,
   FormSectionProps,
   FormSegmentedRowProps,
+  FormSymbol,
   FormTextFieldContentType,
   FormTextFieldRowProps,
   FormValueRowProps,
@@ -282,7 +283,8 @@ export function FormListRow({
   title,
   subtitle,
   icon,
-  symbol,
+  symbol: symbolProp,
+  swatch,
   value,
   selected,
   onPress,
@@ -293,6 +295,8 @@ export function FormListRow({
   deleteLabel,
 }: FormListRowProps) {
   const isStacked = useIsAccessibilityTextSize();
+  const symbol: FormSymbol | undefined =
+    symbolProp ?? (swatch ? { sf: 'circle.fill', material: 'circle', color: swatch } : undefined);
   const valueText = value ? <Text modifiers={[SECONDARY]}>{value}</Text> : null;
   const titleView =
     subtitle || (isStacked && valueText) ? (

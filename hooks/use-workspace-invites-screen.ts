@@ -1,7 +1,6 @@
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Alert } from 'react-native';
 
 import { useLanguage } from '@/contexts/language';
 import { useWorkspace } from '@/contexts/workspace';
@@ -10,6 +9,7 @@ import {
   useDeclineWorkspaceInvite,
   useMyPendingInvites,
 } from '@/hooks/use-workspace-invites';
+import { showAlertDialog } from '@/lib/alert-dialog';
 import { confirmDestructive } from '@/lib/confirm-destructive';
 import { k } from '@/locales/keys';
 import { formatShortDate } from '@/utils/date';
@@ -30,7 +30,7 @@ export function useWorkspaceInvitesScreen() {
   const [busy, setBusy] = useState<{ id: string; action: 'accept' | 'decline' } | null>(null);
 
   function showError(title: string, error: unknown) {
-    Alert.alert(title, getErrorMessage(error, t(k.common.unexpectedError)));
+    showAlertDialog(title, getErrorMessage(error, t(k.common.unexpectedError)));
   }
 
   function accept(inviteId: string, token: string) {

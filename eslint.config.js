@@ -48,6 +48,22 @@ module.exports = defineConfig([
     rules: { 'no-restricted-imports': 'off' },
   },
   {
+    // Alerts go through `showAlertDialog`: `Alert.alert` on iOS, a Material 3 dialog on Android
+    // (`Alert.alert` there is the legacy AppCompat dialog).
+    files: ['**/*.{js,jsx,ts,tsx}'],
+    ignores: ['lib/alert-dialog*'],
+    rules: {
+      'no-restricted-properties': [
+        'error',
+        {
+          object: 'Alert',
+          property: 'alert',
+          message: "Use showAlertDialog from '@/lib/alert-dialog' (M3 dialog on Android).",
+        },
+      ],
+    },
+  },
+  {
     ignores: ['dist/*'],
   },
 ]);

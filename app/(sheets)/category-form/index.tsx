@@ -83,7 +83,7 @@ export default function CategoryFormSheet() {
               />
               <FormListRow
                 title={t(k.categories.color)}
-                symbol={form.colorSymbol}
+                swatch={form.colorSwatch}
                 value={form.colorLabelKey ? t(form.colorLabelKey) : undefined}
                 onPress={form.openColorPicker}
               />

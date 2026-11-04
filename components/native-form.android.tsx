@@ -28,6 +28,7 @@ import {
 import {
   background,
   clickable,
+  clip,
   combinedClickable,
   fillMaxSize,
   fillMaxWidth,
@@ -35,6 +36,7 @@ import {
   padding,
   selectable,
   semantics,
+  Shapes,
   size,
   type ModifierConfig,
 } from '@expo/ui/jetpack-compose/modifiers';
@@ -74,6 +76,8 @@ const COLOR_OVERRIDES: Partial<MaterialColors> = { primary: ACCENT_COLOR as `#${
 // A full-width M3 button at the 48dp touch-target height (the default is 40dp).
 const BUTTON_HEIGHT = 48;
 const PROGRESS_SIZE = 18;
+// A leading color swatch at the M3 24dp leading-icon size, as in the color picker rows.
+const SWATCH_SIZE = 24;
 
 // Material 3 metrics: 24dp sheet top padding.
 const SHEET_TOP = 24;
@@ -369,6 +373,7 @@ export function FormListRow({
   subtitle,
   icon,
   symbol,
+  swatch,
   value,
   selected,
   onPress,
@@ -404,6 +409,12 @@ export function FormListRow({
       {symbol ? (
         <ListItem.LeadingContent>
           <ComposeSymbolIcon symbol={symbol} />
+        </ListItem.LeadingContent>
+      ) : swatch ? (
+        <ListItem.LeadingContent>
+          <Box
+            modifiers={[size(SWATCH_SIZE, SWATCH_SIZE), clip(Shapes.Circle), background(swatch)]}
+          />
         </ListItem.LeadingContent>
       ) : (
         <RowIcon icon={icon} />

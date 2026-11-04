@@ -29,7 +29,7 @@ export type TransactionRowProps = {
   onViewProofs?: () => void;
   /**
    * Adds Delete to the long-press menu and, on iOS, a trailing swipe action. The handler should
-   * confirm (`Alert.alert`) before deleting.
+   * confirm (`confirmDestructive`) before deleting.
    */
   onDelete?: () => void;
 };

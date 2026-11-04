@@ -1,9 +1,9 @@
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Alert } from 'react-native';
 
 import { useLanguage } from '@/contexts/language';
 import { useAppleSignInAvailable, useSignInWithApple, useSignUpWithEmail } from '@/hooks/use-auth';
+import { showAlertDialog } from '@/lib/alert-dialog';
 import { k } from '@/locales/keys';
 import { getErrorMessage } from '@/utils/error';
 
@@ -26,17 +26,17 @@ export function useSignupScreen() {
   function signUp() {
     if (isSubmitting) return;
     if (!email.trim() || !password.trim()) {
-      Alert.alert(t(k.signup.missingFields), t(k.signup.missingFieldsMessage));
+      showAlertDialog(t(k.signup.missingFields), t(k.signup.missingFieldsMessage));
       return;
     }
     signUpWithEmail.mutate(
       { email: email.trim(), password },
       {
         onSuccess: () => {
-          Alert.alert(t(k.signup.checkEmail), t(k.signup.checkEmailMessage));
+          showAlertDialog(t(k.signup.checkEmail), t(k.signup.checkEmailMessage));
         },
         onError: (error) => {
-          Alert.alert(
+          showAlertDialog(
             t(k.signup.signUpFailed),
             getErrorMessage(error, t(k.common.unexpectedError)),
           );
@@ -50,7 +50,10 @@ export function useSignupScreen() {
     if (isSubmitting) return;
     signInWithApple.mutate(undefined, {
       onError: (error) => {
-        Alert.alert(t(k.signup.signUpFailed), getErrorMessage(error, t(k.common.unexpectedError)));
+        showAlertDialog(
+          t(k.signup.signUpFailed),
+          getErrorMessage(error, t(k.common.unexpectedError)),
+        );
       },
     });
   }

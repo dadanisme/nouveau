@@ -1,12 +1,13 @@
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { Alert, Keyboard, Platform } from 'react-native';
+import { Keyboard, Platform } from 'react-native';
 
 import { useLanguage } from '@/contexts/language';
 import { useWorkspace } from '@/contexts/workspace';
 import { useAddTransaction } from '@/hooks/use-add-transaction';
 import { useSession } from '@/hooks/use-auth';
+import { showAlertDialog } from '@/lib/alert-dialog';
 import { confirmDestructive } from '@/lib/confirm-destructive';
 import i18n from '@/lib/i18n';
 import { goBackOrHome } from '@/lib/navigation';
@@ -51,7 +52,7 @@ function formSnapshot(
 }
 
 function showError(title: string, error: unknown) {
-  Alert.alert(title, error instanceof Error ? error.message : i18n.t(k.common.unexpectedError));
+  showAlertDialog(title, error instanceof Error ? error.message : i18n.t(k.common.unexpectedError));
 }
 
 export function useTransactionForm(transactionId?: string, initialDate?: string) {
@@ -179,14 +180,17 @@ export function useTransactionForm(transactionId?: string, initialDate?: string)
   async function handleSubmit(mode: 'save' | 'add-more' = 'save') {
     const amount = parseFloat(amountString);
     if (!amount || amount <= 0) {
-      Alert.alert(
+      showAlertDialog(
         i18n.t(k.addTransaction.invalidAmount),
         i18n.t(k.addTransaction.invalidAmountMessage),
       );
       return;
     }
     if (!selectedCategory) {
-      Alert.alert(i18n.t(k.addTransaction.noCategory), i18n.t(k.addTransaction.noCategoryMessage));
+      showAlertDialog(
+        i18n.t(k.addTransaction.noCategory),
+        i18n.t(k.addTransaction.noCategoryMessage),
+      );
       return;
     }
 
@@ -204,7 +208,7 @@ export function useTransactionForm(transactionId?: string, initialDate?: string)
           : null;
       const rate = exchangeRate ?? impliedRate;
       if (!rate) {
-        Alert.alert(
+        showAlertDialog(
           i18n.t(k.addTransaction.rateUnavailable),
           i18n.t(k.addTransaction.rateUnavailableMessage),
         );
