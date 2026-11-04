@@ -13,7 +13,6 @@ import {
   LinearProgressIndicator,
   ListItem,
   PullToRefreshBox,
-  RNHostView,
   Row,
   SegmentedButton,
   SingleChoiceSegmentedButtonRow,
@@ -48,7 +47,6 @@ import { ComposeSymbolIcon } from '@/components/compose-symbol-icon';
 import type {
   FormButtonRowProps,
   FormEmptyRowProps,
-  FormHostedRowProps,
   FormListRowProps,
   FormNavRowProps,
   FormNoticeRowProps,
@@ -658,18 +656,6 @@ export function FormProgressRow({ title, symbol, value, progress, onPress }: For
         </Text>
       </ListItem.TrailingContent>
     </ListItem>
-  );
-}
-
-/** A React Native view in the list: full width inside the list padding, the view's own height. */
-export function FormHostedRow({ children }: FormHostedRowProps) {
-  return (
-    <RNHostView
-      matchContents={{ vertical: true }}
-      modifiers={[fillMaxWidth(), padding(SIDE, 8, SIDE, 8)]}
-    >
-      {children}
-    </RNHostView>
   );
 }
 
