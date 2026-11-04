@@ -1,16 +1,15 @@
 # Nouveau
 
-A personal finance tracker built with Expo and React Native. Track your income and expenses with a clean, cartoonish UI featuring hard shadows and thick borders.
+A personal finance tracker built with Expo and React Native. Track your income and expenses with native platform UI: SwiftUI on iOS, Material 3 on Android.
 
 ## Tech Stack
 
-- **Expo SDK 55** with New Architecture and React Compiler
-- **React Native 0.83** — iOS, Android, and Web
+- **Expo SDK 58** with New Architecture and React Compiler
+- **React Native 0.88** — iOS and Android (the web app is a separate Vite app in `web/`)
+- **@expo/ui** — SwiftUI and Jetpack Compose components
 - **Expo Router** — file-based routing with typed routes
 - **Supabase** — auth (email + Google Sign-In) and PostgreSQL database
 - **TanStack React Query** — server state management
-- **React Native Reanimated** — animations
-- **@gorhom/bottom-sheet** — gesture-driven bottom sheets
 - **expo-localization** + **i18n-js** — internationalization (English + Bahasa Indonesia)
 
 ## Getting Started
@@ -19,7 +18,7 @@ A personal finance tracker built with Expo and React Native. Track your income a
 
 - [Bun](https://bun.sh/)
 - [Expo CLI](https://docs.expo.dev/get-started/set-up-your-environment/)
-- iOS Simulator / Android Emulator (or a physical device with Expo Go)
+- iOS Simulator / Android Emulator (the app needs a development build, not Expo Go)
 
 ### Setup
 
@@ -42,7 +41,7 @@ A personal finance tracker built with Expo and React Native. Track your income a
    bunx expo start
    ```
 
-   Press `i` for iOS, `a` for Android, or `w` for Web.
+   Press `i` for iOS or `a` for Android.
 
 ## Scripts
 
@@ -51,7 +50,6 @@ A personal finance tracker built with Expo and React Native. Track your income a
 | `bunx expo start`            | Start the dev server                   |
 | `bunx expo run:ios`          | Build and run on iOS                   |
 | `bunx expo run:android`      | Build and run on Android               |
-| `bunx expo start --web`      | Start the web dev server               |
 | `bunx expo lint`             | Run ESLint                             |
 | `bun run format`             | Format code with Prettier              |
 | `bun run supabase:gen-types` | Regenerate DB types from remote schema |
@@ -60,22 +58,21 @@ A personal finance tracker built with Expo and React Native. Track your income a
 
 ```
 app/
-  _layout.tsx              # Root Stack navigator
-  index.tsx                # Transactions (default landing screen)
-  login.tsx                # Login screen
-  signup.tsx               # Sign-up screen
-  add-transaction.tsx      # Add/edit transaction screen
-  categories.tsx           # Category management
-  subscriptions.tsx        # Subscriptions screen
+  _layout.tsx              # Root Stack (tab shell, sheets, modals, AuthGuard)
+  (tabs)/                  # NativeTabs: Transactions, Insights, Settings (each with its own Stack)
+  (sheets)/                # Pickers and editors presented as form sheets
+  add-transaction/         # Add/edit transaction sheet
   proof-viewer.tsx         # Receipt proof viewer
-  settings.tsx             # Settings screen
   shareintent.tsx          # Share-intent landing
-components/                # Reusable UI components (incl. floating-add-button)
-contexts/                  # React contexts (language provider)
+  login.tsx, signup.tsx    # Auth screens
+components/                # Native UI components (SwiftUI / Compose via @expo/ui)
+contexts/                  # React contexts (language, workspace)
 hooks/                     # React Query hooks & screen logic
 locales/                   # Translation files (en, id) + auto-generated key constants (keys.ts)
+modules/                   # Local Expo modules (native charts)
 utils/                     # Pure utility functions
-constants/                 # Design tokens & colors
-lib/                       # Supabase client, i18n singleton
+constants/                 # Accent, sheet options, platform metrics
+lib/                       # Supabase client, i18n singleton, navigation helpers
 types/                     # TypeScript types (incl. generated Supabase types)
+web/                       # Separate Vite web app (app.nouveau.my.id)
 ```

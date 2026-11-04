@@ -1,108 +1,69 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useRouter } from 'expo-router';
+import { useMemo } from 'react';
 
+import type { FormSymbol } from '@/components/native-form-types';
 import { useWorkspace } from '@/contexts/workspace';
 import { useCategories } from '@/hooks/use-categories';
-import { useDeleteCategory } from '@/hooks/use-category-mutations';
+import { useCategoryDeleteConfirmation } from '@/hooks/use-category-delete-confirmation';
 import type { Tables } from '@/types/supabase';
+import { getCategoryColor } from '@/utils/category-color';
+import { getCategorySymbol } from '@/utils/category-icon';
 
+type Category = Tables<'categories'>;
+
+/** A category list row: the category plus its mapped native symbol in its color. */
+export interface CategoryListItem {
+  category: Category;
+  symbol: FormSymbol;
+}
+
+export function toCategoryListItem(category: Category): CategoryListItem {
+  return {
+    category,
+    symbol: { ...getCategorySymbol(category.icon), color: getCategoryColor(category.color) },
+  };
+}
+
+/**
+ * Screen hook for Categories: the list split by type (with native symbols and colors), pull to
+ * refresh, the form sheet, and delete behind a confirmation.
+ */
 export function useCategoryManagement() {
+  const router = useRouter();
   const { currentWorkspaceId } = useWorkspace();
-  const {
-    data: categories = [],
-    isLoading,
-    refetch: queryRefetch,
-  } = useCategories(currentWorkspaceId);
-  const deleteCategory = useDeleteCategory();
-  const [isRefreshing, setIsRefreshing] = useState(false);
-
-  const refetch = useCallback(async () => {
-    setIsRefreshing(true);
-    try {
-      await queryRefetch();
-    } finally {
-      setIsRefreshing(false);
-    }
-  }, [queryRefetch]);
-
-  const [showForm, setShowForm] = useState(false);
-  const [editingCategory, setEditingCategory] = useState<Tables<'categories'> | null>(null);
-  const [deletingCategory, setDeletingCategory] = useState<Tables<'categories'> | null>(null);
-  const [alertState, setAlertState] = useState<{ title: string; message: string } | null>(null);
+  const { data: categories = [], isLoading, refetch } = useCategories(currentWorkspaceId);
+  const { requestDelete } = useCategoryDeleteConfirmation();
 
   const expenseCategories = useMemo(
-    () => categories.filter((c) => c.type === 'expense'),
+    () => categories.filter((c) => c.type === 'expense').map(toCategoryListItem),
     [categories],
   );
 
   const incomeCategories = useMemo(
-    () => categories.filter((c) => c.type === 'income'),
+    () => categories.filter((c) => c.type === 'income').map(toCategoryListItem),
     [categories],
   );
 
+  async function refresh() {
+    await refetch();
+  }
+
   function openAddForm() {
-    setEditingCategory(null);
-    setShowForm(true);
+    router.push('/category-form');
   }
 
-  function openEditForm(category: Tables<'categories'>) {
-    setEditingCategory(category);
-    setShowForm(true);
-  }
-
-  function closeForm() {
-    setShowForm(false);
-    setEditingCategory(null);
-  }
-
-  function confirmDelete(category: Tables<'categories'>) {
-    setDeletingCategory(category);
-  }
-
-  function executeDelete() {
-    if (!deletingCategory) return;
-
-    deleteCategory.mutate(
-      { id: deletingCategory.id },
-      {
-        onSuccess: () => {
-          setDeletingCategory(null);
-        },
-        onError: (error) => {
-          setDeletingCategory(null);
-          setAlertState({
-            title: 'Failed to Delete',
-            message:
-              error instanceof Error
-                ? error.message
-                : 'This category may be in use by transactions.',
-          });
-        },
-      },
-    );
-  }
-
-  function cancelDelete() {
-    setDeletingCategory(null);
+  function openEditForm(category: Category) {
+    router.push({ pathname: '/category-form', params: { id: category.id } });
   }
 
   return {
-    categories,
     expenseCategories,
     incomeCategories,
+    isEmpty: categories.length === 0,
     isLoading,
-    isRefreshing,
-    refetch,
-    showForm,
-    editingCategory,
-    deletingCategory,
-    alertState,
-    isDeleting: deleteCategory.isPending,
+    refresh,
     openAddForm,
     openEditForm,
-    closeForm,
-    confirmDelete,
-    executeDelete,
-    cancelDelete,
-    dismissAlert: () => setAlertState(null),
+    requestDelete: (category: Category) => requestDelete(category),
   };
 }

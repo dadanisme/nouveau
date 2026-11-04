@@ -2,8 +2,9 @@ import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { useShareIntentContext } from 'expo-share-intent';
 import type { ShareIntentFile } from 'expo-share-intent';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 
+import { showAlertDialog } from '@/lib/alert-dialog';
 import i18n from '@/lib/i18n';
 import { k } from '@/locales/keys';
 import { useScanReceipt } from '@/hooks/use-scan-receipt';
@@ -17,8 +18,6 @@ export function useShareIntentScreen() {
   const router = useRouter();
   const { hasShareIntent, shareIntent, resetShareIntent } = useShareIntentContext();
   const scanReceipt = useScanReceipt();
-
-  const [alertState, setAlertState] = useState<{ title: string; message: string } | null>(null);
 
   const sharedText = shareIntent.text ?? null;
   const sharedUrl = shareIntent.webUrl ?? null;
@@ -44,9 +43,13 @@ export function useShareIntentScreen() {
   const canScan = imageFiles.length > 0 || pdfFiles.length > 0;
   const isScanning = scanReceipt.isPending;
 
+  /**
+   * Back to the tab shell: pops to it (the root Stack anchors it under this screen), or replaces
+   * this screen with it when Android's share intent replaced the tabs.
+   */
   function handleDismiss() {
     resetShareIntent();
-    router.replace('/');
+    router.dismissTo('/');
   }
 
   function handleScanReceipt() {
@@ -59,21 +62,17 @@ export function useShareIntentScreen() {
         onSuccess: () => {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
           resetShareIntent();
-          router.replace('/');
+          router.dismissTo('/');
         },
         onError: (error) => {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-          setAlertState({
-            title: i18n.t(k.shareIntent.scanFailed),
-            message: error instanceof Error ? error.message : i18n.t(k.common.unexpectedError),
-          });
+          showAlertDialog(
+            i18n.t(k.shareIntent.scanFailed),
+            error instanceof Error ? error.message : i18n.t(k.common.unexpectedError),
+          );
         },
       },
     );
-  }
-
-  function dismissAlert() {
-    setAlertState(null);
   }
 
   return {
@@ -85,9 +84,7 @@ export function useShareIntentScreen() {
     otherFiles,
     canScan,
     isScanning,
-    alertState,
     handleDismiss,
     handleScanReceipt,
-    dismissAlert,
   };
 }

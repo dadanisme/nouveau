@@ -1,0 +1,141 @@
+import type { Translations } from './en';
+
+type Overrides<T> = { [K in keyof T]?: T[K] extends string ? string : Overrides<T[K]> };
+
+/**
+ * Android wording, merged over `en.ts` / `id.ts` on Android only (`lib/i18n.ts`). Material 3
+ * writes UI text, buttons and dialog headlines included, in sentence case ("Delete transaction");
+ * iOS keeps the Title Case labels in the base locales (Apple's title-style capitalization for
+ * buttons). Proper nouns (Google, Apple, Anda) keep their capitals. Only override what differs,
+ * and keep `en` and `id` in step.
+ */
+export const androidOverrides: { en: Overrides<Translations>; id: Overrides<Translations> } = {
+  en: {
+    common: { discardChanges: 'Discard changes', keepEditing: 'Keep editing' },
+    periodNav: { thisMonth: 'This month', thisYear: 'This year' },
+    addTransaction: {
+      addTransaction: 'Add transaction',
+      editTransaction: 'Edit transaction',
+      addMore: 'Save and add another',
+      viewProofs: 'View proofs',
+      invalidAmount: 'Invalid amount',
+      noCategory: 'No category',
+      failedToSave: 'Failed to save',
+      failedToUpdate: 'Failed to update',
+      failedToDelete: 'Failed to delete',
+      rateUnavailable: 'Exchange rate unavailable',
+      deleteTransaction: 'Delete transaction',
+    },
+    settings: {
+      signOut: 'Sign out',
+      signingOut: 'Signing out…',
+      // An M3 dialog headline states the action as a question.
+      signOutConfirmTitle: 'Sign out?',
+      signOutFailed: 'Sign-out failed',
+    },
+    login: {
+      signIn: 'Sign in',
+      signUp: 'Sign up',
+      missingFields: 'Missing fields',
+      signInFailed: 'Sign-in failed',
+    },
+    signup: {
+      signUp: 'Sign up',
+      signIn: 'Sign in',
+      missingFields: 'Missing fields',
+      signUpFailed: 'Sign-up failed',
+      checkEmail: 'Check your email',
+    },
+    categories: {
+      newCategory: 'New category',
+      editCategory: 'Edit category',
+      deleteCategory: 'Delete category',
+      deleteCategoryAndTransactions: 'Delete category and transactions',
+      failedToSave: 'Failed to save',
+      failedToUpdate: 'Failed to update',
+      failedToDelete: 'Failed to delete',
+      chooseIcon: 'Choose icon',
+      chooseColor: 'Choose color',
+      iconGroups: {
+        foodDrink: 'Food & drink',
+        health: 'Health & fitness',
+        educationWork: 'Education & work',
+        people: 'People & social',
+        natureTravel: 'Nature & travel',
+      },
+    },
+    subscriptions: { unknownFeature: 'Unknown feature' },
+    proofs: {
+      title: 'Receipt proofs',
+      saveToPhotos: 'Save to photos',
+      permissionDenied: 'Permission denied',
+      saveFailed: 'Save failed',
+      shareFailed: 'Share failed',
+    },
+    shareIntent: {
+      title: 'Shared content',
+      noContent: 'No shared content',
+      scanReceipt: 'Scan receipt',
+      scanFailed: 'Scan failed',
+    },
+    categoryPicker: { title: 'Select category', empty: 'No categories' },
+    contextMenu: { viewProofs: 'View proofs' },
+  },
+  id: {
+    common: { discardChanges: 'Buang perubahan', keepEditing: 'Lanjut mengedit' },
+    periodNav: { thisMonth: 'Bulan ini', thisYear: 'Tahun ini' },
+    addTransaction: {
+      addTransaction: 'Tambah transaksi',
+      editTransaction: 'Edit transaksi',
+      addMore: 'Simpan dan tambah lagi',
+      viewProofs: 'Lihat bukti',
+      invalidAmount: 'Jumlah tidak valid',
+      noCategory: 'Tidak ada kategori',
+      failedToSave: 'Gagal menyimpan',
+      failedToUpdate: 'Gagal memperbarui',
+      failedToDelete: 'Gagal menghapus',
+      rateUnavailable: 'Kurs tidak tersedia',
+      deleteTransaction: 'Hapus transaksi',
+    },
+    settings: { signOutConfirmTitle: 'Keluar?', signOutFailed: 'Gagal keluar' },
+    login: {
+      password: 'Kata sandi',
+      missingFields: 'Kolom belum lengkap',
+      signInFailed: 'Gagal masuk',
+    },
+    signup: {
+      password: 'Kata sandi',
+      missingFields: 'Kolom belum lengkap',
+      signUpFailed: 'Gagal mendaftar',
+      checkEmail: 'Periksa email Anda',
+    },
+    categories: {
+      newCategory: 'Kategori baru',
+      editCategory: 'Edit kategori',
+      deleteCategory: 'Hapus kategori',
+      deleteCategoryAndTransactions: 'Hapus kategori dan transaksi',
+      failedToSave: 'Gagal menyimpan',
+      failedToUpdate: 'Gagal memperbarui',
+      failedToDelete: 'Gagal menghapus',
+      chooseIcon: 'Pilih ikon',
+      chooseColor: 'Pilih warna',
+      colors: { teal: 'Hijau kebiruan', pink: 'Merah muda' },
+    },
+    subscriptions: { unknownFeature: 'Fitur tidak dikenal' },
+    proofs: {
+      title: 'Bukti penerimaan',
+      saveToPhotos: 'Simpan ke foto',
+      permissionDenied: 'Izin ditolak',
+      saveFailed: 'Gagal menyimpan',
+      shareFailed: 'Gagal membagikan',
+    },
+    shareIntent: {
+      title: 'Konten dibagikan',
+      noContent: 'Tidak ada konten',
+      scanReceipt: 'Pindai struk',
+      scanFailed: 'Gagal memindai',
+    },
+    categoryPicker: { title: 'Pilih kategori', empty: 'Belum ada kategori' },
+    contextMenu: { viewProofs: 'Lihat bukti' },
+  },
+};

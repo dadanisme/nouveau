@@ -1,89 +1,134 @@
 import * as Haptics from 'expo-haptics';
-import { useEffect, useState } from 'react';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useRef, useState } from 'react';
+import { Keyboard, Platform } from 'react-native';
 
-import { CATEGORY_COLORS } from '@/constants/category-colors';
 import { useWorkspace } from '@/contexts/workspace';
 import { useSession } from '@/hooks/use-auth';
+import { useCategories } from '@/hooks/use-categories';
+import { useCategoryDeleteConfirmation } from '@/hooks/use-category-delete-confirmation';
 import { useAddCategory, useUpdateCategory } from '@/hooks/use-category-mutations';
+import { useDiscardGuard } from '@/hooks/use-discard-guard';
+import { useSheetResult } from '@/hooks/use-sheet-result';
+import { showAlertDialog } from '@/lib/alert-dialog';
 import i18n from '@/lib/i18n';
+import { goBackOrHome } from '@/lib/navigation';
 import { k } from '@/locales/keys';
 import type { Tables } from '@/types/supabase';
+import type { FormSymbol } from '@/components/native-form-types';
+import {
+  DEFAULT_CATEGORY_COLOR,
+  getCategoryColor,
+  getCategorySystemColor,
+} from '@/utils/category-color';
+import { getIoniconSymbol, toCategoryIconValue } from '@/utils/category-icon';
+import { findIconLabelKey } from '@/utils/category-icon-label';
 import { parseIcon } from '@/utils/icon';
 
-interface UseCategoryFormOptions {
-  editingCategory: Tables<'categories'> | null;
-  onSuccess: () => void;
+export type CategoryFormSheetParams = {
+  /** The category to edit; a new category when omitted. */
+  id?: string;
+};
+
+type CategoryType = 'income' | 'expense';
+
+/** The Ionicon name the form seeds from a stored category icon. */
+function seededIcon(category: Tables<'categories'>): string | null {
+  return category.icon ? (parseIcon(category.icon)?.name ?? null) : null;
 }
 
-export function useCategoryForm({ editingCategory, onSuccess }: UseCategoryFormOptions) {
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : i18n.t(k.common.unexpectedError);
+}
+
+/**
+ * Screen hook for the `category-form` sheet route: add (no `id`) or edit/delete a category.
+ *
+ * The edited category is read once from the categories cache and seeded into the form, so a later
+ * refetch (or the delete itself) never resets what the user typed. The icon and color pickers push
+ * inside this sheet's Stack on iOS (root sheets on Android); their results come back through
+ * `useSheetResult`. Leaving with unsaved changes (Cancel, swipe-down) is confirmed first.
+ */
+export function useCategoryForm() {
+  const router = useRouter();
+  const { id } = useLocalSearchParams<CategoryFormSheetParams>();
   const { session } = useSession();
   const { currentWorkspaceId } = useWorkspace();
+  const { data: categories } = useCategories(currentWorkspaceId);
   const addCategory = useAddCategory();
   const updateCategory = useUpdateCategory();
+  const deleteConfirmation = useCategoryDeleteConfirmation();
 
+  const [editingCategory, setEditingCategory] = useState<Tables<'categories'> | null>(null);
   const [name, setName] = useState('');
-  const [type, setType] = useState<'income' | 'expense'>('expense');
-  const [color, setColor] = useState<string>(CATEGORY_COLORS[0]);
+  const [type, setType] = useState<CategoryType>('expense');
+  const [color, setColor] = useState<string>(DEFAULT_CATEGORY_COLOR);
   const [icon, setIcon] = useState<string | null>(null);
-  const [showIconPicker, setShowIconPicker] = useState(false);
-  const [showColorPicker, setShowColorPicker] = useState(false);
-  const [alertState, setAlertState] = useState<{ title: string; message: string } | null>(null);
+  // Only the first close counts, so a double tap can't pop the screen underneath.
+  const closedRef = useRef(false);
 
-  useEffect(() => {
-    if (editingCategory) {
-      setName(editingCategory.name);
-      setType(editingCategory.type as 'income' | 'expense');
-      setColor(editingCategory.color);
-      const parsed = editingCategory.icon ? parseIcon(editingCategory.icon) : null;
-      setIcon(parsed?.name ?? null);
-    } else {
-      setName('');
-      setType('expense');
-      setColor(CATEGORY_COLORS[0]);
-      setIcon(null);
-    }
-  }, [editingCategory]);
+  // Seed the form once the edited category is in the cache (normally already, from the list).
+  const cachedCategory = id ? categories?.find((c) => c.id === id) : undefined;
+  if (cachedCategory && !editingCategory) {
+    setEditingCategory(cachedCategory);
+    setName(cachedCategory.name);
+    setType(cachedCategory.type as CategoryType);
+    setColor(cachedCategory.color);
+    setIcon(seededIcon(cachedCategory));
+  }
 
-  const isPending = addCategory.isPending || updateCategory.isPending;
+  const iconRequestId = useSheetResult('icon-picker', ({ icon: picked }) => setIcon(picked));
+  const colorRequestId = useSheetResult('color-picker', ({ color: picked }) => setColor(picked));
+
+  const isEditing = !!id;
+  const isPending =
+    addCategory.isPending || updateCategory.isPending || deleteConfirmation.isPending;
+
+  const isDirty = editingCategory
+    ? name.trim() !== editingCategory.name.trim() ||
+      type !== editingCategory.type ||
+      color !== editingCategory.color ||
+      icon !== seededIcon(editingCategory)
+    : !isEditing &&
+      (name.trim() !== '' || type !== 'expense' || color !== DEFAULT_CATEGORY_COLOR || !!icon);
+  const leave = useDiscardGuard(isDirty);
+  /**
+   * Save needs a name (HIG: enable it only once the required data is in); Update also needs a
+   * change, so an untouched category can't be saved (`isDirty` is false until it's seeded).
+   */
+  const canSave = name.trim().length > 0 && !isPending && (!isEditing || isDirty);
+
+  /** After a save or delete: closes without the unsaved-changes prompt. */
+  function close() {
+    if (closedRef.current) return;
+    closedRef.current = true;
+    leave(() => goBackOrHome());
+  }
+
+  function onSaved() {
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    close();
+  }
 
   function handleSubmit() {
     const trimmedName = name.trim();
-    if (!trimmedName) {
-      setAlertState({
-        title: i18n.t(k.categories.invalidName),
-        message: i18n.t(k.categories.invalidNameMessage),
-      });
-      return;
-    }
+    if (!canSave) return;
 
     const userId = session?.user.id;
     if (!currentWorkspaceId || !userId) return;
 
-    const iconValue = icon ? `Ionicons/${icon}` : null;
+    const iconValue = toCategoryIconValue(icon);
 
     if (editingCategory) {
       updateCategory.mutate(
+        { id: editingCategory.id, name: trimmedName, type, color, icon: iconValue },
         {
-          id: editingCategory.id,
-          name: trimmedName,
-          type,
-          color,
-          icon: iconValue,
-        },
-        {
-          onSuccess: () => {
-            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-            onSuccess();
-          },
-          onError: (error) => {
-            setAlertState({
-              title: i18n.t(k.categories.failedToUpdate),
-              message: error instanceof Error ? error.message : i18n.t(k.common.unexpectedError),
-            });
-          },
+          onSuccess: onSaved,
+          onError: (error) =>
+            showAlertDialog(i18n.t(k.categories.failedToUpdate), errorMessage(error)),
         },
       );
-    } else {
+    } else if (!isEditing) {
       addCategory.mutate(
         {
           name: trimmedName,
@@ -94,50 +139,72 @@ export function useCategoryForm({ editingCategory, onSuccess }: UseCategoryFormO
           workspace_id: currentWorkspaceId,
         },
         {
-          onSuccess: () => {
-            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-            onSuccess();
-          },
-          onError: (error) => {
-            setAlertState({
-              title: i18n.t(k.categories.failedToSave),
-              message: error instanceof Error ? error.message : i18n.t(k.common.unexpectedError),
-            });
-          },
+          onSuccess: onSaved,
+          onError: (error) =>
+            showAlertDialog(i18n.t(k.categories.failedToSave), errorMessage(error)),
         },
       );
     }
   }
 
-  function selectIcon(selectedIcon: string) {
-    setIcon(selectedIcon);
-    setShowIconPicker(false);
+  /** Native confirmation alert (Cancel + destructive Delete); deleting closes the sheet. */
+  function requestDelete() {
+    if (!editingCategory) return;
+    deleteConfirmation.requestDelete(editingCategory, close);
   }
 
-  function selectColor(selectedColor: string) {
-    setColor(selectedColor);
-    setShowColorPicker(false);
+  // iOS pushes the pickers inside this sheet's Stack (one sheet at a time, HIG); Android keeps
+  // its picker sheets.
+  function openIconPicker() {
+    Keyboard.dismiss();
+    router.push({
+      pathname: Platform.OS === 'ios' ? '/category-form/icon-picker' : '/icon-picker',
+      params: { selected: icon ?? '', color, requestId: iconRequestId },
+    });
   }
+
+  function openColorPicker() {
+    Keyboard.dismiss();
+    router.push({
+      pathname: Platform.OS === 'ios' ? '/category-form/color-picker' : '/color-picker',
+      params: { selected: color, requestId: colorRequestId },
+    });
+  }
+
+  const displayColor = getCategoryColor(color);
+  /** The icon row's preview: the picked icon (or the fallback) in the picked color. */
+  const iconSymbol: FormSymbol = { ...getIoniconSymbol(icon), color: displayColor };
+  /** Name of the glyph the icon row shows (`k.categories.icons.*`), or null for no icon. */
+  const iconLabelKey = findIconLabelKey(icon);
+  /** Name of the system color the color is shown as (`k.categories.colors.*`). */
+  const colorLabelKey = getCategorySystemColor(color)?.labelKey ?? null;
 
   return {
     name,
     type,
     color,
     icon,
-    showIconPicker,
-    showColorPicker,
-    alertState,
+    iconSymbol,
+    iconLabelKey,
+    /** The color row's preview swatch (`FormListRow` `swatch`). */
+    colorSwatch: displayColor,
+    colorLabelKey,
     isPending,
-    isEditing: !!editingCategory,
+    /** Saving (add or update) is in flight: the Save row shows its activity indicator. */
+    isSaving: addCategory.isPending || updateCategory.isPending,
+    /** The confirmed delete is in flight. */
+    isDeleting: deleteConfirmation.isPending,
+    isEditing,
+    canSave,
+    /** Editing, but the category isn't in the cache yet. */
+    isLoading: isEditing && !editingCategory,
     setName,
     setType,
-    setColor: selectColor,
-    setIcon: selectIcon,
-    openIconPicker: () => setShowIconPicker(true),
-    closeIconPicker: () => setShowIconPicker(false),
-    openColorPicker: () => setShowColorPicker(true),
-    closeColorPicker: () => setShowColorPicker(false),
     handleSubmit,
-    dismissAlert: () => setAlertState(null),
+    /** Cancel: leaves the form; unsaved changes are confirmed first. */
+    cancel: () => leave(goBackOrHome, { confirm: true }),
+    requestDelete,
+    openIconPicker,
+    openColorPicker,
   };
 }

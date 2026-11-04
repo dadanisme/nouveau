@@ -43,3 +43,18 @@ export function cleanupTempDownloads(): void {
 export function isSaveableImage(mimeType: string): boolean {
   return mimeType.startsWith('image/');
 }
+
+/** "1.2 MB · 1170×2532" for an image, "1.2 MB" when the dimensions are unknown. */
+export function formatImageMeta(
+  bytes: number | null | undefined,
+  width: number | null | undefined,
+  height: number | null | undefined,
+): string {
+  const size = formatFileSize(bytes);
+  return width != null && height != null ? `${size} · ${width}×${height}` : size;
+}
+
+/** A `file://` URI for a local path; URIs that already have a scheme pass through. */
+export function toFileUri(path: string): string {
+  return /^[a-z][a-z0-9+.-]*:\/\//i.test(path) ? path : `file://${path}`;
+}

@@ -7,19 +7,22 @@
     "icon": "./assets/images/icon.png",
     "scheme": "nouveau",
     "userInterfaceStyle": "automatic",
+    "primaryColor": "#E24A00",
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.muhammadramdan.nouveau",
       "appleTeamId": "C4SQMCY5WT",
+      "usesAppleSignIn": true,
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
+        "UIViewControllerBasedStatusBarAppearance": true,
         "NSPhotoLibraryUsageDescription": "Allow Nouveau to save receipt photos to your library.",
         "NSPhotoLibraryAddUsageDescription": "Allow Nouveau to save receipt photos to your library."
       }
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#FFF9EB",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
@@ -27,24 +30,25 @@
       "predictiveBackGestureEnabled": false,
       "package": "com.muhammadramdan.nouveau"
     },
-    "web": {
-      "output": "static",
-      "favicon": "./assets/images/favicon.png"
-    },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 200,
-          "resizeMode": "contain",
-          "backgroundColor": "#FFF9EB",
-          "dark": {
-            "backgroundColor": "#FFF9EB"
+          "ios": {
+            "backgroundColor": "#F2F2F7",
+            "dark": { "backgroundColor": "#000000" }
+          },
+          "android": {
+            "image": "./assets/images/splash-icon.png",
+            "imageWidth": 200,
+            "resizeMode": "contain",
+            "backgroundColor": "#FFFFFF",
+            "dark": { "backgroundColor": "#000000" }
           }
         }
       ],
+      "./plugins/with-ios-launch-background",
       "expo-sqlite",
       [
         "@react-native-google-signin/google-signin",
@@ -91,6 +95,12 @@
               { "name": "RecaptchaInterop", "modular_headers": true }
             ]
           }
+        }
+      ],
+      [
+        "./plugins/with-android-accent",
+        {
+          "color": "#E24A00"
         }
       ],
       [

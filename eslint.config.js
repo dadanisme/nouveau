@@ -14,6 +14,39 @@ module.exports = defineConfig([
     },
   },
   {
+    // Native UI uses SF Symbols / Material Symbols, not the Ionicons font.
+    files: ['**/*.{js,jsx,ts,tsx}'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['@expo/vector-icons', '@expo/vector-icons/*'],
+              message: 'Use SF Symbols (iOS) / Material Symbols (Android).',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    // Alerts go through `showAlertDialog`: `Alert.alert` on iOS, a Material 3 dialog on Android
+    // (`Alert.alert` there is the legacy AppCompat dialog).
+    files: ['**/*.{js,jsx,ts,tsx}'],
+    ignores: ['lib/alert-dialog*'],
+    rules: {
+      'no-restricted-properties': [
+        'error',
+        {
+          object: 'Alert',
+          property: 'alert',
+          message: "Use showAlertDialog from '@/lib/alert-dialog' (M3 dialog on Android).",
+        },
+      ],
+    },
+  },
+  {
     ignores: ['dist/*'],
   },
 ]);
