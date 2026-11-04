@@ -93,6 +93,7 @@ export default function CategoryFormSheet() {
               <FormSection>
                 <FormButtonRow
                   title={saveTitle}
+                  emphasis="filled"
                   pending={form.isSaving}
                   disabled={!form.canSave}
                   onPress={form.handleSubmit}

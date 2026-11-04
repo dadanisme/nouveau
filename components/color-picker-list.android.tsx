@@ -1,7 +1,6 @@
 import {
   Box,
   Column,
-  Host,
   LazyColumn,
   ListItem,
   RadioButton,
@@ -21,6 +20,7 @@ import {
 } from '@expo/ui/jetpack-compose/modifiers';
 import { StyleSheet } from 'react-native';
 
+import { ComposeHost } from '@/components/compose-host';
 import { ACCENT_COLOR } from '@/constants/accent';
 import { useLanguage } from '@/contexts/language';
 import { k } from '@/locales/keys';
@@ -54,7 +54,7 @@ export function ColorPickerList({ colors, selectedId, onSelect }: ColorPickerLis
   const palette = useMaterialColors();
 
   return (
-    <Host style={styles.host} colorOverrides={COLOR_OVERRIDES}>
+    <ComposeHost style={styles.host} colorOverrides={COLOR_OVERRIDES}>
       <LazyColumn
         contentPadding={{ top: SHEET_PADDING, bottom: SHEET_BOTTOM }}
         modifiers={[fillMaxSize(), background(palette.surfaceContainerLow)]}
@@ -96,7 +96,7 @@ export function ColorPickerList({ colors, selectedId, onSelect }: ColorPickerLis
           })}
         </Column>
       </LazyColumn>
-    </Host>
+    </ComposeHost>
   );
 }
 

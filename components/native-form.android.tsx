@@ -1,11 +1,12 @@
 import {
   Badge,
   Box,
+  Button,
   CircularProgressIndicator,
   Column,
   DropdownMenu,
   DropdownMenuItem,
-  Host,
+  FilledTonalButton,
   Icon,
   IconButton,
   LazyColumn,
@@ -30,14 +31,17 @@ import {
   combinedClickable,
   fillMaxSize,
   fillMaxWidth,
+  height,
   padding,
   selectable,
   semantics,
+  size,
   type ModifierConfig,
 } from '@expo/ui/jetpack-compose/modifiers';
 import { useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { StyleSheet } from 'react-native';
 
+import { ComposeHost } from '@/components/compose-host';
 import { ComposeSymbolIcon } from '@/components/compose-symbol-icon';
 import type {
   FormButtonRowProps,
@@ -67,6 +71,10 @@ const SIDE = 16;
 // the `primary` role (section headers).
 const COLOR_OVERRIDES: Partial<MaterialColors> = { primary: ACCENT_COLOR as `#${string}` };
 
+// A full-width M3 button at the 48dp touch-target height (the default is 40dp).
+const BUTTON_HEIGHT = 48;
+const PROGRESS_SIZE = 18;
+
 // Material 3 metrics: 24dp sheet top padding.
 const SHEET_TOP = 24;
 // Sheets don't inset for the gesture bar, so the last row clears it.
@@ -79,9 +87,9 @@ const SHEET_BOTTOM = 72;
  */
 export function NativeForm(props: NativeFormProps) {
   return (
-    <Host style={styles.fill} colorOverrides={COLOR_OVERRIDES}>
+    <ComposeHost style={styles.fill} colorOverrides={COLOR_OVERRIDES}>
       <FormSurface {...props} />
-    </Host>
+    </ComposeHost>
   );
 }
 
@@ -242,12 +250,35 @@ export function FormButtonRow({
   title,
   role,
   icon,
+  emphasis,
   disabled,
   pending,
   onPress,
 }: FormButtonRowProps) {
   const colors = useMaterialColors();
   const color = role === 'destructive' ? colors.error : undefined;
+  if (emphasis) {
+    // M3 buttons: filled "for important, final actions that complete a flow, like Save"; tonal
+    // for "a lower-priority button [that] requires slightly more emphasis than an outline".
+    const ActionButton = emphasis === 'filled' ? Button : FilledTonalButton;
+    return (
+      <ActionButton
+        onClick={onPress}
+        enabled={!disabled && !pending}
+        modifiers={[fillMaxWidth(), padding(SIDE, 8, SIDE, 8), height(BUTTON_HEIGHT)]}
+      >
+        <Row horizontalArrangement={{ spacedBy: 8 }} verticalAlignment="center">
+          {pending ? (
+            <CircularProgressIndicator
+              strokeWidth={2}
+              modifiers={[size(PROGRESS_SIZE, PROGRESS_SIZE)]}
+            />
+          ) : null}
+          <Text>{title}</Text>
+        </Row>
+      </ActionButton>
+    );
+  }
   return (
     <ListItem
       modifiers={disabled || pending ? [] : [clickable(onPress)]}
@@ -641,11 +672,14 @@ export function FormEmptyRow({ title, description, symbol }: FormEmptyRowProps) 
       modifiers={[fillMaxWidth(), padding(SIDE, 48, SIDE, 24)]}
     >
       <ComposeSymbolIcon symbol={{ ...symbol, color: colors.onSurfaceVariant }} iconSize={48} />
-      <Text color={colors.onSurface} style={{ typography: 'titleMedium' }}>
+      <Text color={colors.onSurface} style={{ typography: 'titleMedium', textAlign: 'center' }}>
         {title}
       </Text>
       {description ? (
-        <Text color={colors.onSurfaceVariant} style={{ typography: 'bodyMedium' }}>
+        <Text
+          color={colors.onSurfaceVariant}
+          style={{ typography: 'bodyMedium', textAlign: 'center' }}
+        >
           {description}
         </Text>
       ) : null}

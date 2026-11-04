@@ -121,6 +121,7 @@ export default function AddTransactionScreen() {
               <FormSection>
                 <FormButtonRow
                   title={t(k.addTransaction.addMore)}
+                  emphasis="tonal"
                   disabled={form.isSubmitDisabled}
                   onPress={() => form.handleSubmit('add-more')}
                 />

@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 import { Platform, StyleSheet, useColorScheme } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
+import { AlertDialogHost } from '@/components/alert-dialog-host';
 import { AuthListener } from '@/components/auth-listener';
 import { SplashOverlay } from '@/components/splash-overlay';
 import { ACCENT_HEX } from '@/constants/accent';
@@ -205,6 +206,8 @@ function RootStack() {
         <Stack.Screen name="(sheets)/icon-picker" options={sheetOptions([0.75, 1])} />
         <Stack.Screen name="(sheets)/color-picker" options={sheetOptions([0.8, 1])} />
       </Stack>
+      {/* Android: presents `showAlertDialog` / `confirmDestructive` as Material 3 dialogs. */}
+      <AlertDialogHost />
     </ThemeProvider>
   );
 }

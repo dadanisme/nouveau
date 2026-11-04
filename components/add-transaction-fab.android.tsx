@@ -1,7 +1,8 @@
-import { FloatingActionButton, Host, Icon } from '@expo/ui/jetpack-compose';
+import { FloatingActionButton, Icon } from '@expo/ui/jetpack-compose';
 import { useRouter } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 
+import { ComposeHost } from '@/components/compose-host';
 import { ACCENT_COLOR } from '@/constants/accent';
 import { useLanguage } from '@/contexts/language';
 import { k } from '@/locales/keys';
@@ -23,7 +24,7 @@ export function AddTransactionFab() {
 
   return (
     <View pointerEvents="box-none" style={styles.container}>
-      <Host matchContents seedColor={ACCENT_COLOR}>
+      <ComposeHost matchContents seedColor={ACCENT_COLOR}>
         <FloatingActionButton onClick={() => router.push('/add-transaction')}>
           <FloatingActionButton.Icon>
             <Icon
@@ -32,7 +33,7 @@ export function AddTransactionFab() {
             />
           </FloatingActionButton.Icon>
         </FloatingActionButton>
-      </Host>
+      </ComposeHost>
     </View>
   );
 }

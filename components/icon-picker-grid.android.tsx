@@ -2,7 +2,6 @@ import {
   Box,
   Column,
   FlowRow,
-  Host,
   Icon,
   IconToggleButton,
   LazyColumn,
@@ -13,6 +12,7 @@ import {
 import { background, fillMaxSize, size } from '@expo/ui/jetpack-compose/modifiers';
 import { StyleSheet, type ColorValue } from 'react-native';
 
+import { ComposeHost } from '@/components/compose-host';
 import { ACCENT_COLOR } from '@/constants/accent';
 import { useLanguage } from '@/contexts/language';
 import { useMaterialSymbolSources } from '@/hooks/use-material-symbol-sources';
@@ -61,7 +61,7 @@ export function IconPickerGrid({
   );
 
   return (
-    <Host style={styles.host} colorOverrides={COLOR_OVERRIDES}>
+    <ComposeHost style={styles.host} colorOverrides={COLOR_OVERRIDES}>
       <LazyColumn
         verticalArrangement={{ spacedBy: 16 }}
         contentPadding={{
@@ -110,7 +110,7 @@ export function IconPickerGrid({
           </Column>
         ))}
       </LazyColumn>
-    </Host>
+    </ComposeHost>
   );
 }
 

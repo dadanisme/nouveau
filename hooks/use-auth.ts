@@ -8,8 +8,14 @@ import type { User } from '@supabase/supabase-js';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { isAppleSignInAvailable, requestAppleCredential, type AppleName } from '@/lib/apple-auth';
+import i18n from '@/lib/i18n';
 import { supabase } from '@/lib/supabase';
+import { k } from '@/locales/keys';
+import { withTimeout } from '@/utils/promise';
 import { isPlaceholderDisplayName } from '@/utils/string';
+
+// A sign-in that hasn't answered by then fails with an alert instead of spinning forever.
+const SIGN_IN_TIMEOUT_MS = 30_000;
 
 export function useSession() {
   const { data: session, isLoading } = useQuery({
@@ -41,7 +47,11 @@ export function useUserProfile(userId: string | undefined) {
 export function useSignInWithEmail() {
   return useMutation({
     mutationFn: async ({ email, password }: { email: string; password: string }) => {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { error } = await withTimeout(
+        supabase.auth.signInWithPassword({ email, password }),
+        SIGN_IN_TIMEOUT_MS,
+        i18n.t(k.common.requestTimedOut),
+      );
       if (error) throw error;
     },
   });
