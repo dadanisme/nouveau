@@ -171,7 +171,8 @@ const IONICON_SYMBOLS = {
   download: { sf: 'arrow.down.circle', material: 'download' },
   share: { sf: 'square.and.arrow.up', material: 'share' },
   'qr-code': { sf: 'qrcode', material: 'qr_code' },
-  'ellipsis-horizontal': { sf: 'ellipsis', material: 'more_horiz' },
+  // "Other": `ellipsis` / `more_horiz` mean More (an action), so a neutral grid instead.
+  'ellipsis-horizontal': { sf: 'square.grid.2x2', material: 'category' },
 } as const satisfies Record<string, CategorySymbol>;
 
 /** An Ionicon name the app can draw natively. */

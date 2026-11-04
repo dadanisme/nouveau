@@ -10,7 +10,7 @@ import { k } from '@/locales/keys';
 interface TransactionsHeaderToolbarProps {
   /** `Stack.Toolbar.*` items placed first, e.g. the Android month controls (`usePeriodNavToolbar`). */
   leadingItems?: ReactElement[];
-  /** Show the `+` Add action in the header (iOS before the tab-bar action slot). */
+  /** Show the `+` Add action in the header (iOS; Android has the FAB). */
   showAddAction: boolean;
   onAddPress: () => void;
   activeFilter: FilterType;
@@ -41,13 +41,9 @@ export function TransactionsHeaderToolbar({
   isFilterActive,
 }: TransactionsHeaderToolbarProps) {
   const { t } = useLanguage();
-  // iOS swaps to the filled symbol while a filter is on; Android adds a badge dot instead.
-  const filterIcon = useSymbolIcon({
-    sf: isFilterActive
-      ? 'line.3.horizontal.decrease.circle.fill'
-      : 'line.3.horizontal.decrease.circle',
-    md: 'filter_list',
-  });
+  // The bare symbol (HIG: toolbar symbols without borders). An active filter shows in the
+  // accessibility label and the menu checkmarks; Android also adds a badge dot.
+  const filterIcon = useSymbolIcon({ sf: 'line.3.horizontal.decrease', md: 'filter_list' });
 
   const typeOptions: { key: FilterType; label: string }[] = [
     { key: 'all', label: t(k.transactions.all) },

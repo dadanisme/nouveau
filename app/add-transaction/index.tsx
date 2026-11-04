@@ -24,9 +24,9 @@ const NOTE_MAX_LENGTH = 100;
  * Add / edit transaction (`?id=` edits, `?date=` presets the date), presented as a form sheet on
  * iOS and a full-screen modal on Android (see the root layout), with its own Stack. A native form:
  * a large amount field with the decimal keyboard, the type, the category (pushes Select Category
- * on iOS, a picker sheet on Android), the date, a note, and View Proofs (edit) or Save and Add
- * Another (add). Cancel and Save sit in the header; Cancel, swipe-down and Back confirm before
- * dropping unsaved changes.
+ * on iOS, a picker sheet on Android), the date, a note, and View Proofs and Delete Transaction
+ * (edit) or Save and Add Another (add). Cancel and Save sit in the header; Cancel, swipe-down and
+ * Back confirm before dropping unsaved changes.
  */
 export default function AddTransactionScreen() {
   const { id, date: dateParam } = useLocalSearchParams<{ id?: string; date?: string }>();
@@ -42,12 +42,9 @@ export default function AddTransactionScreen() {
     <>
       <SheetCancelToolbar onPress={form.cancel} />
       <TransactionFormToolbar
-        isEditMode={form.isEditMode}
         isSaving={form.isPending}
         isSaveDisabled={form.isSubmitDisabled}
         onSave={() => form.handleSubmit('save')}
-        onViewProofs={form.openProofs}
-        onDelete={form.confirmDelete}
       />
 
       {/* The form must be the screen's root view: the native header tracks its scroll. */}
@@ -106,9 +103,20 @@ export default function AddTransactionScreen() {
             </FormSection>
 
             {form.isEditMode ? (
-              <FormSection>
-                <FormNavRow title={t(k.addTransaction.viewProofs)} onPress={form.openProofs} />
-              </FormSection>
+              <>
+                <FormSection>
+                  <FormNavRow title={t(k.addTransaction.viewProofs)} onPress={form.openProofs} />
+                </FormSection>
+                <FormSection>
+                  <FormButtonRow
+                    title={t(k.addTransaction.deleteTransaction)}
+                    role="destructive"
+                    pending={form.isDeleting}
+                    disabled={form.isPending}
+                    onPress={form.confirmDelete}
+                  />
+                </FormSection>
+              </>
             ) : (
               <FormSection>
                 <FormButtonRow
