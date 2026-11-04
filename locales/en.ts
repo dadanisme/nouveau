@@ -276,6 +276,7 @@ const en = {
       logoUsd: 'Dollar sign',
       logoBitcoin: 'Bitcoin',
       diamond: 'Diamond',
+      swapHorizontal: 'Transfer',
       people: 'Group',
       person: 'Person',
       personAdd: 'Add person',

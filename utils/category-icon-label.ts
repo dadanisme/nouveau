@@ -94,6 +94,7 @@ const ICON_LABEL_KEYS: Record<CategoryIconName, string> = {
   'logo-usd': k.categories.icons.logoUsd,
   'logo-bitcoin': k.categories.icons.logoBitcoin,
   diamond: k.categories.icons.diamond,
+  'swap-horizontal': k.categories.icons.swapHorizontal,
   people: k.categories.icons.people,
   person: k.categories.icons.person,
   'person-add': k.categories.icons.personAdd,

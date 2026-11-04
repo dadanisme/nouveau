@@ -122,6 +122,8 @@ const IONICON_SYMBOLS = {
   'logo-usd': { sf: 'dollarsign', material: 'attach_money' },
   'logo-bitcoin': { sf: 'bitcoinsign', material: 'currency_bitcoin' },
   diamond: { sf: 'diamond', material: 'diamond' },
+  // The default "Transfer" category's icon (not offered by the pickers).
+  'swap-horizontal': { sf: 'arrow.left.arrow.right', material: 'swap_horiz' },
   // People & social
   people: { sf: 'person.2', material: 'group' },
   person: { sf: 'person', material: 'person' },

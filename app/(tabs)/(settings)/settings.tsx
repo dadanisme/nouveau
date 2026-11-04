@@ -79,7 +79,6 @@ export default function SettingsScreen() {
       <FormSection>
         <FormButtonRow
           title={screen.signOutPending ? t(k.settings.signingOut) : t(k.settings.signOut)}
-          role="destructive"
           icon={ICONS.signOut}
           pending={screen.signOutPending}
           onPress={screen.confirmSignOut}
