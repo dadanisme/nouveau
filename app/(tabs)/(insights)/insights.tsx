@@ -61,7 +61,11 @@ export default function InsightsScreen() {
           </FormSection>
         ) : screen.isEmpty ? (
           <FormSection>
-            <FormEmptyRow title={t(k.insights.noData)} symbol={EMPTY_SYMBOL} />
+            <FormEmptyRow
+              title={t(k.insights.noData)}
+              description={t(k.insights.noDataMessage)}
+              symbol={EMPTY_SYMBOL}
+            />
           </FormSection>
         ) : (
           <>

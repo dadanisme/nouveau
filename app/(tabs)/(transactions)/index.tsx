@@ -57,7 +57,11 @@ export default function TransactionsScreen() {
           </FormSection>
         ) : screen.isMonthEmpty ? (
           <FormSection>
-            <FormEmptyRow title={t(k.transactions.noTransactions)} symbol={EMPTY_SYMBOL} />
+            <FormEmptyRow
+              title={t(k.transactions.noTransactions)}
+              description={t(k.transactions.noTransactionsMessage)}
+              symbol={EMPTY_SYMBOL}
+            />
           </FormSection>
         ) : (
           <>
@@ -93,7 +97,11 @@ export default function TransactionsScreen() {
 
             {screen.daySections.length === 0 ? (
               <FormSection>
-                <FormEmptyRow title={t(k.transactions.noTransactions)} symbol={EMPTY_SYMBOL} />
+                <FormEmptyRow
+                  title={t(k.transactions.noMatches)}
+                  description={screen.noMatchesMessage}
+                  symbol={EMPTY_SYMBOL}
+                />
               </FormSection>
             ) : (
               screen.daySections.map((day) => (

@@ -395,8 +395,3 @@ export function getCategorySymbol(icon: string | null | undefined): CategorySymb
 export function toCategoryIconValue(name: string | null): string | null {
   return name ? `Ionicons/${name}` : null;
 }
-
-/** A readable label for an Ionicon name (`"fast-food"` → `"fast food"`), for screen readers. */
-export function getIconAccessibilityLabel(name: string): string {
-  return name.replace(/^logo-/, '').replace(/-/g, ' ');
-}

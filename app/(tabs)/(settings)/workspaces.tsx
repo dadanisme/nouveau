@@ -31,7 +31,7 @@ export default function WorkspacesScreen() {
           onPress={screen.openCreateWorkspace}
         />
         <FormNavRow
-          title={t(k.workspace.pendingInvites)}
+          title={t(k.workspace.invitations)}
           icon={ICONS.invites}
           badge={screen.pendingInviteCount}
           onPress={screen.openInvites}

@@ -67,19 +67,23 @@ export function TransactionRow({
           {tx.title}
         </Text>
       </ListItem.HeadlineContent>
-      <ListItem.SupportingContent>
-        <Row verticalAlignment="center" horizontalArrangement={{ spacedBy: 4 }}>
-          {tx.hasProofs ? (
-            <ComposeSymbolIcon
-              symbol={{ ...PROOF_SYMBOL, color: colors.onSurfaceVariant }}
-              iconSize={PROOF_ICON_SIZE}
-            />
-          ) : null}
-          <Text maxLines={1} overflow="ellipsis">
-            {tx.subtitle}
-          </Text>
-        </Row>
-      </ListItem.SupportingContent>
+      {tx.subtitle || tx.hasProofs ? (
+        <ListItem.SupportingContent>
+          <Row verticalAlignment="center" horizontalArrangement={{ spacedBy: 4 }}>
+            {tx.hasProofs ? (
+              <ComposeSymbolIcon
+                symbol={{ ...PROOF_SYMBOL, color: colors.onSurfaceVariant }}
+                iconSize={PROOF_ICON_SIZE}
+              />
+            ) : null}
+            {tx.subtitle ? (
+              <Text maxLines={1} overflow="ellipsis">
+                {tx.subtitle}
+              </Text>
+            ) : null}
+          </Row>
+        </ListItem.SupportingContent>
+      ) : null}
       <ListItem.TrailingContent>
         {/* No green in Material 3's roles: income is told apart by its `+` sign. */}
         <Column horizontalAlignment="end">

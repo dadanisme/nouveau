@@ -15,13 +15,19 @@ export function formatSignedTransactionAmount(
   return `${isIncome ? '+' : '\u2212'}${formatCompactAmount(amount, locale)}`;
 }
 /**
- * Display data for a transaction row.
- * @param options.showDate Append the date to the category line (lists not grouped by day).
+ * Display data for a transaction row. The subtitle names the category only when the title is the
+ * note (a row without a note is already titled with its category).
+ * @param options.showDate Add the date to the subtitle (lists not grouped by day).
+ * @param options.showCategory Name the category in the subtitle; off in a single-category list.
  * @param options.locale Pins the compact amount's suffixes (see `formatCompactAmount`).
  */
 export function toTransactionRowData(
   tx: TransactionWithCategory,
-  { showDate = false, locale }: { showDate?: boolean; locale?: string } = {},
+  {
+    showDate = false,
+    showCategory = true,
+    locale,
+  }: { showDate?: boolean; showCategory?: boolean; locale?: string } = {},
 ): TransactionRowData {
   const isIncome = tx.type === 'income';
   const symbol = getCategorySymbol(tx.category.icon);
@@ -31,9 +37,10 @@ export function toTransactionRowData(
   return {
     id: tx.id,
     title: tx.description || tx.category.name,
-    subtitle: showDate
-      ? joinWithDot([tx.category.name, formatShortDate(dateKey)])
-      : tx.category.name,
+    subtitle: joinWithDot([
+      showCategory && tx.description ? tx.category.name : null,
+      showDate ? formatShortDate(dateKey) : null,
+    ]),
     symbol: {
       sf: symbol.sf,
       material: symbol.material,

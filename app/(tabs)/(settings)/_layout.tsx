@@ -24,7 +24,7 @@ export default function SettingsLayout() {
         name="workspace-settings"
         options={{ title: t(k.workspace.workspaceSettings) }}
       />
-      <Stack.Screen name="workspace-invites" options={{ title: t(k.workspace.pendingInvites) }} />
+      <Stack.Screen name="workspace-invites" options={{ title: t(k.workspace.invitations) }} />
       <Stack.Screen name="create-workspace" options={{ title: t(k.workspace.newWorkspace) }} />
     </Stack>
   );

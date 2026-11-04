@@ -16,11 +16,11 @@ import { useLanguage } from '@/contexts/language';
 import { useIsAccessibilityTextSize, useScaledSize } from '@/hooks/use-accessibility-text-size';
 import { chunk } from '@/utils/array';
 import {
-  getIconAccessibilityLabel,
   getIoniconSymbol,
   type CategoryIconGroup,
   type CategoryIconName,
 } from '@/utils/category-icon';
+import { getIconLabelKey } from '@/utils/category-icon-label';
 
 // Five cells of at least 44pt with ~12pt between the bezels fit a phone-width inset-grouped row
 // (cells stretch to share the row's width); three at accessibility text sizes, where the glyphs
@@ -77,7 +77,7 @@ export function IconPickerGrid({
                           modifiers={[
                             buttonStyle('plain'),
                             frame({ maxWidth: Infinity }),
-                            accessibilityLabel(getIconAccessibilityLabel(name)),
+                            accessibilityLabel(t(getIconLabelKey(name))),
                             ...(isSelected ? [accessibilityAddTraits(['isSelected'])] : []),
                           ]}
                         >

@@ -42,9 +42,9 @@ export function useWorkspaceSettingsScreen() {
   const { currentWorkspaceId, switchWorkspace } = useWorkspace();
   const userId = session?.user.id;
 
-  const { data: workspace } = useWorkspaceQuery(id);
-  const { data: members = [] } = useWorkspaceMembers(id);
-  const { data: invites = [] } = useWorkspaceInvites(id);
+  const { data: workspace, isLoading: isWorkspaceLoading } = useWorkspaceQuery(id);
+  const { data: members = [], isLoading: isMembersLoading } = useWorkspaceMembers(id);
+  const { data: invites = [], isLoading: isInvitesLoading } = useWorkspaceInvites(id);
   const { data: allWorkspaces = [] } = useMyWorkspaces();
 
   const updateWorkspace = useUpdateWorkspace();
@@ -181,6 +181,8 @@ export function useWorkspaceSettingsScreen() {
   }));
 
   return {
+    /** A first fetch is in flight: the screen shows a loading row instead of the form. */
+    isLoading: isWorkspaceLoading || isMembersLoading || isInvitesLoading,
     isLoaded: !!workspace,
     isOwner,
     isPersonal,

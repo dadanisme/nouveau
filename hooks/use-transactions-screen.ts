@@ -128,6 +128,13 @@ export function useTransactionsScreen() {
     if (type !== 'all' && category && category.type !== type) setCategoryFilter(null);
   }
 
+  // The active filter's name (the category, else the type), for the "nothing matches" state.
+  const filterName = categoryFilter
+    ? (categories.find((c) => c.id === categoryFilter)?.name ?? null)
+    : activeFilter === 'all'
+      ? null
+      : t(activeFilter === 'income' ? k.transactions.income : k.transactions.expense);
+
   const { requestDelete } = useDeleteConfirmation();
 
   function addTransaction() {
@@ -172,6 +179,10 @@ export function useTransactionsScreen() {
     isLoading,
     /** The month has no transactions at all (so no summary either). */
     isMonthEmpty: !isLoading && (allTransactions?.length ?? 0) === 0,
+    /** The month has transactions, but none match the filter: why the list is empty. */
+    noMatchesMessage: filterName
+      ? t(k.transactions.noMatchesMessage, { filter: filterName })
+      : t(k.transactions.noTransactionsMessage),
     refresh,
     addTransaction,
     editTransaction,

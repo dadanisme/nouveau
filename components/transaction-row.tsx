@@ -51,23 +51,27 @@ export function TransactionRow({
   const singleLine = isStacked ? [] : [lineLimit(1)];
 
   const title = <Text modifiers={[PRIMARY, ...singleLine]}>{tx.title}</Text>;
-  const subtitle = (
-    <HStack spacing={4}>
-      {tx.hasProofs ? (
-        <Image
-          systemName="paperclip"
-          modifiers={[
-            font({ textStyle: 'caption' }),
-            SECONDARY,
-            accessibilityLabel(t(k.transactions.hasProofs)),
-          ]}
-        />
-      ) : null}
-      <Text modifiers={[font({ textStyle: 'subheadline' }), SECONDARY, ...singleLine]}>
-        {tx.subtitle}
-      </Text>
-    </HStack>
-  );
+  // No subtitle line when there's neither a category to name nor proofs to flag.
+  const subtitle =
+    tx.subtitle || tx.hasProofs ? (
+      <HStack spacing={4}>
+        {tx.hasProofs ? (
+          <Image
+            systemName="paperclip"
+            modifiers={[
+              font({ textStyle: 'caption' }),
+              SECONDARY,
+              accessibilityLabel(t(k.transactions.hasProofs)),
+            ]}
+          />
+        ) : null}
+        {tx.subtitle ? (
+          <Text modifiers={[font({ textStyle: 'subheadline' }), SECONDARY, ...singleLine]}>
+            {tx.subtitle}
+          </Text>
+        ) : null}
+      </HStack>
+    ) : null;
   const amount = (
     <Text modifiers={[tx.isIncome ? INCOME : PRIMARY, monospacedDigit()]}>{tx.amount}</Text>
   );

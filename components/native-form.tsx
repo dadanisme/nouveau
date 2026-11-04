@@ -177,7 +177,9 @@ export function FormPickerRow<T extends string>({
     </Text>
   ));
 
-  // Stacked, the label sits above the menu button, which then has the row's full width.
+  // Stacked, the label sits above the menu button, which then has the row's full width. The
+  // hidden label still names the button for VoiceOver ("Language, English"); overriding it with
+  // `accessibilityLabel` made iOS 18 read the title twice ("Language, Language").
   if (isStacked) {
     return (
       <VStack alignment="leading" spacing={4}>
@@ -187,7 +189,7 @@ export function FormPickerRow<T extends string>({
           label={label}
           selection={selection}
           onSelectionChange={onSelectionChange}
-          modifiers={[labelsHidden(), accessibilityLabel(title)]}
+          modifiers={[labelsHidden()]}
         >
           {optionViews}
         </Picker>
