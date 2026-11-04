@@ -39,12 +39,11 @@ module.exports = defineConfig([
   },
   {
     // Remaining legacy users, each removed by an open issue: the trend chart (#37), the splash
-    // overlay (#39), and the sheet background and "other" category color (#56).
+    // overlay (#39), and the sheet background (#56).
     files: [
       'components/monthly-trend-chart.tsx',
       'components/splash-overlay.tsx',
       'constants/sheet-options.ts',
-      'utils/analytics.ts',
     ],
     rules: { 'no-restricted-imports': 'off' },
   },
