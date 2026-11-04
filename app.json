@@ -18,13 +18,13 @@
         "UIViewControllerBasedStatusBarAppearance": true,
         "NSPhotoLibraryUsageDescription": "Allow Nouveau to save receipt photos to your library.",
         "NSPhotoLibraryAddUsageDescription": "Allow Nouveau to save receipt photos to your library."
-      }
+      },
+      "icon": "./assets/images/AppIcon.icon"
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#FFF9EB",
+        "backgroundColor": "#E24A00",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
