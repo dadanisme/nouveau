@@ -1,15 +1,30 @@
+import { useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { Alert, Keyboard } from 'react-native';
 
+import { categoryTransactionCountQuery } from '@/hooks/use-categories';
 import { useDeleteCategory } from '@/hooks/use-category-mutations';
+import { confirmDestructive } from '@/lib/confirm-destructive';
 import i18n from '@/lib/i18n';
 import { k } from '@/locales/keys';
 
+function showDeleteError(error: unknown) {
+  Alert.alert(
+    i18n.t(k.categories.failedToDelete),
+    error instanceof Error ? error.message : i18n.t(k.common.unexpectedError),
+  );
+}
+
 /**
- * Delete a category behind a native confirmation alert (Cancel + destructive Delete), from a list
- * row (swipe / long press) or the category form. A failed delete shows a native error alert.
+ * Delete a category from a list row (swipe / long press) or the category form. Deleting a category
+ * also deletes its transactions (the FK cascades), so it counts them first:
+ * - none: the destructive confirmation the person expects (an action sheet on iOS);
+ * - some: an alert that states the count, with a red "Delete Category and Transactions", because
+ *   losing the transactions isn't what the person chose (HIG alerts, feedback).
+ * A failed count or delete shows a native error alert.
  */
 export function useCategoryDeleteConfirmation() {
+  const queryClient = useQueryClient();
   const deleteCategory = useDeleteCategory();
 
   function deleteNow(id: string, onDeleted?: () => void) {
@@ -18,26 +33,47 @@ export function useCategoryDeleteConfirmation() {
       {
         onSuccess: () => {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+          // Its transactions went with it.
+          queryClient.invalidateQueries({ queryKey: ['transactions'] });
+          queryClient.invalidateQueries({ queryKey: ['transactions-year'] });
           onDeleted?.();
         },
-        onError: (error) =>
-          Alert.alert(
-            i18n.t(k.categories.failedToDelete),
-            error instanceof Error ? error.message : i18n.t(k.categories.deleteInUseMessage),
-          ),
+        onError: showDeleteError,
       },
     );
   }
 
-  function requestDelete(category: { id: string; name: string }, onDeleted?: () => void) {
+  async function requestDelete(category: { id: string; name: string }, onDeleted?: () => void) {
     Keyboard.dismiss();
+    let count: number;
+    try {
+      count = await queryClient.fetchQuery(categoryTransactionCountQuery(category.id));
+    } catch (error) {
+      showDeleteError(error);
+      return;
+    }
+
+    if (count === 0) {
+      confirmDestructive({
+        message: i18n.t(k.categories.deleteCategoryMessage),
+        confirmLabel: i18n.t(k.categories.deleteCategory),
+        onConfirm: () => deleteNow(category.id, onDeleted),
+      });
+      return;
+    }
+
     Alert.alert(
-      i18n.t(k.categories.deleteCategory),
-      i18n.t(k.categories.deleteCategoryMessage, { name: category.name }),
+      i18n.t(k.categories.deleteCategoryWithTransactionsTitle, { name: category.name }),
+      i18n.t(
+        count === 1
+          ? k.categories.deleteCategoryWithTransactionsMessageOne
+          : k.categories.deleteCategoryWithTransactionsMessageOther,
+        { count },
+      ),
       [
         { text: i18n.t(k.common.cancel), style: 'cancel' },
         {
-          text: i18n.t(k.common.delete),
+          text: i18n.t(k.categories.deleteCategoryAndTransactions),
           style: 'destructive',
           onPress: () => deleteNow(category.id, onDeleted),
         },

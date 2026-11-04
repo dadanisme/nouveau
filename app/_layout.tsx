@@ -191,8 +191,14 @@ function RootStack() {
           name="(sheets)/workspace-invite"
           options={sheetOptions([1], { header: true })}
         />
-        {/* A nested Stack: the icon and color pickers push inside it on iOS. */}
-        <Stack.Screen name="(sheets)/category-form" options={sheetOptions([0.85, 1])} />
+        {/* A nested Stack: the icon and color pickers push inside it on iOS. One large detent
+            on iOS: the name field autofocuses and the pickers need the full height, and with a
+            medium detent the sheet dropped back to it whenever the keyboard closed (opening a
+            picker, returning from one). */}
+        <Stack.Screen
+          name="(sheets)/category-form"
+          options={sheetOptions(Platform.OS === 'ios' ? [1] : [0.85, 1])}
+        />
         {/* Pickers presented as their own sheet on Android only; iOS pushes them inside the
             editor's Stack (add-transaction/category-picker, category-form/*-picker). */}
         <Stack.Screen name="(sheets)/category-picker" options={sheetOptions([0.5, 1])} />

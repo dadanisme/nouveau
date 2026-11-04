@@ -7,6 +7,7 @@ import { useLanguage } from '@/contexts/language';
 import { useWorkspace } from '@/contexts/workspace';
 import { useAddTransaction } from '@/hooks/use-add-transaction';
 import { useSession } from '@/hooks/use-auth';
+import { confirmDestructive } from '@/lib/confirm-destructive';
 import i18n from '@/lib/i18n';
 import { k } from '@/locales/keys';
 import { useCategories } from '@/hooks/use-categories';
@@ -277,14 +278,12 @@ export function useTransactionForm(transactionId?: string, initialDate?: string)
   }
 
   function confirmDelete() {
-    Alert.alert(
-      i18n.t(k.addTransaction.deleteTransaction),
-      i18n.t(k.addTransaction.deleteTransactionMessage),
-      [
-        { text: i18n.t(k.common.cancel), style: 'cancel' },
-        { text: i18n.t(k.common.delete), style: 'destructive', onPress: handleDelete },
-      ],
-    );
+    Keyboard.dismiss();
+    confirmDestructive({
+      message: i18n.t(k.addTransaction.deleteTransactionMessage),
+      confirmLabel: i18n.t(k.addTransaction.deleteTransaction),
+      onConfirm: handleDelete,
+    });
   }
 
   // iOS pushes what the sheet opens inside the sheet's own Stack (one sheet at a time, HIG);

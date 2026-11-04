@@ -82,8 +82,7 @@ const id: Translations = {
     rateUnavailableMessage:
       'Tidak dapat menemukan kurs untuk mengonversi jumlah ini. Silakan coba lagi nanti.',
     deleteTransaction: 'Hapus Transaksi',
-    deleteTransactionMessage:
-      'Apakah Anda yakin ingin menghapus transaksi ini? Tindakan ini tidak dapat dibatalkan.',
+    deleteTransactionMessage: 'Tindakan ini tidak dapat dibatalkan.',
   },
   settings: {
     title: 'Pengaturan',
@@ -92,7 +91,7 @@ const id: Translations = {
     language: 'Bahasa',
     signOut: 'Keluar',
     signingOut: 'Sedang keluar…',
-    signOutConfirmTitle: 'Keluar?',
+    signOutConfirmTitle: 'Keluar',
     signOutConfirmMessage: 'Anda perlu masuk lagi untuk melihat transaksi Anda.',
     workspaceSection: 'Workspace',
     manageSection: 'Kelola',
@@ -145,13 +144,18 @@ const id: Translations = {
     icon: 'Ikon',
     color: 'Warna',
     deleteCategory: 'Hapus Kategori',
-    deleteCategoryMessage: 'Apakah Anda yakin ingin menghapus "%{name}"?',
+    deleteCategoryMessage: 'Tindakan ini tidak dapat dibatalkan.',
+    deleteCategoryWithTransactionsTitle: 'Hapus "%{name}"?',
+    deleteCategoryWithTransactionsMessageOne:
+      '1 transaksi dalam kategori ini juga akan dihapus. Tindakan ini tidak dapat dibatalkan.',
+    deleteCategoryWithTransactionsMessageOther:
+      '%{count} transaksi dalam kategori ini juga akan dihapus. Tindakan ini tidak dapat dibatalkan.',
+    deleteCategoryAndTransactions: 'Hapus Kategori dan Transaksi',
     noCategories: 'Belum ada kategori',
     addFirst: 'Ketuk + untuk menambahkan kategori pertama Anda',
     failedToSave: 'Gagal Menyimpan',
     failedToUpdate: 'Gagal Memperbarui',
     failedToDelete: 'Gagal Menghapus',
-    deleteInUseMessage: 'Kategori ini mungkin sedang dipakai oleh transaksi.',
     chooseIcon: 'Pilih Ikon',
     chooseColor: 'Pilih Warna',
     iconGroups: {

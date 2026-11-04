@@ -80,8 +80,7 @@ const en = {
     rateUnavailableMessage:
       'Could not find an exchange rate to convert this amount. Please try again later.',
     deleteTransaction: 'Delete Transaction',
-    deleteTransactionMessage:
-      'Are you sure you want to delete this transaction? This action cannot be undone.',
+    deleteTransactionMessage: "This can't be undone.",
   },
   settings: {
     title: 'Settings',
@@ -90,7 +89,7 @@ const en = {
     language: 'Language',
     signOut: 'Sign Out',
     signingOut: 'Signing Out…',
-    signOutConfirmTitle: 'Sign out?',
+    signOutConfirmTitle: 'Sign Out',
     signOutConfirmMessage: "You'll need to sign in again to see your transactions.",
     workspaceSection: 'Workspace',
     manageSection: 'Manage',
@@ -142,13 +141,18 @@ const en = {
     icon: 'Icon',
     color: 'Color',
     deleteCategory: 'Delete Category',
-    deleteCategoryMessage: 'Are you sure you want to delete "%{name}"?',
+    deleteCategoryMessage: "This can't be undone.",
+    deleteCategoryWithTransactionsTitle: 'Delete "%{name}"?',
+    deleteCategoryWithTransactionsMessageOne:
+      "1 transaction in this category will also be deleted. This can't be undone.",
+    deleteCategoryWithTransactionsMessageOther:
+      "%{count} transactions in this category will also be deleted. This can't be undone.",
+    deleteCategoryAndTransactions: 'Delete Category and Transactions',
     noCategories: 'No categories yet',
     addFirst: 'Tap + to add your first category',
     failedToSave: 'Failed to Save',
     failedToUpdate: 'Failed to Update',
     failedToDelete: 'Failed to Delete',
-    deleteInUseMessage: 'This category may be in use by transactions.',
     chooseIcon: 'Choose Icon',
     chooseColor: 'Choose Color',
     iconGroups: {

@@ -17,3 +17,22 @@ export function useCategories(workspaceId: string | null | undefined) {
     enabled: !!workspaceId,
   });
 }
+
+/**
+ * How many transactions a category holds, i.e. how many deleting it would also delete (the FK
+ * cascades). Fetched fresh at confirm time with `queryClient.fetchQuery`.
+ */
+export function categoryTransactionCountQuery(categoryId: string) {
+  return {
+    queryKey: ['category-transaction-count', categoryId],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from('transactions')
+        .select('id', { count: 'exact', head: true })
+        .eq('category_id', categoryId);
+      if (error) throw error;
+      return count ?? 0;
+    },
+    staleTime: 0,
+  };
+}

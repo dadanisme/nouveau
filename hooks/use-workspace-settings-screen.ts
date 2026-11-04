@@ -19,6 +19,7 @@ import {
   useUpdateWorkspace,
   useWorkspace as useWorkspaceQuery,
 } from '@/hooks/use-workspaces';
+import { confirmDestructive as confirmDestructiveAction } from '@/lib/confirm-destructive';
 import { k } from '@/locales/keys';
 import { formatShortDate } from '@/utils/date';
 import { getErrorCode, getErrorMessage } from '@/utils/error';
@@ -70,17 +71,14 @@ export function useWorkspaceSettingsScreen() {
     Alert.alert(title, getErrorMessage(error, t(k.common.unexpectedError)));
   }
 
-  /** Native confirmation alert: Cancel plus a destructive confirm button. */
+  /** The destructive confirmation (an action sheet on iOS): Cancel plus a red confirm button. */
   function confirmDestructive(
     title: string,
     message: string,
     confirmLabel: string,
     onConfirm: () => void,
   ) {
-    Alert.alert(title, message, [
-      { text: t(k.common.cancel), style: 'cancel' },
-      { text: confirmLabel, style: 'destructive', onPress: onConfirm },
-    ]);
+    confirmDestructiveAction({ title, message, confirmLabel, onConfirm });
   }
 
   function save() {

@@ -1,8 +1,8 @@
 import { useNavigation, usePreventRemove } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActionSheetIOS, Alert, Keyboard, Platform } from 'react-native';
+import { Keyboard, Platform } from 'react-native';
 
-import { ACCENT_COLOR } from '@/constants/accent';
+import { confirmDestructive } from '@/lib/confirm-destructive';
 import i18n from '@/lib/i18n';
 import { k } from '@/locales/keys';
 
@@ -11,24 +11,13 @@ import { k } from '@/locales/keys';
  * HIG sheets), an M3 dialog on Android. `onDiscard` runs only if the person discards.
  */
 function confirmDiscard(onDiscard: () => void) {
-  if (Platform.OS === 'ios') {
-    ActionSheetIOS.showActionSheetWithOptions(
-      {
-        options: [i18n.t(k.common.discardChanges), i18n.t(k.common.keepEditing)],
-        destructiveButtonIndex: 0,
-        cancelButtonIndex: 1,
-        tintColor: ACCENT_COLOR,
-      },
-      (index) => {
-        if (index === 0) onDiscard();
-      },
-    );
-    return;
-  }
-  Alert.alert(i18n.t(k.common.discardChangesPrompt), undefined, [
-    { text: i18n.t(k.common.keepEditing), style: 'cancel' },
-    { text: i18n.t(k.common.discardChanges), style: 'destructive', onPress: onDiscard },
-  ]);
+  confirmDestructive({
+    // The iOS sheet's buttons say it all; the Android dialog keeps its question.
+    title: Platform.OS === 'android' ? i18n.t(k.common.discardChangesPrompt) : undefined,
+    confirmLabel: i18n.t(k.common.discardChanges),
+    cancelLabel: i18n.t(k.common.keepEditing),
+    onConfirm: onDiscard,
+  });
 }
 
 /**

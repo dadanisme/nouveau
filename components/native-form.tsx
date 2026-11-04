@@ -76,6 +76,7 @@ import { useIsAccessibilityTextSize } from '@/hooks/use-accessibility-text-size'
 const PRIMARY = foregroundStyle(PlatformColor('label'));
 const SECONDARY = foregroundStyle(PlatformColor('secondaryLabel'));
 const TERTIARY = foregroundStyle(PlatformColor('tertiaryLabel'));
+const DESTRUCTIVE_TINT = tint(PlatformColor('systemRed'));
 
 // At accessibility text sizes rows stack: the title on top, its value and other secondary items
 // below, left-aligned, and nothing truncates (HIG typography, Supporting Dynamic Type).
@@ -266,6 +267,8 @@ export function FormListRow({
   selected,
   onPress,
   actions,
+  onEdit,
+  editLabel,
   onDelete,
   deleteLabel,
 }: FormListRowProps) {
@@ -334,6 +337,7 @@ export function FormListRow({
       <ContextMenu>
         <ContextMenu.Trigger>{row}</ContextMenu.Trigger>
         <ContextMenu.Items>
+          {onEdit ? <Button label={editLabel ?? ''} systemImage="pencil" onPress={onEdit} /> : null}
           {all.map((action) => (
             <Button
               key={action.title}
@@ -341,6 +345,8 @@ export function FormListRow({
               label={action.title}
               systemImage={action.icon?.sf}
               onPress={action.onPress}
+              // The Host's accent tint would otherwise paint a destructive item's icon orange.
+              modifiers={action.role === 'destructive' ? [DESTRUCTIVE_TINT] : undefined}
             />
           ))}
         </ContextMenu.Items>
@@ -355,9 +361,7 @@ export function FormListRow({
             label={action.title}
             systemImage={action.icon?.sf}
             onPress={action.onPress}
-            modifiers={
-              action.role === 'destructive' ? [tint(PlatformColor('systemRed'))] : undefined
-            }
+            modifiers={action.role === 'destructive' ? [DESTRUCTIVE_TINT] : undefined}
           />
         ))}
       </SwipeActions.Actions>

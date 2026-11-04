@@ -10,6 +10,7 @@ import {
   useDeclineWorkspaceInvite,
   useMyPendingInvites,
 } from '@/hooks/use-workspace-invites';
+import { confirmDestructive } from '@/lib/confirm-destructive';
 import { k } from '@/locales/keys';
 import { formatShortDate } from '@/utils/date';
 import { getErrorMessage } from '@/utils/error';
@@ -51,24 +52,18 @@ export function useWorkspaceInvitesScreen() {
 
   function confirmDecline(inviteId: string, token: string, workspaceName: string) {
     if (busy) return;
-    Alert.alert(
-      t(k.workspace.confirmDecline, { name: workspaceName }),
-      t(k.workspace.confirmDeclineMessage),
-      [
-        { text: t(k.common.cancel), style: 'cancel' },
-        {
-          text: t(k.workspace.decline),
-          style: 'destructive',
-          onPress: () => {
-            setBusy({ id: inviteId, action: 'decline' });
-            declineInvite.mutate(token, {
-              onSettled: () => setBusy(null),
-              onError: (error) => showError(t(k.workspace.failedToDecline), error),
-            });
-          },
-        },
-      ],
-    );
+    confirmDestructive({
+      title: t(k.workspace.confirmDecline, { name: workspaceName }),
+      message: t(k.workspace.confirmDeclineMessage),
+      confirmLabel: t(k.workspace.decline),
+      onConfirm: () => {
+        setBusy({ id: inviteId, action: 'decline' });
+        declineInvite.mutate(token, {
+          onSettled: () => setBusy(null),
+          onError: (error) => showError(t(k.workspace.failedToDecline), error),
+        });
+      },
+    });
   }
 
   return {
