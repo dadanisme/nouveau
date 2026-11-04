@@ -172,7 +172,8 @@ export function useSignOut() {
 
   return useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.auth.signOut();
+      // This device only: other devices signed in to the account stay signed in.
+      const { error } = await supabase.auth.signOut({ scope: 'local' });
       if (error) throw error;
     },
     onSuccess: () => {

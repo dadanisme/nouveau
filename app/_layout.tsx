@@ -16,6 +16,7 @@ import { sheetOptions } from '@/constants/sheet-options';
 import { LanguageProvider, useLanguage } from '@/contexts/language';
 import { WorkspaceProvider } from '@/contexts/workspace';
 import { useSession } from '@/hooks/use-auth';
+import { goBackOrHome } from '@/lib/navigation';
 import { k } from '@/locales/keys';
 
 SplashScreen.preventAutoHideAsync();
@@ -156,7 +157,7 @@ function RootStack() {
         />
         <Stack.Screen
           name="proof-viewer"
-          options={({ navigation }) => ({
+          options={{
             title: t(k.proofs.title),
             // Opened from rows, so it's always a modal (iOS page sheet, Android full-screen).
             // A read-only viewer: iOS gets the leading Close (xmark, HIG); Android keeps its
@@ -168,10 +169,11 @@ function RootStack() {
                 label: t(k.common.close),
                 icon: { type: 'sfSymbol', name: 'xmark' },
                 accessibilityLabel: t(k.common.close),
-                onPress: () => navigation.goBack(),
+                // A cold deep link has nothing behind it, so this falls back to the tabs.
+                onPress: goBackOrHome,
               },
             ],
-          })}
+          }}
         />
         {/* Sheet routes (app/(sheets)/*): results come back through lib/sheet-result.ts. iOS
             sheets get the native header (title, Cancel/Close, Save); Android's are headerless. */}

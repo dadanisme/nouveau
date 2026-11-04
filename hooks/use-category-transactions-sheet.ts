@@ -5,6 +5,7 @@ import { useWorkspace } from '@/contexts/workspace';
 import { useCategories } from '@/hooks/use-categories';
 import { useDeleteConfirmation } from '@/hooks/use-delete-confirmation';
 import { useTransactions, useTransactionsByYear } from '@/hooks/use-transactions';
+import { goBackOrHome } from '@/lib/navigation';
 import { formatPeriodLabel, type PeriodMode } from '@/utils/date';
 import { parseIntParam } from '@/utils/params';
 import { toTransactionRowData } from '@/utils/transaction';
@@ -53,16 +54,16 @@ export function useCategoryTransactionsSheet() {
   useEffect(() => {
     if (isEmpty && isFocused && !closedRef.current) {
       closedRef.current = true;
-      router.back();
+      goBackOrHome();
     }
-  }, [isEmpty, isFocused, router]);
+  }, [isEmpty, isFocused]);
 
   // One sheet at a time (HIG): Edit Transaction and the proof viewer open once this sheet has
   // closed, instead of over it.
   function openAfterClosing(open: () => void) {
     if (closedRef.current) return;
     closedRef.current = true;
-    router.back();
+    goBackOrHome();
     open();
   }
 
@@ -87,7 +88,7 @@ export function useCategoryTransactionsSheet() {
     isLoading: mode === 'month' ? monthQuery.isLoading : yearQuery.isLoading,
     editTransaction,
     viewProofs,
-    close: () => router.back(),
+    close: () => goBackOrHome(),
     requestDelete,
   };
 }

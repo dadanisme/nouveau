@@ -277,6 +277,7 @@ const en = {
       logoBitcoin: 'Bitcoin',
       diamond: 'Diamond',
       swapHorizontal: 'Transfer',
+      arrowUndo: 'Refund',
       people: 'Group',
       person: 'Person',
       personAdd: 'Add person',
