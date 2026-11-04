@@ -56,7 +56,7 @@ Routes live in `app/`. The root `Stack` in `app/_layout.tsx` holds the tab shell
 - `shareintent.tsx`: incoming share intent. `+native-intent.ts` rewrites share-extension URLs to it.
 - `login.tsx`, `signup.tsx`
 
-`AuthGuard` (in `_layout.tsx`) sends signed-out users to `/login` (except on `shareintent`) and signed-in users on login/signup to `/`.
+The root Stack anchors `(tabs)` (`unstable_settings.anchor`), so a route opened cold from a deep link (add-transaction, proof-viewer, shareintent) opens over the tabs: iOS keeps its sheet/modal presentation and Android's Back returns to the tabs. `AuthGuard` (in `_layout.tsx`) sends signed-out users to `/login` (except on `shareintent`) and signed-in users on login/signup to `/`, through `resetTo()` (`lib/navigation.ts`) so neither is left on top of the other.
 
 Navigation conventions (#25–#27):
 

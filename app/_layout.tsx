@@ -16,10 +16,17 @@ import { sheetOptions } from '@/constants/sheet-options';
 import { LanguageProvider, useLanguage } from '@/contexts/language';
 import { WorkspaceProvider } from '@/contexts/workspace';
 import { useSession } from '@/hooks/use-auth';
-import { goBackOrHome } from '@/lib/navigation';
+import { goBackOrHome, resetTo } from '@/lib/navigation';
 import { k } from '@/locales/keys';
 
 SplashScreen.preventAutoHideAsync();
+
+// The tab shell sits under every route opened cold from a deep link (`nouveau://add-transaction`,
+// the proof viewer, a share intent), so iOS presents sheets and modals over it and Android's Back
+// returns to it.
+export const unstable_settings = {
+  anchor: '(tabs)',
+};
 
 const queryClient = new QueryClient();
 
@@ -46,7 +53,6 @@ function ShareIntentNavigator() {
 function AuthGuard({ children }: { children: React.ReactNode }) {
   const { session, isLoading } = useSession();
   const segments = useSegments();
-  const router = useRouter();
   const [isNavigationReady, setIsNavigationReady] = useState(false);
 
   useEffect(() => {
@@ -56,14 +62,14 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
     const inShareIntent = segments[0] === 'shareintent';
 
     if (!session && !inAuthGroup && !inShareIntent) {
-      router.replace('/login');
+      resetTo('/login');
     } else if (session && inAuthGroup) {
-      router.replace('/');
+      resetTo('/');
     }
 
     const timeout = setTimeout(() => setIsNavigationReady(true), 50);
     return () => clearTimeout(timeout);
-  }, [session, isLoading, segments, router]);
+  }, [session, isLoading, segments]);
 
   return (
     <>
@@ -225,7 +231,7 @@ export default function RootLayout() {
             options={{
               debug: __DEV__,
               resetOnBackground: true,
-              onResetShareIntent: () => router.replace('/'),
+              onResetShareIntent: () => router.dismissTo('/'),
             }}
           >
             <ShareIntentNavigator />

@@ -91,8 +91,11 @@ export function useCategoryForm() {
     : !isEditing &&
       (name.trim() !== '' || type !== 'expense' || color !== DEFAULT_CATEGORY_COLOR || !!icon);
   const leave = useDiscardGuard(isDirty);
-  /** Save needs a name (HIG: enable it only once the required data is in). */
-  const canSave = name.trim().length > 0 && !isPending && !(isEditing && !editingCategory);
+  /**
+   * Save needs a name (HIG: enable it only once the required data is in); Update also needs a
+   * change, so an untouched category can't be saved (`isDirty` is false until it's seeded).
+   */
+  const canSave = name.trim().length > 0 && !isPending && (!isEditing || isDirty);
 
   /** After a save or delete: closes without the unsaved-changes prompt. */
   function close() {
