@@ -41,7 +41,18 @@ import {
   size,
   type ModifierConfig,
 } from '@expo/ui/jetpack-compose/modifiers';
-import { useEffect, useImperativeHandle, useRef, useState } from 'react';
+import {
+  Children,
+  cloneElement,
+  Fragment,
+  isValidElement,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+  type ReactElement,
+  type ReactNode,
+} from 'react';
 import { StyleSheet } from 'react-native';
 
 import { ComposeHost } from '@/components/compose-host';
@@ -123,7 +134,7 @@ function FormSurface({ title, onRefresh, bottomInset = 0, children }: NativeForm
           {title}
         </Text>
       ) : null}
-      {children}
+      {withoutLeadingGap(children)}
     </LazyColumn>
   );
 
@@ -144,7 +155,29 @@ function FormSurface({ title, onRefresh, bottomInset = 0, children }: NativeForm
   );
 }
 
-export function FormSection({ title, footer, children }: FormSectionProps) {
+/**
+ * The gap above an untitled section separates it from the section before it, so the form's first
+ * section skips it: the list's top padding (or the sheet heading) already spaces it.
+ */
+function withoutLeadingGap(children: ReactNode): ReactNode[] {
+  const items = Children.toArray(children);
+  const [first, ...rest] = items;
+  if (!isValidElement(first)) return items;
+  // Screens often wrap their sections in a fragment: look inside it for the first section.
+  if (first.type === Fragment) {
+    const inner = (first.props as { children?: ReactNode }).children;
+    return [cloneElement(first, undefined, ...withoutLeadingGap(inner)), ...rest];
+  }
+  if (first.type !== FormSection) return items;
+  return [
+    cloneElement(first as ReactElement<FormSectionInternalProps>, { isFirst: true }),
+    ...rest,
+  ];
+}
+
+type FormSectionInternalProps = FormSectionProps & { isFirst?: boolean };
+
+export function FormSection({ title, footer, children, isFirst }: FormSectionInternalProps) {
   const colors = useMaterialColors();
   return (
     <>
@@ -156,7 +189,7 @@ export function FormSection({ title, footer, children }: FormSectionProps) {
         >
           {title}
         </Text>
-      ) : (
+      ) : isFirst ? null : (
         <Box modifiers={[fillMaxWidth(), height(SECTION_GAP)]} />
       )}
       {children}
@@ -586,7 +619,8 @@ export function FormTextFieldRow({
       <TextField.Label>
         <Text>{label ?? placeholder}</Text>
       </TextField.Label>
-      {label ? (
+      {/* A placeholder that repeats the floating label would show the same word twice. */}
+      {label && placeholder && placeholder !== label ? (
         <TextField.Placeholder>
           <Text>{placeholder}</Text>
         </TextField.Placeholder>
