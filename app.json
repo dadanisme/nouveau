@@ -15,6 +15,7 @@
       "usesAppleSignIn": true,
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
+        "UIViewControllerBasedStatusBarAppearance": true,
         "NSPhotoLibraryUsageDescription": "Allow Nouveau to save receipt photos to your library.",
         "NSPhotoLibraryAddUsageDescription": "Allow Nouveau to save receipt photos to your library."
       }

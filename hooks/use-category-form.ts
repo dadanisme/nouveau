@@ -150,7 +150,7 @@ export function useCategoryForm() {
   const iconSymbol: FormSymbol = { ...getIoniconSymbol(icon), color: displayColor };
   /** The color row's preview swatch. */
   const colorSymbol: FormSymbol = { sf: 'circle.fill', material: 'circle', color: displayColor };
-  /** Name of the picked system color (`k.categories.colors.*`), or null for a custom hex. */
+  /** Name of the system color the color is shown as (`k.categories.colors.*`). */
   const colorLabelKey = getCategorySystemColor(color)?.labelKey ?? null;
 
   return {

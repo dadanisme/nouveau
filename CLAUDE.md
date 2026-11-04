@@ -141,7 +141,8 @@ Full-screen forms and grouped lists use the shared primitives in `components/nat
 - **Type:** system font and system text styles only, with Dynamic Type respected. No custom font sizes.
 - **Color:** semantic system colors only (iOS `PlatformColor` labels/backgrounds/separators, Material 3 color roles on Android). No hardcoded grays, whites or blacks.
 - **Dark mode** follows the system (`userInterfaceStyle: automatic`). No in-app theme switch.
-- **Accent:** `#E24A00` is the only brand color. Apply it as the app tint (tabs, buttons, links, FAB), not as fills. **Dark variant: TBD.** Don't invent one; record it here once it's chosen.
+- **Status bar:** UIKit owns it on iOS (`UIViewControllerBasedStatusBarAppearance` is `true` in `app.json`), so it turns light over a full-height sheet's black backdrop. Don't mount `expo-status-bar` on iOS; Android keeps `<StatusBar style="auto" />`.
+- **Accent:** `#E24A00` is the only brand color. Apply it as the app tint (tabs, buttons, links, FAB), not as fills. As text it is 4.03:1 on white, 3.61:1 on grouped gray and 4.22:1 on `#1C1C1E`, so it relies on the Increase Contrast fallback that accessibility#Vision allows: on iOS `ACCENT_COLOR` (`constants/accent.ts`) is a `DynamicColorIOS` with the tones UIKit derives for its own bars, `#B53B00` in light (5.85:1 on white, 5.24:1 on grouped gray) and `#FF681F` in dark (5.88:1 on `#1C1C1E`, 4.81:1 on `#2C2C2E`). Tint with `ACCENT_COLOR`, since SwiftUI doesn't adjust a plain hex; use `ACCENT_HEX` only where a hex string is required (Android, the navigation theme). **Dark variant: TBD.** Don't invent one; record it here once it's chosen.
 - **Icons:** SF Symbols on iOS, Material Symbols on Android. No `@expo/vector-icons` in new UI.
 
 ### DB contract: category icons and colors
@@ -151,7 +152,7 @@ The web app reads the same rows, so the stored format **does not change**:
 - `categories.icon`: an Ionicon name, stored as `"Ionicons/<name>"` (nullable, parsed by `utils/icon.ts` `parseIcon`).
 - `categories.color`: a hex string.
 
-The app maps both to native values in `utils/`: Ionicon name → SF Symbol / Material Symbol (with a fallback for unmapped names), and hex → one of 9 system colors (other hexes render as stored). Use `getCategorySymbol(icon)` (`utils/category-icon.ts`, returns `{ sf, material }`), `getCategoryColor(hex)` (`utils/category-color.ts`, `PlatformColor` on iOS, palette hex on Android) or `<CategoryIcon icon color />`. The native icon grid and color picker write Ionicon names and canonical palette hexes back. Never write SF/Material names or platform colors to the DB (#31).
+The app maps both to native values in `utils/`: Ionicon name → SF Symbol / Material Symbol (with a fallback for unmapped names), and hex → the nearest of 9 system colors by hue (neutrals → gray), for display only: the edit form names that color and the picker checks it, but the stored hex is only rewritten when the user picks a color. Use `getCategorySymbol(icon)` (`utils/category-icon.ts`, returns `{ sf, material }`), `getCategoryColor(hex)` (`utils/category-color.ts`, `PlatformColor` on iOS, palette hex on Android) or `<CategoryIcon icon color />`. The native icon grid and color picker write Ionicon names and canonical palette hexes back. Never write SF/Material names or platform colors to the DB (#31).
 
 ### Wide layouts (deferred)
 

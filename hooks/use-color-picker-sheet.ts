@@ -16,8 +16,8 @@ export interface ColorPickerSheetParams {
 
 /**
  * Screen hook for the `color-picker` sheet route: offers the system colors and returns the picked
- * one's canonical palette hex (the DB keeps hexes; see `utils/category-color.ts`). A custom hex
- * that maps to no system color leaves nothing selected.
+ * one's canonical palette hex (the DB keeps hexes; see `utils/category-color.ts`). Any other stored
+ * hex shows its nearest system color as selected; it's only rewritten if the user picks a color.
  */
 export function useColorPickerSheet() {
   const { selected } = useLocalSearchParams<Omit<ColorPickerSheetParams, 'requestId'>>();
