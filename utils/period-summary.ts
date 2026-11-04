@@ -44,7 +44,8 @@ export interface SpendBreakdownRow {
   categoryId?: string;
 }
 
-const OTHERS_SYMBOL = { sf: 'ellipsis.circle', material: 'more_horiz' } as const;
+/** A neutral grid, not `ellipsis` (which means More, an action). */
+const OTHERS_SYMBOL = { sf: 'square.grid.2x2', material: 'category' } as const;
 
 /**
  * Turns an expense breakdown into list rows: each category's mapped symbol in its system color

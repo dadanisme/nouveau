@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { AccessibilityInfo } from 'react-native';
 
 import { useLanguage } from '@/contexts/language';
 import {
@@ -16,8 +17,6 @@ export interface PeriodNavigation {
   period: Period;
   /** "March 2026" (month mode) or "2026" (year mode). */
   label: string;
-  /** "Mar 2026" (month mode) or "2026", for tight spots such as a crowded nav bar. */
-  shortLabel: string;
   /** Whether the period contains today. */
   isCurrent: boolean;
   goToPrevious: () => void;
@@ -36,7 +35,8 @@ function currentPeriod(): Period {
 /**
  * The period a screen shows (a month, or a year in year mode) and how to move it: previous /
  * next, jump to a period, back to today. Starts on the current period, or `initial`. Pair it
- * with `usePeriodNavToolbar` for the native header controls.
+ * with `usePeriodNavToolbar` for the native header controls. Each change is announced to the
+ * screen reader (the title and list change, but focus stays on the control that was used).
  */
 export function usePeriodNavigation(
   mode: PeriodMode = 'month',
@@ -47,16 +47,24 @@ export function usePeriodNavigation(
   // The in-app language, so the labels follow it (they are memoized on their inputs).
   const { locale } = useLanguage();
 
+  const changePeriod = (next: Period) => {
+    setPeriod(next);
+    // Queued, so it follows whatever VoiceOver is saying about the control that was used.
+    AccessibilityInfo.announceForAccessibilityWithOptions(
+      formatPeriodLabel(mode, next.year, next.month, { locale }),
+      { queue: true },
+    );
+  };
+
   return {
     mode,
     period,
     label: formatPeriodLabel(mode, period.year, period.month, { locale }),
-    shortLabel: formatPeriodLabel(mode, period.year, period.month, { short: true, locale }),
     isCurrent: isSamePeriod(mode, period, today),
-    goToPrevious: () => setPeriod((current) => shiftPeriod(mode, current, -1)),
-    goToNext: () => setPeriod((current) => shiftPeriod(mode, current, 1)),
-    goTo: setPeriod,
-    goToCurrent: () => setPeriod(currentPeriod()),
+    goToPrevious: () => changePeriod(shiftPeriod(mode, period, -1)),
+    goToNext: () => changePeriod(shiftPeriod(mode, period, 1)),
+    goTo: changePeriod,
+    goToCurrent: () => changePeriod(currentPeriod()),
     menuYears: getPeriodMenuYears(mode, today, period),
   };
 }
