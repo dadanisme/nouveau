@@ -18,11 +18,11 @@ import { useLanguage } from '@/contexts/language';
 import { useMaterialSymbolSources } from '@/hooks/use-material-symbol-sources';
 import { k } from '@/locales/keys';
 import {
-  getIconAccessibilityLabel,
   getIoniconSymbol,
   type CategoryIconGroup,
   type CategoryIconName,
 } from '@/utils/category-icon';
+import { getIconLabelKey } from '@/utils/category-icon-label';
 
 // Material 3 metrics: 24dp icons in 48dp icon buttons, 24dp sheet padding.
 const ICON_SIZE = 24;
@@ -98,7 +98,7 @@ export function IconPickerGrid({
                       <Icon
                         source={source}
                         size={ICON_SIZE}
-                        contentDescription={getIconAccessibilityLabel(name)}
+                        contentDescription={t(getIconLabelKey(name))}
                       />
                     ) : (
                       <Box modifiers={[size(ICON_SIZE, ICON_SIZE)]} />

@@ -2,6 +2,7 @@ import {
   FormButtonRow,
   FormEmptyRow,
   FormListRow,
+  FormLoadingRow,
   FormSection,
   NativeForm,
 } from '@/components/native-form';
@@ -25,9 +26,17 @@ export default function WorkspaceInvitesScreen() {
 
   return (
     <NativeForm>
-      {screen.isEmpty ? (
+      {screen.isLoading ? (
         <FormSection>
-          <FormEmptyRow title={t(k.workspace.noInvites)} symbol={EMPTY_SYMBOL} />
+          <FormLoadingRow />
+        </FormSection>
+      ) : screen.isEmpty ? (
+        <FormSection>
+          <FormEmptyRow
+            title={t(k.workspace.noInvites)}
+            description={t(k.workspace.noInvitesMessage)}
+            symbol={EMPTY_SYMBOL}
+          />
         </FormSection>
       ) : null}
       {screen.invites.map((invite) => (

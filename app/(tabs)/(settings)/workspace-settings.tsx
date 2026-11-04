@@ -1,7 +1,10 @@
+import { Platform } from 'react-native';
+
 import { FormSaveToolbar } from '@/components/form-save-toolbar';
 import {
   FormButtonRow,
   FormListRow,
+  FormLoadingRow,
   FormPickerRow,
   FormSection,
   FormTextFieldRow,
@@ -20,6 +23,9 @@ const ICONS = {
   delete: { sf: 'trash', md: require('@/assets/icons/delete.xml') },
   leave: { sf: 'rectangle.portrait.and.arrow.right', md: require('@/assets/icons/logout.xml') },
 } as const;
+
+// iOS labels the name field with its section header; Android's field shows a floating label.
+const HAS_NAME_SECTION_TITLE = Platform.OS === 'ios';
 
 /**
  * Workspace settings (`?id=`). The owner edits the name and home currency (saved from the
@@ -41,103 +47,115 @@ export default function WorkspaceSettingsScreen() {
         />
       ) : null}
       <NativeForm>
-        {screen.isLoaded ? (
+        {screen.isLoading ? (
           <FormSection>
-            {screen.isOwner ? (
-              <>
-                <FormTextFieldRow
-                  label={t(k.workspace.workspaceName)}
-                  placeholder={t(k.workspace.workspaceNamePlaceholder)}
-                  value={screen.name}
-                  onChangeText={screen.setName}
-                  autoCapitalize="words"
-                />
-                <FormPickerRow
-                  title={t(k.workspace.homeCurrency)}
-                  options={screen.currencyOptions}
-                  selection={screen.currency}
-                  onSelectionChange={screen.setCurrency}
-                />
-              </>
-            ) : (
-              <>
-                <FormListRow title={t(k.workspace.workspaceName)} value={screen.name} />
-                <FormListRow title={t(k.workspace.homeCurrency)} value={screen.currency} />
-              </>
-            )}
+            <FormLoadingRow />
           </FormSection>
-        ) : null}
+        ) : (
+          <>
+            {screen.isLoaded ? (
+              screen.isOwner ? (
+                <>
+                  <FormSection
+                    title={HAS_NAME_SECTION_TITLE ? t(k.workspace.workspaceName) : undefined}
+                  >
+                    <FormTextFieldRow
+                      label={t(k.workspace.workspaceName)}
+                      placeholder={t(k.workspace.workspaceNamePlaceholder)}
+                      value={screen.name}
+                      onChangeText={screen.setName}
+                      autoCapitalize="words"
+                    />
+                  </FormSection>
+                  <FormSection>
+                    <FormPickerRow
+                      title={t(k.workspace.homeCurrency)}
+                      options={screen.currencyOptions}
+                      selection={screen.currency}
+                      onSelectionChange={screen.setCurrency}
+                    />
+                  </FormSection>
+                </>
+              ) : (
+                <FormSection>
+                  <FormListRow title={t(k.workspace.workspaceName)} value={screen.name} />
+                  <FormListRow title={t(k.workspace.homeCurrency)} value={screen.currency} />
+                </FormSection>
+              )
+            ) : null}
 
-        <FormSection title={screen.membersTitle}>
-          {screen.members.map((member) => (
-            <FormListRow
-              key={member.id}
-              title={member.name}
-              subtitle={member.role}
-              icon={ICONS.member}
-              actions={
-                member.remove
-                  ? [
+            <FormSection title={screen.membersTitle}>
+              {screen.members.map((member) => (
+                <FormListRow
+                  key={member.id}
+                  title={member.name}
+                  subtitle={member.role}
+                  icon={ICONS.member}
+                  actions={
+                    member.remove
+                      ? [
+                          {
+                            title: t(k.workspace.remove),
+                            role: 'destructive',
+                            icon: ICONS.remove,
+                            onPress: member.remove,
+                          },
+                        ]
+                      : undefined
+                  }
+                />
+              ))}
+            </FormSection>
+
+            {screen.isOwner ? (
+              <FormSection title={t(k.workspace.sentInvites)}>
+                {screen.invites.map((invite) => (
+                  <FormListRow
+                    key={invite.id}
+                    title={invite.email}
+                    subtitle={invite.expires}
+                    icon={ICONS.invite}
+                    actions={[
                       {
-                        title: t(k.workspace.remove),
+                        title: t(k.workspace.revoke),
                         role: 'destructive',
-                        icon: ICONS.remove,
-                        onPress: member.remove,
+                        icon: ICONS.revoke,
+                        onPress: invite.revoke,
                       },
-                    ]
-                  : undefined
-              }
-            />
-          ))}
-        </FormSection>
+                    ]}
+                  />
+                ))}
+                <FormButtonRow
+                  title={t(k.workspace.inviteMember)}
+                  icon={ICONS.addMember}
+                  onPress={screen.openInviteSheet}
+                />
+              </FormSection>
+            ) : null}
 
-        {screen.isOwner ? (
-          <FormSection title={t(k.workspace.pendingInvites)}>
-            {screen.invites.map((invite) => (
-              <FormListRow
-                key={invite.id}
-                title={invite.email}
-                subtitle={invite.expires}
-                icon={ICONS.invite}
-                actions={[
-                  {
-                    title: t(k.workspace.revoke),
-                    role: 'destructive',
-                    icon: ICONS.revoke,
-                    onPress: invite.revoke,
-                  },
-                ]}
-              />
-            ))}
-            <FormButtonRow
-              title={t(k.workspace.inviteMember)}
-              icon={ICONS.addMember}
-              onPress={screen.openInviteSheet}
-            />
-          </FormSection>
-        ) : null}
-
-        {screen.isLoaded && !screen.isPersonal ? (
-          <FormSection>
-            {screen.isOwner ? (
-              <FormButtonRow
-                title={t(k.workspace.deleteWorkspace)}
-                role="destructive"
-                icon={ICONS.delete}
-                disabled={screen.isRemoving}
-                onPress={screen.confirmDelete}
-              />
-            ) : (
-              <FormButtonRow
-                title={t(k.workspace.leaveWorkspace)}
-                role="destructive"
-                icon={ICONS.leave}
-                disabled={screen.isRemoving}
-                onPress={screen.confirmLeave}
-              />
-            )}
-          </FormSection>
-        ) : null}
+            {screen.isLoaded && !screen.isPersonal ? (
+              <FormSection>
+                {screen.isOwner ? (
+                  <FormButtonRow
+                    title={t(k.workspace.deleteWorkspace)}
+                    role="destructive"
+                    icon={ICONS.delete}
+                    disabled={screen.isRemoving}
+                    onPress={screen.confirmDelete}
+                  />
+                ) : (
+                  <FormButtonRow
+                    title={t(k.workspace.leaveWorkspace)}
+                    role="destructive"
+                    icon={ICONS.leave}
+                    disabled={screen.isRemoving}
+                    onPress={screen.confirmLeave}
+                  />
+                )}
+              </FormSection>
+            ) : null}
+          </>
+        )}
       </NativeForm>
     </>
   );

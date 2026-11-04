@@ -16,7 +16,7 @@ import { formatShortDate } from '@/utils/date';
 import { getErrorMessage } from '@/utils/error';
 
 /**
- * Screen hook for Pending Invites (the invites sent to me): accepting one joins and switches to
+ * Screen hook for Invitations (the invites sent to me): accepting one joins and switches to
  * that workspace, then closes the screen; declining one (after a native confirm) drops it from
  * the list. Failures show a native alert. One invite is handled at a time.
  */
@@ -67,6 +67,8 @@ export function useWorkspaceInvitesScreen() {
   }
 
   return {
+    /** The first fetch is in flight: the screen shows a loading row. */
+    isLoading,
     isEmpty: !isLoading && invites.length === 0,
     invites: invites.map((invite) => {
       const workspaceName = invite.workspaces?.name ?? t(k.workspace.shared);

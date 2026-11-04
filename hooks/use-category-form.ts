@@ -20,6 +20,7 @@ import {
   getCategorySystemColor,
 } from '@/utils/category-color';
 import { getIoniconSymbol, toCategoryIconValue } from '@/utils/category-icon';
+import { findIconLabelKey } from '@/utils/category-icon-label';
 import { parseIcon } from '@/utils/icon';
 
 export type CategoryFormSheetParams = {
@@ -166,6 +167,8 @@ export function useCategoryForm() {
   const displayColor = getCategoryColor(color);
   /** The icon row's preview: the picked icon (or the fallback) in the picked color. */
   const iconSymbol: FormSymbol = { ...getIoniconSymbol(icon), color: displayColor };
+  /** Name of the glyph the icon row shows (`k.categories.icons.*`), or null for no icon. */
+  const iconLabelKey = findIconLabelKey(icon);
   /** The color row's preview swatch. */
   const colorSymbol: FormSymbol = { sf: 'circle.fill', material: 'circle', color: displayColor };
   /** Name of the system color the color is shown as (`k.categories.colors.*`). */
@@ -177,6 +180,7 @@ export function useCategoryForm() {
     color,
     icon,
     iconSymbol,
+    iconLabelKey,
     colorSymbol,
     colorLabelKey,
     isPending,

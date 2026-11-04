@@ -81,7 +81,9 @@ export function useCategoryTransactionsSheet() {
   return {
     categoryName: category?.name ?? transactions[0]?.category.name ?? '',
     periodLabel: formatPeriodLabel(mode, year, month),
-    rows: transactions.map((tx) => toTransactionRowData(tx, { showDate: true })),
+    rows: transactions.map((tx) =>
+      toTransactionRowData(tx, { showDate: true, showCategory: false }),
+    ),
     isLoading: mode === 'month' ? monthQuery.isLoading : yearQuery.isLoading,
     editTransaction,
     viewProofs,

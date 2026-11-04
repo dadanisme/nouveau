@@ -78,6 +78,7 @@ export default function CategoryFormSheet() {
               <FormListRow
                 title={t(k.categories.icon)}
                 symbol={form.iconSymbol}
+                value={form.iconLabelKey ? t(form.iconLabelKey) : undefined}
                 onPress={form.openIconPicker}
               />
               <FormListRow

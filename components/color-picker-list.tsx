@@ -4,6 +4,7 @@ import { PlatformColor, StyleSheet } from 'react-native';
 
 import { ACCENT_COLOR } from '@/constants/accent';
 import { useLanguage } from '@/contexts/language';
+import { useAppearanceKey } from '@/hooks/use-appearance-key';
 import { k } from '@/locales/keys';
 import {
   systemColorValue,
@@ -23,9 +24,12 @@ interface ColorPickerListProps {
  */
 export function ColorPickerList({ colors, selectedId, onSelect }: ColorPickerListProps) {
   const { t } = useLanguage();
+  // Rebuilt after an appearance or contrast change: on iOS 18 a live trait change turns the
+  // checkmark system blue (see `useAppearanceKey`).
+  const appearanceKey = useAppearanceKey();
 
   return (
-    <Host style={styles.host} seedColor={ACCENT_COLOR}>
+    <Host key={appearanceKey} style={styles.host} seedColor={ACCENT_COLOR}>
       <VStack
         spacing={0}
         modifiers={[
