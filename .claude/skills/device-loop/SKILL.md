@@ -1,6 +1,6 @@
 ---
 name: device-loop
-description: Drive the Nouveau app on iOS simulators, the physical iPhone 15 and the Android emulator and capture what it looks like - open the workspace in Xcode via the xcode MCP and show the sims in Device Hub, build/install the dev client (MCP DeviceInteractionInstallAndRun, or xcodebuild + simctl for fan-out), boot the verification matrix (iPhone 17 iOS 27, iPhone 16 iOS 18.5, Pixel_9a; iPhone Duo deferred), deep-link to a screen, tap/swipe/type (xcode MCP DeviceInteraction* first, AXe fallback, adb, android CLI), read the UI tree, and take light + dark screenshots to compare against Apple HIG / Material 3. Use for any "run it on device", "check on simulator/emulator", "screenshot the screen", "verify the native UI", "does it look right in dark mode", visual QA, or definition-of-done check for native UI work.
+description: Drive the Nouveau app on iOS simulators, the physical iPhone 15 and the Android emulator and capture what it looks like - open the workspace in Xcode via the xcode MCP and show the sims in Device Hub, build/install the dev client (MCP DeviceInteractionInstallAndRun, or xcodebuild + simctl for fan-out), boot the verification matrix (iPhone 17 iOS 27, iPhone 16 iOS 18.5, Pixel_9a; iPhone Duo deferred), deep-link to a screen, tap/swipe/type (xcode MCP DeviceInteraction* first, AXe fallback, adb, android CLI), read the UI tree, take light + dark screenshots, capture the iOS accessibility variant matrix (dark, AX5 Dynamic Type, Increase Contrast, Reduce Motion) and sweep the UI tree for unlabeled or sub-44pt controls, then grade against Apple HIG (quoted, cited) / Material 3. Use for any "run it on device", "check on simulator/emulator", "screenshot the screen", "verify the native UI", "does it look right in dark mode", visual QA, or definition-of-done check for native UI work.
 ---
 
 # Device feedback loop
@@ -180,11 +180,45 @@ Per ogmo-app, unverified in nouveau:
   user to change the pose by hand, wait for confirmation, then continue. (`simctl io <udid> screenConfig
 --display=... power on|off` exists and is unexplored as a pose control.)
 
-## 5. Compare
+## 5. HIG review
 
-For each shot, check against Apple HIG (iOS: navigation bars/large titles, SF Symbols, 44pt targets, safe areas,
-Dynamic Type, system materials) and Material 3 (Android: top app bars, 48dp targets, M3 color roles, edge-to-edge
-insets, predictive back). Report deviations per matrix cell, with the screenshot path.
+**iOS: variant matrix per screen.** Capture every screen under review in each variant below, on both `ios27` and
+`ios18`. `$S/a11y-variant.sh <udid|key> <variant>` sets all of appearance / Dynamic Type / contrast at once (so
+variants never leak) and prints the result; then `$S/shot.sh ios <key> <screen>-<variant>` (no mode argument, or it
+overrides the appearance). Finish with `$S/a11y-variant.sh <udid> reset`.
+
+| variant                     | sets                                                         | applies                                       |
+| --------------------------- | ------------------------------------------------------------ | --------------------------------------------- |
+| `default`                   | light, `large`, Increase Contrast off                        | live                                          |
+| `dark`                      | dark                                                         | live                                          |
+| `ax5`                       | `accessibility-extra-extra-extra-large` (largest)            | live (same pid, redraws in ~1 s)              |
+| `contrast`                  | Increase Contrast on                                         | live                                          |
+| `ax5-dark`, `contrast-dark` | optional combos                                              | live                                          |
+| `reduce-motion`             | `defaults write com.apple.Accessibility ReduceMotionEnabled` | **relaunch the app** (no change notification) |
+
+Verified on iPhone 17 / iOS 27, 2026-11-03: the three `simctl ui` options apply to the running app; the Reduce
+Motion key round-trips with Settings > Accessibility > Motion, but a running app was not shown to pick it up live.
+Not scriptable on the simulator, so **physical iPhone 15 only** (toggle in Settings by hand, ask the user):
+Bold Text, Button Shapes, and Reduce Motion where the animation itself must be judged.
+
+**Sweep each screen** (ios27 / ios18 only, never the Duo): `$S/ui-sweep.sh <udid> [$SHOT_DIR/<screen>.json]` lists
+(a) interactive elements with no label, (b) interactive frames under 44x44 pt, (c) counts. Run it in `default` and
+`ax5` (labels and frames change with Dynamic Type). AXe frames are accessibility frames, not hit regions: a flagged
+36 pt toolbar button is a finding to check, not an automatic fail.
+
+**Grade against `references/hig-checklist.md`.** Every finding needs a verbatim HIG quote, cited as `slug#Anchor`,
+fetched from `https://developer.apple.com/tutorials/data/design/human-interface-guidelines/<slug>.json` (e.g.
+`curl -s .../accessibility.json | jq`) or the xcode MCP `DocumentationSearch`. Model memory isn't a source: a finding
+without a fetched quote is marked **opinion**. Where the HIG is silent, compare with an Apple app on the same OS
+(Settings, Wallet, Reminders, ...) and label it **Apple-app reference**, with that app's screenshot path.
+
+**Screenshots:** the Expo dev-client floating tools button (gear, bottom right) is not app UI. Ignore it when
+grading (ui-sweep already skips it); if it covers content, drag it aside or note "dev-tools overlay".
+
+**Android:** check against Material 3 (top app bars, 48dp targets, M3 color roles, edge-to-edge insets, predictive
+back).
+
+Report deviations per matrix cell and variant, with the screenshot path and the citation (or "opinion").
 
 ## Parallel runs (one sub-agent per device)
 
@@ -205,6 +239,7 @@ insets, predictive back). Report deviations per matrix cell, with the screenshot
   Claude Code. Ignore it and call the DeviceInteraction tools directly.
 - The iOS 27 launch crash (`EXC_BREAKPOINT`, no UIScene lifecycle) is fixed by the SDK 58 upgrade (#24). If it
   reappears, check that prebuild still generates `SceneDelegate.swift`.
-- The app has no native dark theme yet, so dark screenshots currently match light ones (the toggles do work).
+- AXe taps (label and coordinate) did not register in the iOS 27 Settings app on iPhone 17 (2026-11-03); the MCP
+  tap did. Use the MCP outside the Nouveau app.
 - A debug Android build opened cold from a share intent stops at the dev-server picker first; connect to Metro and the
   share screen follows.

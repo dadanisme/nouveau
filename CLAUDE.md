@@ -159,12 +159,12 @@ The migration targets phone-width layouts. iPhone Duo and wide layouts (list + d
 
 ## Legacy (being removed, don't extend)
 
-Removed in #39. Don't add new uses. Only touch these to delete them or to keep a screen working until its issue lands.
+Removed in #39. Don't add new uses. Only touch these to delete them or to keep a screen working until its issue lands. ESLint `no-restricted-imports` blocks `@/constants/colors` and `@expo/vector-icons`; the files still using them are allowlisted in `eslint.config.js`, and each entry is removed with its issue.
 
 | Legacy                                                                                        | Native replacement                                |
 | --------------------------------------------------------------------------------------------- | ------------------------------------------------- |
 | `constants/colors.ts` (`colors`, `design`: borders, hard shadows, radii, spacing, font sizes) | semantic system colors + accent, platform metrics |
-| `button.tsx`                                                                                  | `@expo/ui` buttons, header/toolbar items          |
+| `splash-overlay.tsx` (legacy colors, RN `Animated`)                                           | system launch screen / native splash              |
 | `monthly-trend-chart.tsx` (hosted in Insights through `FormHostedRow`)                        | Swift Charts / Compose (#37)                      |
 | `@expo/vector-icons` (Ionicons) in UI                                                         | SF Symbols / Material Symbols                     |
 | `<StatusBar style="dark" />`, cream splash background `#FFF9EB`                               | system appearance                                 |
@@ -178,6 +178,8 @@ A UI issue is done when it has been verified with the `device-loop` skill (`.cla
 - Pixel_9a Android emulator
 
 At the end of each phase, also check on the physical iPhone 15. Run the matrix as parallel sub-agents (one per device), each returning a digest. Also required: `bunx expo lint` is clean, `bun run format` has been run, and new strings exist in both locales.
+
+On iOS, the screens the issue touches must also pass the HIG review in the `device-loop` skill: the variant matrix (default, dark, AX5, Increase Contrast), a `ui-sweep` (labels, 44pt targets), and the checklist in `.claude/skills/device-loop/references/hig-checklist.md`. Every finding quotes Apple's live HIG (`slug#Anchor`), so a finding without a quote is an opinion, not a violation. Audit history is in #56.
 
 ## Supabase
 
