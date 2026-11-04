@@ -72,6 +72,11 @@ export type FormButtonRowProps = {
   /** Shown on Android only: iOS action rows are text-only, centered. */
   icon?: FormIcon;
   disabled?: boolean;
+  /**
+   * The action is running: the row is disabled and, on iOS, shows an activity indicator. Pass
+   * the in-progress title (e.g. "Signing Out…") as `title`.
+   */
+  pending?: boolean;
   onPress: () => void;
 };
 

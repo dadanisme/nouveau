@@ -19,3 +19,12 @@ export function isPlaceholderDisplayName(
   const address = email?.trim().toLowerCase() ?? '';
   return !name || (!!address && (name === address || name === address.split('@')[0]));
 }
+
+/**
+ * Joins short values with a middle dot ("Personal · IDR"). A no-break space before each dot keeps
+ * it with the value on its left, so text that wraps at large text sizes never starts a line with
+ * "·".
+ */
+export function joinWithDot(parts: readonly (string | null | undefined | false)[]): string {
+  return parts.filter(Boolean).join(' · ');
+}

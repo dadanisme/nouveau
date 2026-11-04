@@ -14,6 +14,7 @@ import {
 import { PlatformColor, StyleSheet } from 'react-native';
 
 import { ACCENT_COLOR } from '@/constants/accent';
+import { useIsAccessibilityTextSize } from '@/hooks/use-accessibility-text-size';
 
 // A row drawn straight on the grouped background: no cell, insets or separator.
 const CLEAR_ROW = [
@@ -93,19 +94,51 @@ export type AuthSwitchRowProps = {
   onPress: () => void;
 };
 
-/** A centered "prompt + action" link between Sign In and Sign Up, on a clear row. */
+/**
+ * A centered "prompt + action" link between Sign In and Sign Up, on a clear row. At accessibility
+ * text sizes the action sits below the prompt.
+ */
 export function AuthSwitchRow({
   prompt,
   action,
   disabled: isDisabled,
   onPress,
 }: AuthSwitchRowProps) {
+  const isStacked = useIsAccessibilityTextSize();
+  const promptText = (
+    <Text
+      modifiers={[
+        foregroundStyle(PlatformColor('secondaryLabel')),
+        multilineTextAlignment('center'),
+      ]}
+    >
+      {prompt}
+    </Text>
+  );
+  const actionText = (
+    <Text
+      modifiers={[
+        font({ textStyle: 'body', weight: 'semibold' }),
+        multilineTextAlignment('center'),
+      ]}
+    >
+      {action}
+    </Text>
+  );
+
   return (
     <Button onPress={onPress} modifiers={[disabled(Boolean(isDisabled)), ...CLEAR_ROW]}>
-      <HStack spacing={4} modifiers={[frame({ maxWidth: Infinity })]}>
-        <Text modifiers={[foregroundStyle(PlatformColor('secondaryLabel'))]}>{prompt}</Text>
-        <Text modifiers={[font({ textStyle: 'body', weight: 'semibold' })]}>{action}</Text>
-      </HStack>
+      {isStacked ? (
+        <VStack spacing={4} modifiers={[frame({ maxWidth: Infinity })]}>
+          {promptText}
+          {actionText}
+        </VStack>
+      ) : (
+        <HStack spacing={4} modifiers={[frame({ maxWidth: Infinity })]}>
+          {promptText}
+          {actionText}
+        </HStack>
+      )}
     </Button>
   );
 }

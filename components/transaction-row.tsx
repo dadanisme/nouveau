@@ -12,7 +12,6 @@ import {
   accessibilityLabel,
   font,
   foregroundStyle,
-  frame,
   layoutPriority,
   lineLimit,
   monospacedDigit,
@@ -20,8 +19,10 @@ import {
 } from '@expo/ui/swift-ui/modifiers';
 import { PlatformColor } from 'react-native';
 
+import { RowSymbol } from '@/components/row-symbol';
 import type { TransactionRowProps } from '@/components/transaction-row-types';
 import { useLanguage } from '@/contexts/language';
+import { useIsAccessibilityTextSize } from '@/hooks/use-accessibility-text-size';
 import { k } from '@/locales/keys';
 
 // Explicit label colors: inside a Button, hierarchical styles resolve against the accent tint.
@@ -30,12 +31,10 @@ const SECONDARY = foregroundStyle(PlatformColor('secondaryLabel'));
 // Income reads in the system green (as in Wallet); expenses stay in the primary label color.
 const INCOME = foregroundStyle(PlatformColor('systemGreen'));
 
-// Leading glyph box, matching `FormListRow`, so titles line up across rows.
-const SYMBOL_WIDTH = 28;
-
 /**
  * A transaction in a native `Form` section (`@/components/native-form`): the category symbol,
- * title over category (with a paperclip when it has proofs), and the signed amount trailing.
+ * title over category (with a paperclip when it has proofs), and the signed amount trailing. At
+ * accessibility text sizes it stacks instead (symbol, title, category, amount), with no line limits.
  * Tap runs `onPress`; long-press opens a context menu (Edit / View Proofs / Delete); `onDelete`
  * also adds a trailing swipe action.
  */
@@ -47,45 +46,65 @@ export function TransactionRow({
   onDelete,
 }: TransactionRowProps) {
   const { t } = useLanguage();
+  const isStacked = useIsAccessibilityTextSize();
   const showProofs = tx.hasProofs && onViewProofs;
+  const singleLine = isStacked ? [] : [lineLimit(1)];
+
+  const title = <Text modifiers={[PRIMARY, ...singleLine]}>{tx.title}</Text>;
+  const subtitle = (
+    <HStack spacing={4}>
+      {tx.hasProofs ? (
+        <Image
+          systemName="paperclip"
+          modifiers={[
+            font({ textStyle: 'caption' }),
+            SECONDARY,
+            accessibilityLabel(t(k.transactions.hasProofs)),
+          ]}
+        />
+      ) : null}
+      <Text modifiers={[font({ textStyle: 'subheadline' }), SECONDARY, ...singleLine]}>
+        {tx.subtitle}
+      </Text>
+    </HStack>
+  );
+  const amount = (
+    <Text modifiers={[tx.isIncome ? INCOME : PRIMARY, monospacedDigit()]}>{tx.amount}</Text>
+  );
+  const originalAmount = tx.originalAmount ? (
+    <Text modifiers={[font({ textStyle: 'caption' }), SECONDARY, monospacedDigit()]}>
+      {tx.originalAmount}
+    </Text>
+  ) : null;
 
   const row = (
     <Button onPress={onPress}>
-      <HStack spacing={12}>
-        <Image
-          systemName={tx.symbol.sf}
-          color={tx.symbol.color}
-          modifiers={[frame({ width: SYMBOL_WIDTH, height: SYMBOL_WIDTH })]}
-        />
-        <VStack alignment="leading" spacing={2}>
-          <Text modifiers={[PRIMARY, lineLimit(1)]}>{tx.title}</Text>
-          <HStack spacing={4}>
-            {tx.hasProofs ? (
-              <Image
-                systemName="paperclip"
-                modifiers={[
-                  font({ textStyle: 'caption' }),
-                  SECONDARY,
-                  accessibilityLabel(t(k.transactions.hasProofs)),
-                ]}
-              />
-            ) : null}
-            <Text modifiers={[font({ textStyle: 'subheadline' }), SECONDARY, lineLimit(1)]}>
-              {tx.subtitle}
-            </Text>
-          </HStack>
-        </VStack>
-        <Spacer />
-        {/* The amount never truncates; the title gives way first. */}
-        <VStack alignment="trailing" spacing={2} modifiers={[layoutPriority(1)]}>
-          <Text modifiers={[tx.isIncome ? INCOME : PRIMARY, monospacedDigit()]}>{tx.amount}</Text>
-          {tx.originalAmount ? (
-            <Text modifiers={[font({ textStyle: 'caption' }), SECONDARY, monospacedDigit()]}>
-              {tx.originalAmount}
-            </Text>
-          ) : null}
-        </VStack>
-      </HStack>
+      {isStacked ? (
+        <HStack>
+          <VStack alignment="leading" spacing={4}>
+            <RowSymbol symbol={tx.symbol} />
+            {title}
+            {subtitle}
+            {amount}
+            {originalAmount}
+          </VStack>
+          <Spacer />
+        </HStack>
+      ) : (
+        <HStack spacing={12}>
+          <RowSymbol symbol={tx.symbol} />
+          <VStack alignment="leading" spacing={2}>
+            {title}
+            {subtitle}
+          </VStack>
+          <Spacer />
+          {/* The amount never truncates; the title gives way first. */}
+          <VStack alignment="trailing" spacing={2} modifiers={[layoutPriority(1)]}>
+            {amount}
+            {originalAmount}
+          </VStack>
+        </HStack>
+      )}
     </Button>
   );
 

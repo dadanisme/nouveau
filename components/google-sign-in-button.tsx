@@ -1,5 +1,6 @@
-import { Button, HStack, RNHostView, Text } from '@expo/ui/swift-ui';
+import { Button, HStack, Image, Text } from '@expo/ui/swift-ui';
 import {
+  accessibilityHidden,
   accessibilityLabel,
   background,
   buttonStyle,
@@ -7,16 +8,21 @@ import {
   font,
   foregroundStyle,
   frame,
+  lineLimit,
   listRowBackground,
   listRowInsets,
   listRowSeparator,
+  minimumScaleFactor,
+  padding,
+  resizable,
   shapes,
   strokeBorder,
 } from '@expo/ui/swift-ui/modifiers';
-import { Image } from 'expo-image';
-import { StyleSheet, useColorScheme, View } from 'react-native';
+import { useAssets } from 'expo-asset';
+import { useColorScheme } from 'react-native';
 
 import { GOOGLE_BUTTON_COLORS, SOCIAL_BUTTON_HEIGHT } from '@/constants/google-branding';
+import { useScaledSize } from '@/hooks/use-accessibility-text-size';
 
 export type GoogleSignInButtonProps = {
   title: string;
@@ -29,7 +35,8 @@ const LOGO_SIZE = 20;
 /**
  * The "Sign in with Google" button per Google's branding guidelines: the standard multicolor
  * "G" on the light (or, in dark appearance, dark) pill with its 1pt stroke, full width on a
- * clear `Form` row so it lines up with the primary button.
+ * clear `Form` row so it lines up with the primary button. Its height and logo grow with the text
+ * size, from the same height as the Apple button; the title stays on one line and shrinks to fit.
  */
 export function GoogleSignInButton({
   title,
@@ -37,6 +44,12 @@ export function GoogleSignInButton({
   onPress,
 }: GoogleSignInButtonProps) {
   const colors = GOOGLE_BUTTON_COLORS[useColorScheme() === 'dark' ? 'dark' : 'light'];
+  const height = useScaledSize(SOCIAL_BUTTON_HEIGHT.ios);
+  const logoSize = useScaledSize(LOGO_SIZE);
+  // The bundled logo as a local file, so SwiftUI draws it natively (and redraws it with the
+  // appearance and contrast traits).
+  const [logo] = useAssets(require('@/assets/images/google-g.png'));
+  const logoUri = logo?.[0]?.localUri;
 
   return (
     <Button
@@ -54,20 +67,30 @@ export function GoogleSignInButton({
       <HStack
         spacing={10}
         modifiers={[
-          frame({ maxWidth: Infinity, minHeight: SOCIAL_BUTTON_HEIGHT.ios }),
+          // Keeps the logo and a shrunk title off the pill's rounded ends.
+          padding({ horizontal: 16 }),
+          frame({ maxWidth: Infinity, minHeight: height }),
           background(colors.fill, shapes.capsule()),
           strokeBorder({ content: colors.stroke, shape: 'capsule' }),
         ]}
       >
-        {/* SwiftUI images take SF Symbols or files only, so the bundled logo is an RN image. It
-            ignores touches so the tap lands on the SwiftUI button. */}
-        <RNHostView matchContents>
-          <View pointerEvents="none">
-            <Image source={require('@/assets/images/google-g.png')} style={styles.logo} />
-          </View>
-        </RNHostView>
+        {logoUri ? (
+          <Image
+            uiImage={logoUri}
+            modifiers={[
+              resizable(),
+              frame({ width: logoSize, height: logoSize }),
+              accessibilityHidden(true),
+            ]}
+          />
+        ) : null}
         <Text
-          modifiers={[font({ textStyle: 'body', weight: 'medium' }), foregroundStyle(colors.text)]}
+          modifiers={[
+            font({ textStyle: 'body', weight: 'medium' }),
+            foregroundStyle(colors.text),
+            lineLimit(1),
+            minimumScaleFactor(0.5),
+          ]}
         >
           {title}
         </Text>
@@ -75,7 +98,3 @@ export function GoogleSignInButton({
     </Button>
   );
 }
-
-const styles = StyleSheet.create({
-  logo: { width: LOGO_SIZE, height: LOGO_SIZE },
-});

@@ -14,6 +14,7 @@ export default function CreateWorkspaceScreen() {
       <FormSaveToolbar
         title={t(k.workspace.createAction)}
         disabled={!screen.canSubmit}
+        pending={screen.isPending}
         onPress={screen.submit}
       />
       <NativeForm>

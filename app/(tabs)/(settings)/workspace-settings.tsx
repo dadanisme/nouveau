@@ -36,6 +36,7 @@ export default function WorkspaceSettingsScreen() {
         <FormSaveToolbar
           title={t(k.common.save)}
           disabled={!screen.canSave}
+          pending={screen.isSaving}
           onPress={screen.save}
         />
       ) : null}

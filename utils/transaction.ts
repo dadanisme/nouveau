@@ -4,6 +4,7 @@ import { getCategoryColor } from '@/utils/category-color';
 import { getCategorySymbol } from '@/utils/category-icon';
 import { formatCompactAmount, formatForeignAmount } from '@/utils/currency';
 import { formatShortDate } from '@/utils/date';
+import { joinWithDot } from '@/utils/string';
 
 /** A signed compact amount: "+Rp50K" for income, "−Rp12K" for an expense. */
 export function formatSignedTransactionAmount(
@@ -30,7 +31,9 @@ export function toTransactionRowData(
   return {
     id: tx.id,
     title: tx.description || tx.category.name,
-    subtitle: showDate ? `${tx.category.name} · ${formatShortDate(dateKey)}` : tx.category.name,
+    subtitle: showDate
+      ? joinWithDot([tx.category.name, formatShortDate(dateKey)])
+      : tx.category.name,
     symbol: {
       sf: symbol.sf,
       material: symbol.material,

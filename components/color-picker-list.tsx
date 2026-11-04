@@ -1,5 +1,5 @@
 import { Form, HStack, Host, Image, Picker, Text, VStack } from '@expo/ui/swift-ui';
-import { background, labelsHidden, pickerStyle, tag } from '@expo/ui/swift-ui/modifiers';
+import { background, font, labelsHidden, pickerStyle, tag } from '@expo/ui/swift-ui/modifiers';
 import { PlatformColor, StyleSheet } from 'react-native';
 
 import { ACCENT_COLOR } from '@/constants/accent';
@@ -43,7 +43,11 @@ export function ColorPickerList({ colors, selectedId, onSelect }: ColorPickerLis
           >
             {colors.map((color) => (
               <HStack key={color.id} spacing={12} modifiers={[tag(color.id)]}>
-                <Image systemName="circle.fill" color={systemColorValue(color)} />
+                <Image
+                  systemName="circle.fill"
+                  color={systemColorValue(color)}
+                  modifiers={[font({ textStyle: 'title2' })]}
+                />
                 <Text>{t(color.labelKey)}</Text>
               </HStack>
             ))}

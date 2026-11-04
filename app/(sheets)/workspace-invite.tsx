@@ -63,6 +63,7 @@ export default function WorkspaceInviteSheet() {
           <FormSaveToolbar
             title={t(k.common.send)}
             disabled={!invite.canSubmit}
+            pending={invite.isPending}
             onPress={invite.submit}
           />
         </>
@@ -85,6 +86,7 @@ export default function WorkspaceInviteSheet() {
             <FormButtonRow
               title={invite.isPending ? t(k.common.pleaseWait) : t(k.workspace.sendInvite)}
               icon={ICONS.send}
+              pending={invite.isPending}
               disabled={!invite.canSubmit}
               onPress={invite.submit}
             />
