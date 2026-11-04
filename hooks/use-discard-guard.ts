@@ -2,7 +2,7 @@ import { useNavigation, usePreventRemove } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActionSheetIOS, Alert, Keyboard, Platform } from 'react-native';
 
-import { ACCENT_COLOR } from '@/constants/accent';
+import { ACCENT_HEX } from '@/constants/accent';
 import i18n from '@/lib/i18n';
 import { k } from '@/locales/keys';
 
@@ -17,7 +17,9 @@ function confirmDiscard(onDiscard: () => void) {
         options: [i18n.t(k.common.discardChanges), i18n.t(k.common.keepEditing)],
         destructiveButtonIndex: 0,
         cancelButtonIndex: 1,
-        tintColor: ACCENT_COLOR,
+        // ActionSheetIOS only takes a plain color: a DynamicColorIOS is rejected and the sheet
+        // never shows.
+        tintColor: ACCENT_HEX,
       },
       (index) => {
         if (index === 0) onDiscard();
