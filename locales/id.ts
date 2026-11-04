@@ -59,6 +59,8 @@ const id: Translations = {
     balance: 'Saldo',
     spendingByCategory: 'Pengeluaran per kategori',
     monthlyTrend: 'Pengeluaran bulanan',
+    chartTotal: 'Total: %{amount}.',
+    chartHighest: 'Tertinggi: %{month}, %{amount}.',
     previousYear: 'Tahun sebelumnya',
     nextYear: 'Tahun berikutnya',
     noData: 'Tidak ada data untuk periode ini',
