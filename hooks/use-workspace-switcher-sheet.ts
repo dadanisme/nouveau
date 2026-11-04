@@ -31,5 +31,6 @@ export function useWorkspaceSwitcherSheet() {
       isActive: ws.id === currentWorkspaceId,
       select: () => selectWorkspace(ws.id),
     })),
+    close: () => router.back(),
   };
 }

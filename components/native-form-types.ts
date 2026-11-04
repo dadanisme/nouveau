@@ -18,7 +18,8 @@ export type FormSymbol = { sf: SFSymbol; material: AndroidSymbol; color?: ColorV
 
 export type NativeFormProps = {
   /**
-   * Heading for a form shown in a sheet without a native header (`(sheets)/*`).
+   * Heading for a form shown in a sheet without a native header (Android `(sheets)/*`). iOS sheets
+   * show their title in the native header instead, so iOS ignores it.
    */
   title?: string;
   /** Pull to refresh; the indicator shows until the promise settles. */

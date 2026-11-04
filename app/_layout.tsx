@@ -141,74 +141,63 @@ function RootStack() {
         />
         <Stack.Screen
           name="add-transaction"
-          options={({ route, navigation }) => ({
-            title: (route.params as { id?: string } | undefined)?.id
-              ? t(k.addTransaction.editTransaction)
-              : t(k.addTransaction.addTransaction),
-            // A sheet with a form gets an explicit Cancel (HIG), not just swipe-to-dismiss.
-            // Android's full-screen modal keeps its back arrow.
-            unstable_headerLeftItems: () => [
-              {
-                type: 'button',
-                label: t(k.common.cancel),
-                onPress: () => navigation.goBack(),
-              },
-            ],
-            // Android form sheets have no native header, which would drop the title and the
-            // edit menu, so Android gets a full-screen modal (M3 full-screen dialog) instead.
+          // A nested Stack (app/add-transaction/_layout.tsx) draws the header: the title, Cancel
+          // and Save, and the pickers it pushes. Android form sheets have no header, which would
+          // drop all of that, so Android gets a full-screen modal (M3 full-screen dialog) instead.
+          options={{
+            headerShown: false,
             presentation: Platform.OS === 'ios' ? 'formSheet' : 'modal',
             // One large detent: the amount field opens the keyboard, which needs the full
             // height to keep the form visible; swipe down (or the grabber) dismisses.
             sheetAllowedDetents: [1.0],
             sheetGrabberVisible: true,
-          })}
+          }}
         />
         <Stack.Screen
           name="proof-viewer"
           options={({ navigation }) => ({
             title: t(k.proofs.title),
-            // Opened from rows and from the add-transaction sheet, so it's always a modal
-            // (iOS page sheet, Android full-screen) rather than a push that lands over the
-            // sheet. iOS gets an explicit Done (HIG); Android keeps its back arrow.
+            // Opened from rows, so it's always a modal (iOS page sheet, Android full-screen).
+            // A read-only viewer: iOS gets the leading Close (xmark, HIG); Android keeps its
+            // back arrow. Inside Edit Transaction it's pushed instead (add-transaction/proofs).
             presentation: 'modal',
             unstable_headerLeftItems: () => [
               {
                 type: 'button',
-                label: t(k.common.done),
+                label: t(k.common.close),
+                icon: { type: 'sfSymbol', name: 'xmark' },
+                accessibilityLabel: t(k.common.close),
                 onPress: () => navigation.goBack(),
               },
             ],
           })}
         />
-        {/* Sheet routes (app/(sheets)/*): results come back through lib/sheet-result.ts. */}
-        <Stack.Screen
-          name="(sheets)/category-picker"
-          options={sheetOptions([0.5, 1], { nativeBody: true })}
-        />
+        {/* Sheet routes (app/(sheets)/*): results come back through lib/sheet-result.ts. iOS
+            sheets get the native header (title, Cancel/Close, Save); Android's are headerless. */}
         <Stack.Screen
           name="(sheets)/category-transactions"
-          options={sheetOptions([0.6, 1], { nativeBody: true })}
+          options={sheetOptions([0.6, 1], { header: true })}
         />
         <Stack.Screen
           name="(sheets)/workspace-switcher"
-          options={sheetOptions([0.5, 1], { nativeBody: true })}
+          options={{
+            ...sheetOptions([0.5, 1], { header: true }),
+            title: t(k.workspace.switch),
+          }}
         />
+        {/* One detent: the email field autofocuses, and the keyboard always takes it to full
+            height anyway (HIG sheets: no medium detent when the content needs full height). */}
         <Stack.Screen
           name="(sheets)/workspace-invite"
-          options={sheetOptions([0.5, 1], { nativeBody: true })}
+          options={sheetOptions([1], { header: true })}
         />
-        <Stack.Screen
-          name="(sheets)/category-form"
-          options={sheetOptions([0.85, 1], { nativeBody: true })}
-        />
-        <Stack.Screen
-          name="(sheets)/icon-picker"
-          options={sheetOptions([0.75, 1], { nativeBody: true })}
-        />
-        <Stack.Screen
-          name="(sheets)/color-picker"
-          options={sheetOptions([0.8, 1], { nativeBody: true })}
-        />
+        {/* A nested Stack: the icon and color pickers push inside it on iOS. */}
+        <Stack.Screen name="(sheets)/category-form" options={sheetOptions([0.85, 1])} />
+        {/* Pickers presented as their own sheet on Android only; iOS pushes them inside the
+            editor's Stack (add-transaction/category-picker, category-form/*-picker). */}
+        <Stack.Screen name="(sheets)/category-picker" options={sheetOptions([0.5, 1])} />
+        <Stack.Screen name="(sheets)/icon-picker" options={sheetOptions([0.75, 1])} />
+        <Stack.Screen name="(sheets)/color-picker" options={sheetOptions([0.8, 1])} />
       </Stack>
     </ThemeProvider>
   );

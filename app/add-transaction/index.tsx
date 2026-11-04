@@ -12,6 +12,7 @@ import {
   FormTextFieldRow,
   NativeForm,
 } from '@/components/native-form';
+import { SheetCancelToolbar } from '@/components/sheet-toolbar';
 import { TransactionFormToolbar } from '@/components/transaction-form-toolbar';
 import { useLanguage } from '@/contexts/language';
 import { useTransactionForm } from '@/hooks/use-transaction-form';
@@ -21,9 +22,11 @@ const NOTE_MAX_LENGTH = 100;
 
 /**
  * Add / edit transaction (`?id=` edits, `?date=` presets the date), presented as a form sheet on
- * iOS and a full-screen modal on Android (see the root layout). A native form: a large amount
- * field with the decimal keyboard, the type, the category (opens the category picker sheet), the
- * date, a note, and View Proofs (edit) or Save and Add Another (add). Save sits in the header.
+ * iOS and a full-screen modal on Android (see the root layout), with its own Stack. A native form:
+ * a large amount field with the decimal keyboard, the type, the category (pushes Select Category
+ * on iOS, a picker sheet on Android), the date, a note, and View Proofs (edit) or Save and Add
+ * Another (add). Cancel and Save sit in the header; Cancel, swipe-down and Back confirm before
+ * dropping unsaved changes.
  */
 export default function AddTransactionScreen() {
   const { id, date: dateParam } = useLocalSearchParams<{ id?: string; date?: string }>();
@@ -37,6 +40,7 @@ export default function AddTransactionScreen() {
 
   return (
     <>
+      <SheetCancelToolbar onPress={form.cancel} />
       <TransactionFormToolbar
         isEditMode={form.isEditMode}
         isSaving={form.isPending}

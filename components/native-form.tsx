@@ -25,7 +25,6 @@ import {
   accessibilityAddTraits,
   accessibilityLabel,
   autocorrectionDisabled,
-  background,
   badge,
   disabled,
   fixedSize,
@@ -38,7 +37,6 @@ import {
   listRowBackground,
   onSubmit as onSubmitModifier,
   monospacedDigit,
-  padding,
   pickerStyle,
   refreshable,
   scrollDismissesKeyboard,
@@ -80,44 +78,18 @@ const SYMBOL_WIDTH = 28;
 
 /**
  * A full-screen SwiftUI grouped `Form` (inset grouped list). Render it as the screen's root so
- * the native Stack header's large title collapses with its scroll. With `title` (sheets without a
- * header), a headline sits above the form on the grouped background.
+ * the native Stack header's large title collapses with its scroll. iOS sheets name themselves in
+ * their native header, so `title` (an Android sheet heading) isn't drawn here.
  */
-export function NativeForm({
-  title,
-  onRefresh,
-  dismissesKeyboardOnScroll,
-  children,
-}: NativeFormProps) {
+export function NativeForm({ onRefresh, dismissesKeyboardOnScroll, children }: NativeFormProps) {
   const modifiers = [
     ...(onRefresh ? [refreshable(onRefresh)] : []),
     ...(dismissesKeyboardOnScroll ? [scrollDismissesKeyboard('interactively')] : []),
   ];
-  const form = <Form modifiers={modifiers.length ? modifiers : undefined}>{children}</Form>;
 
   return (
     <Host style={styles.fill} seedColor={ACCENT_COLOR}>
-      {title ? (
-        <VStack
-          spacing={0}
-          modifiers={[
-            background(PlatformColor('systemGroupedBackground'), { ignoresSafeAreaEdges: 'all' }),
-          ]}
-        >
-          <Text
-            modifiers={[
-              font({ textStyle: 'headline' }),
-              padding({ top: 20, bottom: 4 }),
-              accessibilityAddTraits(['isHeader']),
-            ]}
-          >
-            {title}
-          </Text>
-          {form}
-        </VStack>
-      ) : (
-        form
-      )}
+      <Form modifiers={modifiers.length ? modifiers : undefined}>{children}</Form>
     </Host>
   );
 }

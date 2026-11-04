@@ -1,15 +1,14 @@
-import { Stack } from 'expo-router';
 import { Fragment } from 'react';
-import { Platform, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { ScreenPlaceholder } from '@/components/screen-placeholder';
 import { FormDetailRow } from '@/components/form-detail-row';
 import { FormImageRow } from '@/components/form-image-row';
 import { FormButtonRow, FormSection, NativeForm } from '@/components/native-form';
 import type { FormSymbol } from '@/components/native-form-types';
+import { SheetCloseToolbar } from '@/components/sheet-toolbar';
 import { useLanguage } from '@/contexts/language';
 import { useShareIntentScreen } from '@/hooks/use-share-intent-screen';
-import { useSymbolIcon } from '@/hooks/use-symbol-icon';
 import { useSystemColors } from '@/hooks/use-system-colors';
 import { k } from '@/locales/keys';
 import { formatFileSize, formatImageMeta, toFileUri } from '@/utils/file';
@@ -29,7 +28,7 @@ const SCAN_ICON = {
 
 /**
  * Content shared into the app, as a native form: a section per kind (text or link, images, PDFs,
- * other files) and a Scan Receipt action. Cancel (iOS) / close (Android) in the header dismisses.
+ * other files) and a Scan Receipt action. The header's leading Close (xmark) dismisses.
  */
 export default function ShareIntentScreen() {
   const { t } = useLanguage();
@@ -45,7 +44,6 @@ export default function ShareIntentScreen() {
     handleDismiss,
     handleScanReceipt,
   } = useShareIntentScreen();
-  const closeIcon = useSymbolIcon({ sf: 'xmark', md: 'close' });
   const { groupedBackground } = useSystemColors();
 
   const sharedValue = sharedUrl ?? sharedText;
@@ -55,19 +53,7 @@ export default function ShareIntentScreen() {
 
   return (
     <>
-      <Stack.Toolbar placement="left">
-        {Platform.OS === 'ios' ? (
-          <Stack.Toolbar.Button onPress={handleDismiss}>
-            {canScan ? t(k.common.cancel) : t(k.common.done)}
-          </Stack.Toolbar.Button>
-        ) : closeIcon ? (
-          <Stack.Toolbar.Button
-            icon={closeIcon}
-            accessibilityLabel={t(k.shareIntent.close)}
-            onPress={handleDismiss}
-          />
-        ) : null}
-      </Stack.Toolbar>
+      <SheetCloseToolbar onPress={handleDismiss} />
 
       {hasContent ? (
         <NativeForm>
