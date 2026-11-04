@@ -43,9 +43,13 @@ export function useShareIntentScreen() {
   const canScan = imageFiles.length > 0 || pdfFiles.length > 0;
   const isScanning = scanReceipt.isPending;
 
+  /**
+   * Back to the tab shell: pops to it (the root Stack anchors it under this screen), or replaces
+   * this screen with it when Android's share intent replaced the tabs.
+   */
   function handleDismiss() {
     resetShareIntent();
-    router.replace('/');
+    router.dismissTo('/');
   }
 
   function handleScanReceipt() {
@@ -58,7 +62,7 @@ export function useShareIntentScreen() {
         onSuccess: () => {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
           resetShareIntent();
-          router.replace('/');
+          router.dismissTo('/');
         },
         onError: (error) => {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);

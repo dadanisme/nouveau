@@ -20,7 +20,7 @@ const NAME_MAX_LENGTH = 50;
  * Add / edit category sheet. Param: `id` (edit). A native form: name, type, icon and color rows
  * (each pushes its picker inside the sheet on iOS, opens a picker sheet on Android), and delete
  * when editing. iOS commits from the header (Cancel / Save); Android's headerless sheet keeps a
- * Save row. Save is enabled once there's a name.
+ * Save row. Save is enabled once there's a name, Update once something changed.
  */
 export default function CategoryFormSheet() {
   const { t } = useLanguage();
