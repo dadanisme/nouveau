@@ -1,6 +1,6 @@
 import { useNavigation, usePreventRemove } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Keyboard, Platform } from 'react-native';
+import { Keyboard } from 'react-native';
 
 import { confirmDestructive } from '@/lib/confirm-destructive';
 import i18n from '@/lib/i18n';
@@ -13,7 +13,7 @@ import { k } from '@/locales/keys';
 function confirmDiscard(onDiscard: () => void) {
   confirmDestructive({
     // The iOS sheet's buttons say it all; the Android dialog keeps its question.
-    title: Platform.OS === 'android' ? i18n.t(k.common.discardChangesPrompt) : undefined,
+    dialogTitle: i18n.t(k.common.discardChangesPrompt),
     confirmLabel: i18n.t(k.common.discardChanges),
     cancelLabel: i18n.t(k.common.keepEditing),
     onConfirm: onDiscard,

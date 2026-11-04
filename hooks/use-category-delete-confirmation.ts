@@ -4,6 +4,7 @@ import { Alert, Keyboard } from 'react-native';
 
 import { categoryTransactionCountQuery } from '@/hooks/use-categories';
 import { useDeleteCategory } from '@/hooks/use-category-mutations';
+import { showAlertDialog } from '@/lib/alert-dialog';
 import { confirmDestructive } from '@/lib/confirm-destructive';
 import i18n from '@/lib/i18n';
 import { k } from '@/locales/keys';
@@ -55,6 +56,7 @@ export function useCategoryDeleteConfirmation() {
 
     if (count === 0) {
       confirmDestructive({
+        dialogTitle: i18n.t(k.categories.deleteCategoryPrompt),
         message: i18n.t(k.categories.deleteCategoryMessage),
         confirmLabel: i18n.t(k.categories.deleteCategory),
         onConfirm: () => deleteNow(category.id, onDeleted),
@@ -62,7 +64,7 @@ export function useCategoryDeleteConfirmation() {
       return;
     }
 
-    Alert.alert(
+    showAlertDialog(
       i18n.t(k.categories.deleteCategoryWithTransactionsTitle, { name: category.name }),
       i18n.t(
         count === 1

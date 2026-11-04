@@ -10,6 +10,7 @@ const id: Translations = {
     done: 'Selesai',
     pleaseWait: 'Mohon tunggu...',
     unexpectedError: 'Terjadi kesalahan yang tidak terduga',
+    requestTimedOut: 'Permintaan terlalu lama. Periksa koneksi Anda, lalu coba lagi.',
     income: 'Pemasukan',
     expense: 'Pengeluaran',
     moreActions: 'Tindakan lainnya',
@@ -88,6 +89,7 @@ const id: Translations = {
       'Tidak dapat menemukan kurs untuk mengonversi jumlah ini. Silakan coba lagi nanti.',
     deleteTransaction: 'Hapus Transaksi',
     deleteTransactionMessage: 'Tindakan ini tidak dapat dibatalkan.',
+    deleteTransactionPrompt: 'Hapus transaksi?',
   },
   settings: {
     title: 'Pengaturan',
@@ -150,6 +152,7 @@ const id: Translations = {
     color: 'Warna',
     deleteCategory: 'Hapus Kategori',
     deleteCategoryMessage: 'Tindakan ini tidak dapat dibatalkan.',
+    deleteCategoryPrompt: 'Hapus kategori?',
     deleteCategoryWithTransactionsTitle: 'Hapus "%{name}"?',
     deleteCategoryWithTransactionsMessageOne:
       '1 transaksi dalam kategori ini juga akan dihapus. Tindakan ini tidak dapat dibatalkan.',

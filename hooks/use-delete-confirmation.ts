@@ -30,6 +30,7 @@ export function useDeleteConfirmation() {
 
   function requestDelete(id: string) {
     confirmDestructive({
+      dialogTitle: i18n.t(k.addTransaction.deleteTransactionPrompt),
       message: i18n.t(k.addTransaction.deleteTransactionMessage),
       confirmLabel: i18n.t(k.addTransaction.deleteTransaction),
       onConfirm: () => deleteTransaction(id),

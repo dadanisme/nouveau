@@ -1,7 +1,8 @@
-import { Box, Column, Host, Icon, Text, useMaterialColors } from '@expo/ui/jetpack-compose';
+import { Box, Column, Icon, Text, useMaterialColors } from '@expo/ui/jetpack-compose';
 import { fillMaxSize, fillMaxWidth, padding, size } from '@expo/ui/jetpack-compose/modifiers';
 import { StyleSheet } from 'react-native';
 
+import { ComposeHost } from '@/components/compose-host';
 import type { ScreenPlaceholderProps } from '@/components/form-extras-types';
 import { useMaterialSymbolSources } from '@/hooks/use-material-symbol-sources';
 
@@ -14,9 +15,9 @@ const ICON_SIZE = 48;
  */
 export function ScreenPlaceholder(props: ScreenPlaceholderProps) {
   return (
-    <Host style={styles.fill}>
+    <ComposeHost style={styles.fill}>
       <Placeholder {...props} />
-    </Host>
+    </ComposeHost>
   );
 }
 

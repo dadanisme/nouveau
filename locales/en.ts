@@ -8,6 +8,7 @@ const en = {
     done: 'Done',
     pleaseWait: 'Please wait...',
     unexpectedError: 'An unexpected error occurred',
+    requestTimedOut: 'The request took too long. Check your connection and try again.',
     income: 'Income',
     expense: 'Expense',
     moreActions: 'More actions',
@@ -86,6 +87,7 @@ const en = {
       'Could not find an exchange rate to convert this amount. Please try again later.',
     deleteTransaction: 'Delete Transaction',
     deleteTransactionMessage: "This can't be undone.",
+    deleteTransactionPrompt: 'Delete transaction?',
   },
   settings: {
     title: 'Settings',
@@ -147,6 +149,7 @@ const en = {
     color: 'Color',
     deleteCategory: 'Delete Category',
     deleteCategoryMessage: "This can't be undone.",
+    deleteCategoryPrompt: 'Delete category?',
     deleteCategoryWithTransactionsTitle: 'Delete "%{name}"?',
     deleteCategoryWithTransactionsMessageOne:
       "1 transaction in this category will also be deleted. This can't be undone.",

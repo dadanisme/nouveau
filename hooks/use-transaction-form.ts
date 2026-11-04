@@ -280,6 +280,7 @@ export function useTransactionForm(transactionId?: string, initialDate?: string)
   function confirmDelete() {
     Keyboard.dismiss();
     confirmDestructive({
+      dialogTitle: i18n.t(k.addTransaction.deleteTransactionPrompt),
       message: i18n.t(k.addTransaction.deleteTransactionMessage),
       confirmLabel: i18n.t(k.addTransaction.deleteTransaction),
       onConfirm: handleDelete,

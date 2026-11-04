@@ -1,12 +1,18 @@
-import { ActionSheetIOS, Alert, Platform } from 'react-native';
+import { ActionSheetIOS, Platform } from 'react-native';
 
 import { ACCENT_HEX } from '@/constants/accent';
+import { showAlertDialog } from '@/lib/alert-dialog';
 import i18n from '@/lib/i18n';
 import { k } from '@/locales/keys';
 
 type ConfirmDestructiveOptions = {
   /** Optional heading. Leave it off when the confirm button already says what happens. */
   title?: string;
+  /**
+   * The Android dialog's headline when `title` is left off for the iOS sheet. M3 dialogs state
+   * their purpose in the headline, as a question ("Delete transaction?").
+   */
+  dialogTitle?: string;
   /** Optional context, e.g. "This can't be undone." */
   message?: string;
   /** The red confirm button, named for the action ("Delete Transaction"). */
@@ -19,13 +25,15 @@ type ConfirmDestructiveOptions = {
 /**
  * Confirms a destructive action the person started (a Delete row, menu item or swipe, or leaving
  * with unsaved changes). iOS: an action sheet with the red confirm button and Cancel (HIG action
- * sheets, pull-down buttons). Android: an M3 dialog with Cancel and the confirm button.
+ * sheets, pull-down buttons). Android: an M3 dialog (`showAlertDialog`) headed by `title` or
+ * `dialogTitle`, with Cancel and the confirm button in the error color.
  *
- * Errors and unexpected consequences (e.g. a delete that also removes other data) stay
- * `Alert.alert`.
+ * Errors and unexpected consequences (e.g. a delete that also removes other data) stay alerts
+ * (`showAlertDialog`).
  */
 export function confirmDestructive({
   title,
+  dialogTitle,
   message,
   confirmLabel,
   cancelLabel,
@@ -50,7 +58,7 @@ export function confirmDestructive({
     );
     return;
   }
-  Alert.alert(title ?? '', message, [
+  showAlertDialog(title ?? dialogTitle ?? '', message, [
     { text: cancel, style: 'cancel' },
     { text: confirmLabel, style: 'destructive', onPress: onConfirm },
   ]);

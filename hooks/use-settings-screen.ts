@@ -6,6 +6,7 @@ import { useLanguage } from '@/contexts/language';
 import { useWorkspace } from '@/contexts/workspace';
 import { useSession, useSignOut, useUserProfile } from '@/hooks/use-auth';
 import { useMyPendingInvites } from '@/hooks/use-workspace-invites';
+import { showAlertDialog } from '@/lib/alert-dialog';
 import { k } from '@/locales/keys';
 
 /** Screen hook for Settings: profile, active workspace, language and sign-out. */
@@ -29,7 +30,7 @@ export function useSettingsScreen() {
   }));
 
   function confirmSignOut() {
-    Alert.alert(t(k.settings.signOutConfirmTitle), t(k.settings.signOutConfirmMessage), [
+    showAlertDialog(t(k.settings.signOutConfirmTitle), t(k.settings.signOutConfirmMessage), [
       { text: t(k.common.cancel), style: 'cancel' },
       {
         // Default style: signing out is what the person chose, and it destroys no data (HIG alerts).

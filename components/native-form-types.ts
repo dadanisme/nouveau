@@ -71,6 +71,12 @@ export type FormButtonRowProps = {
   role?: 'default' | 'destructive';
   /** Shown on Android only: iOS action rows are text-only, centered. */
   icon?: FormIcon;
+  /**
+   * Android only: render the action as a full-width M3 button instead of a list item, `filled`
+   * for the screen's one primary action (Save on a sheet with no header), `tonal` for a
+   * secondary one beside a header Save. iOS action rows are accent-tinted already.
+   */
+  emphasis?: 'filled' | 'tonal';
   disabled?: boolean;
   /**
    * The action is running: the row is disabled and, on iOS, shows an activity indicator. Pass

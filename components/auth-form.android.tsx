@@ -1,6 +1,5 @@
 import {
   Column,
-  Host,
   Row,
   Text,
   TextButton,
@@ -18,6 +17,7 @@ import {
 import { StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { ComposeHost } from '@/components/compose-host';
 import type {
   AuthFormProps,
   AuthFormSectionProps,
@@ -49,11 +49,11 @@ export function AuthForm({ title, subtitle, insetTop, children }: AuthFormProps)
   const insets = useSafeAreaInsets();
 
   return (
-    <Host style={styles.fill} colorOverrides={COLOR_OVERRIDES}>
+    <ComposeHost style={styles.fill} colorOverrides={COLOR_OVERRIDES}>
       <AuthSurface title={title} subtitle={subtitle} statusBarInset={insetTop ? insets.top : 0}>
         {children}
       </AuthSurface>
-    </Host>
+    </ComposeHost>
   );
 }
 
