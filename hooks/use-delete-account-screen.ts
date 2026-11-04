@@ -11,6 +11,7 @@ import {
   getDeletedRows,
   getDeletionErrorAlert,
   getWorkspaceChangeRows,
+  isIncorrectPassword,
 } from '@/utils/account-deletion';
 
 /**
@@ -28,8 +29,7 @@ export function useDeleteAccountScreen() {
   const preview = useDeletionPreview();
   const [password, setPassword] = useState('');
   const deleteAccount = useDeleteAccount({
-    onDeleted: () =>
-      showAlertDialog(i18n.t(k.deleteAccount.deleted), i18n.t(k.deleteAccount.deletedMessage)),
+    onDeleted: () => showAlertDialog(i18n.t(k.deleteAccount.deleted)),
   });
 
   const data = preview.data;
@@ -49,6 +49,8 @@ export function useDeleteAccountScreen() {
           { provider, password },
           {
             onError: (error) => {
+              // A wrong password is typed again from scratch.
+              if (isIncorrectPassword(error)) setPassword('');
               const alert = getDeletionErrorAlert(error, email);
               showAlertDialog(alert.title, alert.message);
             },
@@ -77,7 +79,6 @@ export function useDeleteAccountScreen() {
     needsPassword,
     password,
     setPassword,
-    passwordFooter: email ? t(k.deleteAccount.passwordFooter, { email }) : undefined,
     confirmFooter,
     canDelete,
     isDeleting,

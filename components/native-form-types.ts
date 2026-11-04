@@ -47,6 +47,11 @@ export type FormSectionProps = {
 
 export type FormNavRowProps = {
   title: string;
+  /**
+   * `destructive`: the screen it opens leads to a destructive action (e.g. Delete Account), so the
+   * title and icon are the system red (iOS) / Material error color (Android).
+   */
+  role?: 'default' | 'destructive';
   icon?: FormIcon;
   /** Current value, shown trailing (iOS) or as supporting text (Android). */
   value?: string;
@@ -128,7 +133,10 @@ export type FormListRowProps = {
    * subtitle).
    */
   value?: string;
-  /** Single-choice mode: the checkmark shows when true, and the row has no chevron either way. */
+  /**
+   * Single-choice mode: the checkmark shows when true (VoiceOver says "Selected"), and the row has
+   * no chevron either way.
+   */
   selected?: boolean;
   /** Makes the row tappable (pushes, presents or selects). */
   onPress?: () => void;

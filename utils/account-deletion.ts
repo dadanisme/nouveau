@@ -72,30 +72,6 @@ export class AccountMismatchError extends Error {
   }
 }
 
-/** "a", "a and b", "a, b and c". */
-function formatList(items: string[]): string {
-  if (items.length <= 1) return items[0] ?? '';
-  if (items.length === 2) {
-    return i18n.t(k.deleteAccount.listTwo, { first: items[0], second: items[1] });
-  }
-  return i18n.t(k.deleteAccount.listThree, {
-    first: items[0],
-    second: items[1],
-    third: items.slice(2).join(', '),
-  });
-}
-
-type Counts = { transactions: number; categories: number; receipts: number };
-
-/** "12 transactions and 1 category": the non-zero counts, pluralized. */
-function formatCounts({ transactions, categories, receipts }: Counts): string {
-  const parts: string[] = [];
-  if (transactions) parts.push(i18n.t(k.deleteAccount.transactions, { count: transactions }));
-  if (categories) parts.push(i18n.t(k.deleteAccount.categories, { count: categories }));
-  if (receipts) parts.push(i18n.t(k.deleteAccount.receipts, { count: receipts }));
-  return formatList(parts);
-}
-
 export type DeletedItem = 'profile' | 'workspaces' | 'transactions' | 'categories' | 'receipts';
 
 /** What is deleted outright: the profile, then each non-zero count ("3 workspaces"). */
@@ -115,34 +91,30 @@ export function getDeletedRows(
 export type WorkspaceChangeRow = { id: string; title: string; subtitle: string };
 
 /**
- * One row per shared workspace the deletion changes: who becomes its owner, and what of the
- * user's stays there with the owner ("Alice becomes the owner. 12 transactions stay with Alice.").
+ * One row per shared workspace the deletion changes, titled with its name: "Passes to Alice", the
+ * new owner when the user owns it, else the owner who keeps what the user added there. A
+ * workspace with both a transfer and a handover is one row (the new owner keeps everything). A
+ * handover with nothing of the user's in it changes nothing for the workspace, so it has no row.
  */
 export function getWorkspaceChangeRows(preview: DeletionPreview): WorkspaceChangeRow[] {
-  const rows = new Map<string, { title: string; lines: string[] }>();
-  const rowFor = (id: string, name: string) => {
-    let row = rows.get(id);
-    if (!row) {
-      row = { title: name, lines: [] };
-      rows.set(id, row);
-    }
-    return row;
-  };
-
+  const rows = new Map<string, { title: string; owner: string }>();
   preview.transfers.forEach((transfer) => {
-    rowFor(transfer.workspaceId, transfer.workspaceName).lines.push(
-      i18n.t(k.deleteAccount.newOwner, { name: transfer.newOwnerName }),
-    );
+    rows.set(transfer.workspaceId, {
+      title: transfer.workspaceName,
+      owner: transfer.newOwnerName,
+    });
   });
   preview.handovers.forEach((handover) => {
-    const items = formatCounts(handover);
-    if (!items) return;
-    rowFor(handover.workspaceId, handover.workspaceName).lines.push(
-      i18n.t(k.deleteAccount.handover, { items, owner: handover.ownerName }),
-    );
+    const hasItems = handover.transactions + handover.categories + handover.receipts > 0;
+    if (!hasItems || rows.has(handover.workspaceId)) return;
+    rows.set(handover.workspaceId, { title: handover.workspaceName, owner: handover.ownerName });
   });
 
-  return [...rows].map(([id, row]) => ({ id, title: row.title, subtitle: row.lines.join(' ') }));
+  return [...rows].map(([id, row]) => ({
+    id,
+    title: row.title,
+    subtitle: i18n.t(k.deleteAccount.passesTo, { name: row.owner }),
+  }));
 }
 
 /** Checked by name: `instanceof` on Error subclasses isn't reliable after transpiling. */
@@ -150,25 +122,24 @@ function hasErrorName(error: unknown, name: string): boolean {
   return error instanceof Error && error.name === name;
 }
 
-/** The alert for a failed deletion: a specific title and message per cause. */
+/** The re-authentication failed on the password (Supabase `invalid_credentials`). */
+export function isIncorrectPassword(error: unknown): boolean {
+  return getErrorCode(error) === 'invalid_credentials';
+}
+
+/** The alert for a failed deletion: a specific title per cause, and a message where it helps. */
 export function getDeletionErrorAlert(
   error: unknown,
   email: string | undefined,
-): { title: string; message: string } {
+): { title: string; message?: string } {
   if (hasErrorName(error, 'AccountMismatchError')) {
     return {
       title: i18n.t(k.deleteAccount.wrongAccount),
-      message: email
-        ? i18n.t(k.deleteAccount.wrongAccountMessage, { email })
-        : i18n.t(k.deleteAccount.wrongAccountMessageGeneric),
+      message: email ? i18n.t(k.deleteAccount.wrongAccountMessage, { email }) : undefined,
     };
   }
-  if (getErrorCode(error) === 'invalid_credentials') {
-    return {
-      title: i18n.t(k.deleteAccount.incorrectPassword),
-      message: i18n.t(k.deleteAccount.incorrectPasswordMessage),
-    };
-  }
+  // The title says it all.
+  if (isIncorrectPassword(error)) return { title: i18n.t(k.deleteAccount.incorrectPassword) };
   const failed = i18n.t(k.deleteAccount.failed);
   // An `ApiError` (`lib/api.ts`) from moneymail, whose `code` is the server's error string.
   if (hasErrorName(error, 'ApiError')) {

@@ -23,6 +23,8 @@ import {
 } from '@expo/ui/swift-ui';
 import {
   accessibilityAddTraits,
+  accessibilityElement,
+  accessibilityHidden,
   accessibilityLabel,
   accessibilityValue,
   autocorrectionDisabled,
@@ -49,7 +51,7 @@ import {
   tint,
 } from '@expo/ui/swift-ui/modifiers';
 import { useEffect, useImperativeHandle, useRef } from 'react';
-import { PlatformColor, StyleSheet } from 'react-native';
+import { PlatformColor, StyleSheet, type ColorValue } from 'react-native';
 
 import type {
   FormButtonRowProps,
@@ -78,25 +80,35 @@ const PRIMARY = foregroundStyle(PlatformColor('label'));
 const SECONDARY = foregroundStyle(PlatformColor('secondaryLabel'));
 const TERTIARY = foregroundStyle(PlatformColor('tertiaryLabel'));
 const DESTRUCTIVE_TINT = tint(PlatformColor('systemRed'));
+const DESTRUCTIVE_TEXT = foregroundStyle(PlatformColor('systemRed'));
+// Decorative glyphs (a row's chevron, a symbol beside a title that names it) stay out of VoiceOver,
+// so a row reads as its text alone ("Family, Passes to Alice"), not "Two People, Family, …".
+const DECORATIVE = accessibilityHidden(true);
+// A static row's texts read as one VoiceOver element, as a button's label already does.
+const COMBINED = accessibilityElement('combine');
 
 // At accessibility text sizes rows stack: the title on top, its value and other secondary items
 // below, left-aligned, and nothing truncates (HIG typography, Supporting Dynamic Type).
 
-/** A row's `Label` icon on its own line, for the stacked layout: the accent tint, body size. */
-function StackedIcon({ icon }: { icon: FormIcon }) {
+/**
+ * A row's `Label` icon on its own line, for the stacked layout: the accent tint (or `color`), body
+ * size. Decorative, like a `Label`'s icon: the row's title names it.
+ */
+function StackedIcon({ icon, color }: { icon: FormIcon; color?: ColorValue }) {
   return (
     <Image
       systemName={icon.sf}
-      modifiers={[font({ textStyle: 'body' }), foregroundStyle(ACCENT_COLOR)]}
+      modifiers={[font({ textStyle: 'body' }), foregroundStyle(color ?? ACCENT_COLOR), DECORATIVE]}
     />
   );
 }
 
+/** The disclosure indicator; the row is already a button, so VoiceOver skips it. */
 function Chevron() {
   return (
     <Image
       systemName="chevron.right"
-      modifiers={[font({ textStyle: 'footnote', weight: 'semibold' }), TERTIARY]}
+      modifiers={[font({ textStyle: 'footnote', weight: 'semibold' }), TERTIARY, DECORATIVE]}
     />
   );
 }
@@ -127,24 +139,36 @@ export function FormSection({ title, footer, children }: FormSectionProps) {
   );
 }
 
-/** A row that pushes a screen or presents a sheet: label, optional value, chevron. */
-export function FormNavRow({ title, icon, value, badge: count, onPress }: FormNavRowProps) {
+/**
+ * A row that pushes a screen or presents a sheet: label, optional value, disclosure chevron
+ * (HIG lists-and-tables: "use a disclosure indicator accessory control"). `destructive` paints the
+ * title and icon red, for a row that leads to a destructive action.
+ */
+export function FormNavRow({ title, role, icon, value, badge: count, onPress }: FormNavRowProps) {
   const isStacked = useIsAccessibilityTextSize();
-  const label = (
-    <Label systemImage={icon?.sf}>
-      <Text modifiers={[PRIMARY]}>{title}</Text>
-    </Label>
-  );
+  const isDestructive = role === 'destructive';
+  const titleText = <Text modifiers={[isDestructive ? DESTRUCTIVE_TEXT : PRIMARY]}>{title}</Text>;
+  const label = <Label systemImage={icon?.sf}>{titleText}</Label>;
   const valueText = value ? <Text modifiers={[SECONDARY]}>{value}</Text> : null;
+  // The tint colors the `Label` icon, which otherwise takes the Host's accent.
+  const modifiers = [
+    ...(isDestructive ? [DESTRUCTIVE_TINT] : []),
+    ...(count ? [badge(String(count))] : []),
+  ];
 
   return (
-    <Button onPress={onPress} modifiers={count ? [badge(String(count))] : undefined}>
+    <Button onPress={onPress} modifiers={modifiers.length ? modifiers : undefined}>
       {isStacked ? (
         <HStack>
           {/* The icon on its own line: beside the text it would leave words room to hyphenate only. */}
           <VStack alignment="leading" spacing={4}>
-            {icon ? <StackedIcon icon={icon} /> : null}
-            <Text modifiers={[PRIMARY]}>{title}</Text>
+            {icon ? (
+              <StackedIcon
+                icon={icon}
+                color={isDestructive ? PlatformColor('systemRed') : undefined}
+              />
+            ) : null}
+            {titleText}
             {valueText}
           </VStack>
           <Spacer />
@@ -310,8 +334,10 @@ export function FormListRow({
     );
   const leading = icon && !symbol ? <Label systemImage={icon.sf}>{titleView}</Label> : titleView;
 
+  // One VoiceOver element per row: a button combines its label already; a static row's title,
+  // subtitle and value are combined here (voiceover#Navigation).
   const content = (
-    <HStack spacing={12}>
+    <HStack spacing={12} modifiers={onPress ? undefined : [COMBINED]}>
       {/* Stacked, the symbol or icon sits above the text so the text keeps the row's full width
           (a `Label` would center a multi-line title beside its icon). */}
       {isStacked && (symbol || icon) ? (
@@ -328,11 +354,13 @@ export function FormListRow({
       <Spacer />
       {isStacked ? null : valueText}
       {selected ? (
+        // The button's Selected trait says it (below), so the glyph itself isn't read.
         <Image
           systemName="checkmark"
           modifiers={[
             font({ textStyle: 'body', weight: 'semibold' }),
             foregroundStyle(ACCENT_COLOR),
+            ...(onPress ? [DECORATIVE] : []),
           ]}
         />
       ) : null}
@@ -523,12 +551,13 @@ export function FormValueRow({ title, value, tone = 'default', emphasized }: For
     </Text>
   );
 
+  // Title and value read as one element ("Total, Rp 120.000").
   if (isStacked) {
     return (
       <VStack
         alignment="leading"
         spacing={4}
-        modifiers={[frame({ maxWidth: Infinity, alignment: 'leading' })]}
+        modifiers={[frame({ maxWidth: Infinity, alignment: 'leading' }), COMBINED]}
       >
         {titleText}
         {valueText}
@@ -536,7 +565,7 @@ export function FormValueRow({ title, value, tone = 'default', emphasized }: For
     );
   }
   return (
-    <HStack>
+    <HStack modifiers={[COMBINED]}>
       {titleText}
       <Spacer />
       {valueText}
@@ -554,8 +583,10 @@ export function FormProgressRow({ title, symbol, value, progress, onPress }: For
     />
   );
 
+  // A static row reads as one element; a button combines its label already.
+  const rowModifiers = onPress ? undefined : [COMBINED];
   const content = isStacked ? (
-    <HStack spacing={12}>
+    <HStack spacing={12} modifiers={rowModifiers}>
       <VStack alignment="leading" spacing={4}>
         {symbol ? <RowSymbol symbol={symbol} /> : null}
         <Text modifiers={[PRIMARY]}>{title}</Text>
@@ -565,7 +596,7 @@ export function FormProgressRow({ title, symbol, value, progress, onPress }: For
       {onPress ? <Chevron /> : null}
     </HStack>
   ) : (
-    <VStack alignment="leading" spacing={8}>
+    <VStack alignment="leading" spacing={8} modifiers={rowModifiers}>
       <HStack spacing={12}>
         {symbol ? <RowSymbol symbol={symbol} /> : null}
         {/* Fills the row instead of a Spacer, whose minimum length and extra stack spacing would

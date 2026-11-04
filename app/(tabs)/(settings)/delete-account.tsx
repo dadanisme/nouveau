@@ -65,10 +65,7 @@ export default function DeleteAccountScreen() {
 
       {screen.isLoaded ? (
         <>
-          <FormSection
-            title={t(k.deleteAccount.deletedSection)}
-            footer={t(k.deleteAccount.deletedFooter)}
-          >
+          <FormSection title={t(k.deleteAccount.deletedSection)}>
             {screen.deletedRows.map((row) => (
               <FormListRow key={row.item} title={row.title} symbol={DELETED_SYMBOLS[row.item]} />
             ))}
@@ -93,7 +90,6 @@ export default function DeleteAccountScreen() {
           {screen.needsPassword ? (
             <FormSection
               title={HAS_PASSWORD_SECTION_TITLE ? t(k.deleteAccount.passwordSection) : undefined}
-              footer={screen.passwordFooter}
             >
               <FormTextFieldRow
                 label={t(k.deleteAccount.passwordSection)}

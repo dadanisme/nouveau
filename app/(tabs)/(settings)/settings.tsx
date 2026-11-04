@@ -86,10 +86,10 @@ export default function SettingsScreen() {
         />
       </FormSection>
 
-      <FormSection footer={t(k.deleteAccount.settingsFooter)}>
-        {/* Red like the destructive action it leads to; it opens a screen that explains and
+      <FormSection>
+        {/* Red like the destructive action it leads to; it pushes a screen that explains and
             confirms the deletion first (HIG managing-accounts#Deleting-accounts). */}
-        <FormButtonRow
+        <FormNavRow
           title={t(k.deleteAccount.title)}
           role="destructive"
           icon={ICONS.deleteAccount}
