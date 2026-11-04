@@ -14,19 +14,12 @@ module.exports = defineConfig([
     },
   },
   {
-    // Legacy design system (CLAUDE.md "Legacy"): native UI uses system colors, SF/Material
-    // Symbols and @expo/ui controls instead.
+    // Native UI uses SF Symbols / Material Symbols, not the Ionicons font.
     files: ['**/*.{js,jsx,ts,tsx}'],
     rules: {
       'no-restricted-imports': [
         'error',
         {
-          paths: [
-            {
-              name: '@/constants/colors',
-              message: 'Legacy palette. Use semantic system colors (PlatformColor / M3 roles).',
-            },
-          ],
           patterns: [
             {
               group: ['@expo/vector-icons', '@expo/vector-icons/*'],
@@ -36,12 +29,6 @@ module.exports = defineConfig([
         },
       ],
     },
-  },
-  {
-    // Remaining legacy users, each removed by an open issue: the splash overlay (#39) and the
-    // sheet background (#56).
-    files: ['components/splash-overlay.tsx', 'constants/sheet-options.ts'],
-    rules: { 'no-restricted-imports': 'off' },
   },
   {
     // Alerts go through `showAlertDialog`: `Alert.alert` on iOS, a Material 3 dialog on Android

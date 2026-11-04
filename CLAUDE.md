@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-Guidance for Claude Code in this repo. The app is migrating from a custom neo-brutalist UI to native platform UI (SwiftUI / Material 3), epic #40. This file states the **target** conventions. Code that contradicts them is listed under [Legacy](#legacy-being-removed-dont-extend). Don't copy its patterns.
+Guidance for Claude Code in this repo. The app uses native platform UI (SwiftUI / Material 3 through `@expo/ui`); epic #40 records the migration from the old custom UI and its decisions.
 
 ## Commands
 
@@ -41,7 +41,7 @@ No test framework is configured. The web app in `web/` has its own scripts (`cd 
 - **Installed:** Expo SDK 58, React Native 0.88, React 19.3, New Architecture, React Compiler (`experiments.reactCompiler`), Expo Router with typed routes, UIScene lifecycle (required on iOS 27).
 - SDK 58 provides stable `@expo/ui` (`@expo/ui/swift-ui`, `@expo/ui/jetpack-compose`, installed) and stable native tabs. Local Swift/Kotlin Expo modules (in `modules/`) only for gaps: `modules/native-charts` (Swift Charts, #37).
 - **Targets:** iOS 17+ and Android, both first-class. The iOS deployment target is 17.0 (`app.json` build-properties + `plugins/with-ios-deployment-target.js`, which also covers the share extension).
-- **Web:** the web app is a separate Vite app in `web/` (app.nouveau.my.id) that reads the same Supabase data. The RN web build (`react-native-web`, the `web` script and `app.json` `web` block) is unused and will be removed. Don't maintain it.
+- **Web:** the web app is a separate Vite app in `web/` (app.nouveau.my.id) that reads the same Supabase data. The app has no React Native web build (removed in #39); don't add one back.
 
 ## Architecture
 
@@ -80,7 +80,7 @@ GestureHandlerRootView → LanguageProvider → QueryClientProvider → ShareInt
 **TanStack React Query** handles all Supabase data. Hooks live in `hooks/`.
 
 - Data hooks: `use-auth` (session, profile, email/Google sign-in, sign-out), `use-auth-listener`, `use-transactions` / `use-transaction`, `use-add-` / `use-update-` / `use-delete-transaction`, `use-categories(workspaceId)`, `use-category-mutations`, `use-subscriptions`, `use-proofs`, `use-proof-download`, `use-workspaces`, `use-workspace-members`, `use-workspace-invites`, `use-exchange-rate`, `use-classify-description`, `use-scan-receipt`.
-- Screen hooks: `use-transactions-screen`, `use-insights-screen`, `use-transaction-form`, `use-category-form`, `use-category-management`, `use-share-intent-screen`.
+- Screen hooks: `use-<screen>-screen` (transactions, insights, settings, subscriptions, login, signup, share-intent, workspaces, create-workspace, workspace-settings, workspace-invites), `use-transaction-form`, `use-category-form`, `use-category-management`, and a `use-<sheet>-sheet` per sheet route.
 - `contexts/workspace.tsx`: `useWorkspace()` holds the active workspace (persisted under `active_workspace_id`).
 - `lib/api.ts`: `authenticatedFetch` for the backend at `goofy.nouveau.my.id` (AI classification, receipt scan, proofs).
 
@@ -93,7 +93,7 @@ Conventions:
 
 ### Utilities
 
-Pure functions live in `utils/`: `analytics` (totals, breakdown, monthly trend), `currency` (formatting, decimals, symbols), `date`, `file`, `icon` (`parseIcon`), `monthly-chart` (the monthly spending chart model and axis ticks), `params`, `period-summary` (summary values and spend breakdown rows), `string`, `transaction`. `currency.ts` and `date.ts` use `i18n` for locale-aware formatting. The DB-to-native icon/color mapping also lives here (see below).
+Pure functions live in `utils/`: `analytics` (totals, breakdown, monthly trend), `array`, `currency` (formatting, decimals, symbols), `date`, `error`, `file`, `icon` (`parseIcon`), `monthly-chart` (the monthly spending chart model and axis ticks), `params`, `period-summary` (summary values and spend breakdown rows), `platform` (OS version checks, add-action placement), `promise`, `string`, `transaction`, `workspace`. `currency.ts` and `date.ts` use `i18n` for locale-aware formatting. The DB-to-native icon/color mapping also lives here (see below).
 
 ### Localization
 
@@ -147,8 +147,9 @@ Full-screen forms and grouped lists use the shared primitives in `components/nat
 - **Color:** semantic system colors only (iOS `PlatformColor` labels/backgrounds/separators, Material 3 color roles on Android). No hardcoded grays, whites or blacks.
 - **Dark mode** follows the system (`userInterfaceStyle: automatic`). No in-app theme switch.
 - **Status bar:** UIKit owns it on iOS (`UIViewControllerBasedStatusBarAppearance` is `true` in `app.json`), so it turns light over a full-height sheet's black backdrop. Don't mount `expo-status-bar` on iOS; Android keeps `<StatusBar style="auto" />`.
-- **Accent:** `#E24A00` is the only brand color. Apply it as the app tint (tabs, buttons, links, FAB), not as fills. As text it is 4.03:1 on white, 3.61:1 on grouped gray and 4.22:1 on `#1C1C1E`, so it relies on the Increase Contrast fallback that accessibility#Vision allows: on iOS `ACCENT_COLOR` (`constants/accent.ts`) is a `DynamicColorIOS` with the tones UIKit derives for its own bars, `#B53B00` in light (5.85:1 on white, 5.24:1 on grouped gray) and `#FF681F` in dark (5.88:1 on `#1C1C1E`, 4.81:1 on `#2C2C2E`). Tint with `ACCENT_COLOR`, since SwiftUI doesn't adjust a plain hex; use `ACCENT_HEX` only where a hex string is required (Android, the navigation theme). **Dark variant: TBD.** Don't invent one; record it here once it's chosen.
-- **Icons:** SF Symbols on iOS, Material Symbols on Android. No `@expo/vector-icons` in new UI.
+- **Accent:** `#E24A00` is the only brand color. Apply it as the app tint (tabs, buttons, links, FAB), not as fills. As text it is 4.03:1 on white, 3.61:1 on grouped gray and 4.22:1 on `#1C1C1E`, so it relies on the Increase Contrast fallback that accessibility#Vision allows: on iOS `ACCENT_COLOR` (`constants/accent.ts`) is a `DynamicColorIOS` with the tones UIKit derives for its own bars, `#B53B00` in light (5.85:1 on white, 5.24:1 on grouped gray) and `#FF681F` in dark (5.88:1 on `#1C1C1E`, 4.81:1 on `#2C2C2E`). Tint with `ACCENT_COLOR`, since SwiftUI doesn't adjust a plain hex; use `ACCENT_HEX` only where a hex string is required (Android, the navigation theme). The dark appearance keeps `#E24A00` (#59), so light and dark share the hex and only the Increase Contrast tones differ.
+- **Launch screen:** the system one from `expo-splash-screen` (`app.json`). iOS shows only `systemGroupedBackground`, the first screen's background, with no logo (launching#Launch-screens: "Don't advertise."); `plugins/with-ios-launch-background.js` sets it, since `expo-splash-screen` only writes its color with an image. Android keeps the system splash icon on white / black. `AuthGuard` hides it once routing is done. No overlay or exit animation.
+- **Icons:** SF Symbols on iOS, Material Symbols on Android. No `@expo/vector-icons` (ESLint `no-restricted-imports` blocks it).
 
 ### DB contract: category icons and colors
 
@@ -162,18 +163,6 @@ The app maps both to native values in `utils/`: Ionicon name → SF Symbol / Mat
 ### Wide layouts (deferred)
 
 The migration targets phone-width layouts. iPhone Duo and wide layouts (list + detail, readable-width cap, sheets off the fold) are **deferred** to #38 and only picked up if needed. Until then, keep layouts width-agnostic: never branch on device model, `Platform.isPad`, orientation or fold state.
-
-## Legacy (being removed, don't extend)
-
-Removed in #39. Don't add new uses. Only touch these to delete them or to keep a screen working until its issue lands. ESLint `no-restricted-imports` blocks `@/constants/colors` and `@expo/vector-icons`; the files still using them are allowlisted in `eslint.config.js`, and each entry is removed with its issue.
-
-| Legacy                                                                                        | Native replacement                                |
-| --------------------------------------------------------------------------------------------- | ------------------------------------------------- |
-| `constants/colors.ts` (`colors`, `design`: borders, hard shadows, radii, spacing, font sizes) | semantic system colors + accent, platform metrics |
-| `splash-overlay.tsx` (legacy colors, RN `Animated`)                                           | system launch screen / native splash              |
-| `@expo/vector-icons` (Ionicons) in UI                                                         | SF Symbols / Material Symbols                     |
-| `<StatusBar style="dark" />`, cream splash background `#FFF9EB`                               | system appearance                                 |
-| RN web build (`react-native-web`, `web` script, `app.json` `web`)                             | removed; the web app is `web/`                    |
 
 ## Definition of done for UI work
 

@@ -4,8 +4,8 @@ import { DynamicColorIOS, Platform, type ColorValue } from 'react-native';
 export const ACCENT_HEX = '#E24A00';
 
 /**
- * The accent as the app tint (tabs, header buttons, links), never as a fill. The dark variant is
- * still TBD (see CLAUDE.md), so light and dark are both the brand hex.
+ * The accent as the app tint (tabs, header buttons, links), never as a fill. The dark appearance
+ * keeps the brand hex (#59), so light and dark are both `ACCENT_HEX`.
  *
  * iOS spells out the Increase Contrast tones UIKit already derives for its own bars and tab bar
  * (`#B53B00` light, `#FF681F` dark, measured on iOS 18.5 and 27): SwiftUI tints from a plain hex
