@@ -48,6 +48,7 @@
           }
         }
       ],
+      "./plugins/with-ios-launch-background",
       "expo-sqlite",
       [
         "@react-native-google-signin/google-signin",
