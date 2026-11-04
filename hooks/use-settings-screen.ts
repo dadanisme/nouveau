@@ -8,7 +8,7 @@ import { useMyPendingInvites } from '@/hooks/use-workspace-invites';
 import { showAlertDialog } from '@/lib/alert-dialog';
 import { k } from '@/locales/keys';
 
-/** Screen hook for Settings: profile, active workspace, language and sign-out. */
+/** Screen hook for Settings: profile, active workspace, language, sign-out and account deletion. */
 export function useSettingsScreen() {
   const router = useRouter();
   const { t, locale, setLocale } = useLanguage();
@@ -65,5 +65,6 @@ export function useSettingsScreen() {
     openWorkspaces: () => router.push('/workspaces'),
     openCategories: () => router.push('/categories'),
     openSubscriptions: () => router.push('/subscriptions'),
+    openDeleteAccount: () => router.push('/delete-account'),
   };
 }

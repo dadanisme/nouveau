@@ -286,7 +286,17 @@ export function FormButtonRow({
       modifiers={disabled || pending ? [] : [clickable(onPress)]}
       colors={color ? { contentColor: color, leadingContentColor: color } : undefined}
     >
-      <RowIcon icon={icon} tint={color} />
+      {pending ? (
+        // The running action: M3's circular indicator in place of the icon.
+        <ListItem.LeadingContent>
+          <CircularProgressIndicator
+            strokeWidth={2}
+            modifiers={[size(PROGRESS_SIZE, PROGRESS_SIZE)]}
+          />
+        </ListItem.LeadingContent>
+      ) : (
+        <RowIcon icon={icon} tint={color} />
+      )}
       <ListItem.HeadlineContent>
         <Text>{title}</Text>
       </ListItem.HeadlineContent>

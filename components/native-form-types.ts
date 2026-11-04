@@ -79,7 +79,8 @@ export type FormButtonRowProps = {
   emphasis?: 'filled' | 'tonal';
   disabled?: boolean;
   /**
-   * The action is running: the row is disabled and, on iOS, shows an activity indicator. Pass
+   * The action is running: the row is disabled and shows an activity indicator (on Android in
+   * place of the icon). Pass
    * the in-progress title (e.g. "Signing Out…") as `title`.
    */
   pending?: boolean;
