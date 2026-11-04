@@ -1,6 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
-import { Alert, Keyboard } from 'react-native';
+import { Keyboard } from 'react-native';
 
 import { categoryTransactionCountQuery } from '@/hooks/use-categories';
 import { useDeleteCategory } from '@/hooks/use-category-mutations';
@@ -10,7 +10,7 @@ import i18n from '@/lib/i18n';
 import { k } from '@/locales/keys';
 
 function showDeleteError(error: unknown) {
-  Alert.alert(
+  showAlertDialog(
     i18n.t(k.categories.failedToDelete),
     error instanceof Error ? error.message : i18n.t(k.common.unexpectedError),
   );

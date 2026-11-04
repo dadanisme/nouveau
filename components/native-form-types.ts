@@ -117,6 +117,12 @@ export type FormListRowProps = {
   /** Leading glyph chosen at runtime, e.g. a category's mapped icon in its color. */
   symbol?: FormSymbol;
   /**
+   * Leading filled color swatch, e.g. a category color preview: a `circle.fill` symbol (iOS), a
+   * filled circle as in the color picker rows (Android, whose Material Symbols `circle` is an
+   * outline). Ignored when `symbol` is set.
+   */
+  swatch?: ColorValue;
+  /**
    * Current value, shown trailing (iOS) or as supporting text (Android; trailing when there is a
    * subtitle).
    */

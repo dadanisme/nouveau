@@ -1,9 +1,10 @@
 import { useState, useCallback } from 'react';
-import { Alert, Platform } from 'react-native';
+import { Platform } from 'react-native';
 import * as MediaLibrary from 'expo-media-library/legacy';
 import * as Sharing from 'expo-sharing';
 
 import { type Proof } from '@/hooks/use-proofs';
+import { showAlertDialog } from '@/lib/alert-dialog';
 import i18n from '@/lib/i18n';
 import { k } from '@/locales/keys';
 import { cleanupTempDownloads, downloadToTempFile, isSaveableImage } from '@/utils/file';
@@ -25,7 +26,7 @@ export function useProofDownload() {
         'photo',
       ]);
       if (status !== 'granted') {
-        Alert.alert(i18n.t(k.proofs.permissionDenied), i18n.t(k.proofs.permissionMessage));
+        showAlertDialog(i18n.t(k.proofs.permissionDenied), i18n.t(k.proofs.permissionMessage));
         return;
       }
 
@@ -34,14 +35,14 @@ export function useProofDownload() {
         await MediaLibrary.saveToLibraryAsync(file.uri);
       }
 
-      Alert.alert(
+      showAlertDialog(
         i18n.t(k.proofs.saved),
         imageProofs.length === 1
           ? i18n.t(k.proofs.savedOne)
           : i18n.t(k.proofs.savedMany, { count: imageProofs.length }),
       );
     } catch {
-      Alert.alert(i18n.t(k.proofs.saveFailed), i18n.t(k.proofs.saveFailedMessage));
+      showAlertDialog(i18n.t(k.proofs.saveFailed), i18n.t(k.proofs.saveFailedMessage));
     } finally {
       cleanupTempDownloads();
       setIsSaving(false);
@@ -57,7 +58,7 @@ export function useProofDownload() {
       const file = await downloadToTempFile(proof.url, proof.filename);
       await Sharing.shareAsync(file.uri, { mimeType: proof.mimeType });
     } catch {
-      Alert.alert(i18n.t(k.proofs.shareFailed), i18n.t(k.proofs.shareFailedMessage));
+      showAlertDialog(i18n.t(k.proofs.shareFailed), i18n.t(k.proofs.shareFailedMessage));
     } finally {
       cleanupTempDownloads();
       setIsSharing(false);

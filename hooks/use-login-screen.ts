@@ -1,6 +1,5 @@
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Alert } from 'react-native';
 
 import { useLanguage } from '@/contexts/language';
 import {
@@ -9,6 +8,7 @@ import {
   useSignInWithEmail,
   useSignInWithGoogle,
 } from '@/hooks/use-auth';
+import { showAlertDialog } from '@/lib/alert-dialog';
 import { k } from '@/locales/keys';
 import { getErrorCode, getErrorMessage } from '@/utils/error';
 
@@ -36,13 +36,13 @@ export function useLoginScreen() {
       getErrorCode(error) === 'invalid_credentials'
         ? t(k.login.invalidCredentials)
         : getErrorMessage(error, t(k.common.unexpectedError));
-    Alert.alert(t(k.login.signInFailed), message);
+    showAlertDialog(t(k.login.signInFailed), message);
   }
 
   function signIn() {
     if (isSubmitting) return;
     if (!email.trim() || !password.trim()) {
-      Alert.alert(t(k.login.missingFields), t(k.login.missingFieldsMessage));
+      showAlertDialog(t(k.login.missingFields), t(k.login.missingFieldsMessage));
       return;
     }
     signInWithEmail.mutate({ email: email.trim(), password }, { onError: showSignInError });

@@ -1,7 +1,7 @@
 import * as Haptics from 'expo-haptics';
-import { Alert } from 'react-native';
 
 import { useDeleteTransaction } from '@/hooks/use-delete-transaction';
+import { showAlertDialog } from '@/lib/alert-dialog';
 import { confirmDestructive } from '@/lib/confirm-destructive';
 import i18n from '@/lib/i18n';
 import { k } from '@/locales/keys';
@@ -20,7 +20,7 @@ export function useDeleteConfirmation() {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       },
       onError: (error) => {
-        Alert.alert(
+        showAlertDialog(
           i18n.t(k.addTransaction.failedToDelete),
           error instanceof Error ? error.message : i18n.t(k.common.unexpectedError),
         );

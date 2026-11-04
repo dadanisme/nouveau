@@ -1,7 +1,7 @@
 import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useRef, useState } from 'react';
-import { Alert, Keyboard, Platform } from 'react-native';
+import { Keyboard, Platform } from 'react-native';
 
 import { useWorkspace } from '@/contexts/workspace';
 import { useSession } from '@/hooks/use-auth';
@@ -10,6 +10,7 @@ import { useCategoryDeleteConfirmation } from '@/hooks/use-category-delete-confi
 import { useAddCategory, useUpdateCategory } from '@/hooks/use-category-mutations';
 import { useDiscardGuard } from '@/hooks/use-discard-guard';
 import { useSheetResult } from '@/hooks/use-sheet-result';
+import { showAlertDialog } from '@/lib/alert-dialog';
 import i18n from '@/lib/i18n';
 import { goBackOrHome } from '@/lib/navigation';
 import { k } from '@/locales/keys';
@@ -123,7 +124,8 @@ export function useCategoryForm() {
         { id: editingCategory.id, name: trimmedName, type, color, icon: iconValue },
         {
           onSuccess: onSaved,
-          onError: (error) => Alert.alert(i18n.t(k.categories.failedToUpdate), errorMessage(error)),
+          onError: (error) =>
+            showAlertDialog(i18n.t(k.categories.failedToUpdate), errorMessage(error)),
         },
       );
     } else if (!isEditing) {
@@ -138,7 +140,8 @@ export function useCategoryForm() {
         },
         {
           onSuccess: onSaved,
-          onError: (error) => Alert.alert(i18n.t(k.categories.failedToSave), errorMessage(error)),
+          onError: (error) =>
+            showAlertDialog(i18n.t(k.categories.failedToSave), errorMessage(error)),
         },
       );
     }
@@ -173,8 +176,6 @@ export function useCategoryForm() {
   const iconSymbol: FormSymbol = { ...getIoniconSymbol(icon), color: displayColor };
   /** Name of the glyph the icon row shows (`k.categories.icons.*`), or null for no icon. */
   const iconLabelKey = findIconLabelKey(icon);
-  /** The color row's preview swatch. */
-  const colorSymbol: FormSymbol = { sf: 'circle.fill', material: 'circle', color: displayColor };
   /** Name of the system color the color is shown as (`k.categories.colors.*`). */
   const colorLabelKey = getCategorySystemColor(color)?.labelKey ?? null;
 
@@ -185,7 +186,8 @@ export function useCategoryForm() {
     icon,
     iconSymbol,
     iconLabelKey,
-    colorSymbol,
+    /** The color row's preview swatch (`FormListRow` `swatch`). */
+    colorSwatch: displayColor,
     colorLabelKey,
     isPending,
     /** Saving (add or update) is in flight: the Save row shows its activity indicator. */

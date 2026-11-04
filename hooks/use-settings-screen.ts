@@ -1,5 +1,4 @@
 import { useRouter } from 'expo-router';
-import { Alert } from 'react-native';
 
 import { LANGUAGE_OPTIONS } from '@/constants/languages';
 import { useLanguage } from '@/contexts/language';
@@ -38,7 +37,7 @@ export function useSettingsScreen() {
         onPress: () =>
           signOut.mutate(undefined, {
             onError: (error) => {
-              Alert.alert(
+              showAlertDialog(
                 t(k.settings.signOutFailed),
                 error instanceof Error ? error.message : t(k.common.unexpectedError),
               );

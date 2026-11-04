@@ -2,10 +2,10 @@ import * as Clipboard from 'expo-clipboard';
 import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { Alert } from 'react-native';
 
 import { useDiscardGuard } from '@/hooks/use-discard-guard';
 import { useCreateInvite } from '@/hooks/use-workspace-invites';
+import { showAlertDialog } from '@/lib/alert-dialog';
 import i18n from '@/lib/i18n';
 import { goBackOrHome } from '@/lib/navigation';
 import { k } from '@/locales/keys';
@@ -45,7 +45,7 @@ export function useWorkspaceInviteSheet() {
           if (invite?.token) setCreatedToken(invite.token);
         },
         onError: (error) => {
-          Alert.alert(
+          showAlertDialog(
             i18n.t(k.workspace.failedToInvite),
             getErrorMessage(error, i18n.t(k.common.unexpectedError)),
           );

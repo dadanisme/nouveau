@@ -3,8 +3,8 @@ import { useRouter } from 'expo-router';
 import { useShareIntentContext } from 'expo-share-intent';
 import type { ShareIntentFile } from 'expo-share-intent';
 import { useMemo } from 'react';
-import { Alert } from 'react-native';
 
+import { showAlertDialog } from '@/lib/alert-dialog';
 import i18n from '@/lib/i18n';
 import { k } from '@/locales/keys';
 import { useScanReceipt } from '@/hooks/use-scan-receipt';
@@ -66,7 +66,7 @@ export function useShareIntentScreen() {
         },
         onError: (error) => {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-          Alert.alert(
+          showAlertDialog(
             i18n.t(k.shareIntent.scanFailed),
             error instanceof Error ? error.message : i18n.t(k.common.unexpectedError),
           );

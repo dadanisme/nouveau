@@ -1,9 +1,13 @@
 import { I18n } from 'i18n-js';
 import { getLocales } from 'expo-localization';
+import { Platform } from 'react-native';
 
 import { en, id } from '@/locales';
+import { androidOverrides } from '@/locales/android';
 
 const i18n = new I18n({ en, id });
+// Android takes Material 3's sentence-case labels over the iOS Title Case ones (deep merge).
+if (Platform.OS === 'android') i18n.store(androidOverrides);
 
 const deviceLocale = getLocales()[0]?.languageCode ?? 'en';
 i18n.locale = deviceLocale === 'id' ? 'id' : 'en';
