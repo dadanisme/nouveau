@@ -23,7 +23,7 @@ const IOS_COLORS: SystemColors = {
 
 /**
  * Semantic colors for plain React Native views that can't be native (e.g. the proof viewer's PDF /
- * WebView renderers, the legacy trend chart). iOS: UIKit grouped backgrounds, labels and fills.
+ * WebView renderers). iOS: UIKit grouped backgrounds, labels and fills.
  */
 export function useSystemColors(): SystemColors {
   return IOS_COLORS;

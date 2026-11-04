@@ -9,7 +9,6 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { AlertDialogHost } from '@/components/alert-dialog-host';
 import { AuthListener } from '@/components/auth-listener';
-import { SplashOverlay } from '@/components/splash-overlay';
 import { ACCENT_HEX } from '@/constants/accent';
 import { formHeaderBackground } from '@/constants/form-header';
 import { sheetOptions } from '@/constants/sheet-options';
@@ -19,6 +18,8 @@ import { useSession } from '@/hooks/use-auth';
 import { goBackOrHome, resetTo } from '@/lib/navigation';
 import { k } from '@/locales/keys';
 
+// The system launch screen (expo-splash-screen, app.json) stays up until AuthGuard has routed, so
+// the first screen people see is the right one. No branded overlay or zoom (HIG launching).
 SplashScreen.preventAutoHideAsync();
 
 // The tab shell sits under every route opened cold from a deep link (`nouveau://add-transaction`,
@@ -71,12 +72,11 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
     return () => clearTimeout(timeout);
   }, [session, isLoading, segments]);
 
-  return (
-    <>
-      {children}
-      <SplashOverlay isReady={!isLoading && isNavigationReady} />
-    </>
-  );
+  useEffect(() => {
+    if (!isLoading && isNavigationReady) SplashScreen.hideAsync();
+  }, [isLoading, isNavigationReady]);
+
+  return children;
 }
 
 function RootStack() {
