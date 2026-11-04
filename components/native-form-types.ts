@@ -254,14 +254,6 @@ export type FormProgressRowProps = {
   onPress?: () => void;
 };
 
-export type FormHostedRowProps = {
-  /**
-   * A React Native view drawn inside the row. It takes the row's width and sizes the row by its
-   * own height, so give it a fixed or content height. For content with no native equivalent.
-   */
-  children: React.ReactElement;
-};
-
 export type FormEmptyRowProps = {
   title: string;
   description?: string;

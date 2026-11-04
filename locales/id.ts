@@ -141,6 +141,7 @@ const id: Translations = {
     missingFields: 'Kolom Belum Lengkap',
     missingFieldsMessage: 'Masukkan email dan kata sandi.',
     signUpFailed: 'Gagal Mendaftar',
+    signUpWithGoogle: 'Daftar dengan Google',
     checkEmail: 'Periksa Email Anda',
     checkEmailMessage:
       'Kami mengirimkan tautan konfirmasi. Silakan verifikasi email Anda untuk melanjutkan.',

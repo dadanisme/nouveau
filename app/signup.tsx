@@ -3,6 +3,7 @@ import { useRef } from 'react';
 import { AppleSignInButton } from '@/components/apple-sign-in-button';
 import { AuthForm, AuthFormSection, AuthSwitchRow } from '@/components/auth-form';
 import { FormPrimaryButtonRow } from '@/components/form-primary-button-row';
+import { GoogleSignInButton } from '@/components/google-sign-in-button';
 import { FormTextFieldRow } from '@/components/native-form';
 import type { FormTextFieldRowRef } from '@/components/native-form-types';
 import { useLanguage } from '@/contexts/language';
@@ -55,15 +56,21 @@ export default function SignUpScreen() {
         />
       </AuthFormSection>
 
-      {screen.isAppleAvailable ? (
-        <AuthFormSection title={t(k.login.orContinueWith)}>
+      <AuthFormSection title={t(k.login.orContinueWith)}>
+        {/* Apple first: Apple requires it to be at least as prominent as other providers. */}
+        {screen.isAppleAvailable ? (
           <AppleSignInButton
             variant="signUp"
             disabled={screen.isSubmitting}
             onPress={screen.signUpWithApple}
           />
-        </AuthFormSection>
-      ) : null}
+        ) : null}
+        <GoogleSignInButton
+          title={t(k.signup.signUpWithGoogle)}
+          disabled={screen.isSubmitting}
+          onPress={screen.signUpWithGoogle}
+        />
+      </AuthFormSection>
     </AuthForm>
   );
 }

@@ -139,6 +139,7 @@ const en = {
     missingFields: 'Missing Fields',
     missingFieldsMessage: 'Please enter both email and password.',
     signUpFailed: 'Sign-Up Failed',
+    signUpWithGoogle: 'Sign up with Google',
     checkEmail: 'Check Your Email',
     checkEmailMessage: 'We sent you a confirmation link. Please verify your email to continue.',
   },
