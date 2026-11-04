@@ -60,7 +60,10 @@ Every screen under change: each cell, light **and** dark. `$S/matrix.sh list` sh
 
 ## 1. Build + install the dev client
 
-Start Metro once (background) before any install: `CI=1 bunx expo start --dev-client --port 8081`.
+Start Metro once (background) before any install: `bunx expo start --dev-client --port 8081`. Don't use `CI=1`
+here: it turns off file watching, so the app keeps running stale code after edits. Parallel agents each use their
+own port (8091, 8092, ...) and open the dev client with
+`xcrun simctl openurl <udid> "exp+nouveau://expo-development-client/?url=http%3A%2F%2Flocalhost%3A<port>"`.
 
 **(a) MCP path, one device at a time** (not yet exercised for this RN project):
 
@@ -113,8 +116,9 @@ sessionIdentifier)` when the app is already installed; it can interact but not i
    frame, `hitPoint`, labels) and logs, plus `applicationState`. **grep the hierarchy file; view only the thumbnail.**
 2. Coordinates are points, taken from the latest hierarchy, never guessed from pixels. Verified grammar: tap `t X Y`,
    long press `t X Y 1.2`, swipe `t X1 Y1 f X2 Y2 [dur]`. **One command per call**: chained taps
-   (`t X Y t X Y ...`) dropped taps on the Duo (3/3 once, then 2/6; 2026-11-03). Per ogmo-app, unverified in
-   nouveau: type `sender keyboard kbd <text>`, `orientation <portrait|landscapeLeft|...>`. From Xcode's embedded
+   (`t X Y t X Y ...`) dropped taps on the Duo (3/3 once, then 2/6; 2026-11-03). Type with
+   `sender keyboard kbd <text>` (verified 2026-11-04, iOS 27; reached fields `axe type` didn't). Per ogmo-app,
+   unverified: `orientation <portrait|landscapeLeft|...>`. From Xcode's embedded
    docs (unverified): double tap `d X Y`, `drag X1 Y1 X2 Y2`. Re-capture after each command.
    - Controls move when labels change width (e.g. month chevrons shift with the month name): re-read coordinates.
    - A capture taken during a push transition shows a stale frame; capture again.
@@ -127,7 +131,17 @@ sessionIdentifier)` when the app is already installed; it can interact but not i
 Device Hub -> Device -> Keyboard -> Simulate Hardware Keyboard is on by default, so focusing a field shows no
 on-screen keyboard; turn it off per sim to test keyboard layouts (per ogmo-app, unverified in nouveau).
 
-**iOS, AXe fallback** (ios27 / ios18 only, when the MCP is unavailable or fails):
+**iOS, AXe fallback** (ios27 / ios18 only, when the MCP is unavailable or fails). The xcode MCP doesn't list the
+iOS 18.5 sim, so that one is AXe-only. Observed 2026-11-04 on iOS 18.5:
+
+- A plain `axe tap` can report success without reaching the app, and header bar buttons often ignore it. Use
+  `axe touch --x X --y Y --down --up --delay 0.1 --udid <udid>`.
+- `axe type` is unreliable (it drops characters, or doesn't reach secure fields). Use `echo "text" | axe type --stdin --udid <udid>`, or
+  type one character at a time, then re-read `AXValue`.
+- If no input reaches a sim even after a reboot, restart CoreSimulatorService
+  (`killall -9 com.apple.CoreSimulator.CoreSimulatorService`). This shuts down every booted sim, so check that no
+  other agent is using one first.
+- A cold deep link first stops at the dev-client server picker: tap the server, then the link continues.
 
 ```bash
 axe describe-ui --udid <udid> | jq -r '.. | objects | select(.AXLabel? != null and .AXLabel != "") | "\(.type) \"\(.AXLabel)\" \(.AXFrame)"'
