@@ -124,6 +124,8 @@ const IONICON_SYMBOLS = {
   diamond: { sf: 'diamond', material: 'diamond' },
   // The default "Transfer" category's icon (not offered by the pickers).
   'swap-horizontal': { sf: 'arrow.left.arrow.right', material: 'swap_horiz' },
+  // The default "Refund" category's icon (not offered by the pickers).
+  'arrow-undo': { sf: 'arrow.uturn.backward', material: 'undo' },
   // People & social
   people: { sf: 'person.2', material: 'group' },
   person: { sf: 'person', material: 'person' },

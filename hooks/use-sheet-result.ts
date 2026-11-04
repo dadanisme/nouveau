@@ -1,6 +1,7 @@
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { useEffect, useEffectEvent, useRef, useState } from 'react';
 
+import { goBackOrHome } from '@/lib/navigation';
 import {
   createSheetRequestId,
   emitSheetResult,
@@ -42,7 +43,6 @@ export function useSheetResult<K extends SheetKey>(
 export function useSheetResponder<K extends SheetKey>(
   key: K,
 ): (payload: SheetResultPayloads[K]) => void {
-  const router = useRouter();
   const { requestId } = useLocalSearchParams<{ requestId?: string }>();
   const respondedRef = useRef(false);
 
@@ -50,6 +50,6 @@ export function useSheetResponder<K extends SheetKey>(
     if (respondedRef.current) return;
     respondedRef.current = true;
     if (requestId) emitSheetResult(key, requestId, payload);
-    router.back();
+    goBackOrHome();
   };
 }

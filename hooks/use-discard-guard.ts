@@ -30,11 +30,14 @@ function confirmDiscard(onDiscard: () => void) {
  * Sheets leave it off, so swiping one down still asks first.
  *
  * Returns `leave(navigate)`: lifts the guard and navigates, for leaving after a save or delete.
+ * Cancel and Close pass `{ confirm: true }`: while dirty it asks first, then navigates itself. The
+ * guard's replay can't stand in for that: a held `router.replace('/')` (Cancel with nothing behind
+ * it, from a cold deep link) isn't handled when replayed from the screen.
  */
 export function useDiscardGuard(
   isDirty: boolean,
   { pushed = false }: { pushed?: boolean } = {},
-): (navigate: () => void) => void {
+): (navigate: () => void, options?: { confirm?: boolean }) => void {
   const navigation = useNavigation();
   const [isLeaving, setIsLeaving] = useState(false);
 
@@ -53,9 +56,14 @@ export function useDiscardGuard(
     });
   });
 
-  return (navigate) => {
-    setIsLeaving(true);
-    disablePrevention();
-    navigate();
+  return (navigate, { confirm = false } = {}) => {
+    const go = () => {
+      setIsLeaving(true);
+      disablePrevention();
+      navigate();
+    };
+    if (!confirm || !isDirty || isLeaving) return go();
+    Keyboard.dismiss();
+    confirmDiscard(go);
   };
 }

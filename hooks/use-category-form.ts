@@ -11,6 +11,7 @@ import { useAddCategory, useUpdateCategory } from '@/hooks/use-category-mutation
 import { useDiscardGuard } from '@/hooks/use-discard-guard';
 import { useSheetResult } from '@/hooks/use-sheet-result';
 import i18n from '@/lib/i18n';
+import { goBackOrHome } from '@/lib/navigation';
 import { k } from '@/locales/keys';
 import type { Tables } from '@/types/supabase';
 import type { FormSymbol } from '@/components/native-form-types';
@@ -97,7 +98,7 @@ export function useCategoryForm() {
   function close() {
     if (closedRef.current) return;
     closedRef.current = true;
-    leave(() => router.back());
+    leave(() => goBackOrHome());
   }
 
   function onSaved() {
@@ -196,7 +197,7 @@ export function useCategoryForm() {
     setType,
     handleSubmit,
     /** Cancel: leaves the form; unsaved changes are confirmed first. */
-    cancel: () => router.back(),
+    cancel: () => leave(goBackOrHome, { confirm: true }),
     requestDelete,
     openIconPicker,
     openColorPicker,

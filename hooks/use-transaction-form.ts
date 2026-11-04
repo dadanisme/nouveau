@@ -9,6 +9,7 @@ import { useAddTransaction } from '@/hooks/use-add-transaction';
 import { useSession } from '@/hooks/use-auth';
 import { confirmDestructive } from '@/lib/confirm-destructive';
 import i18n from '@/lib/i18n';
+import { goBackOrHome } from '@/lib/navigation';
 import { k } from '@/locales/keys';
 import { useCategories } from '@/hooks/use-categories';
 import { useClassifyDescription } from '@/hooks/use-classify-description';
@@ -226,7 +227,7 @@ export function useTransactionForm(transactionId?: string, initialDate?: string)
         {
           onSuccess: () => {
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-            leave(() => router.back());
+            leave(() => goBackOrHome());
           },
           onError: (error) => {
             showError(i18n.t(k.addTransaction.failedToUpdate), error);
@@ -252,7 +253,7 @@ export function useTransactionForm(transactionId?: string, initialDate?: string)
             if (mode === 'add-more') {
               resetForm();
             } else {
-              leave(() => router.back());
+              leave(() => goBackOrHome());
             }
           },
           onError: (error) => {
@@ -269,7 +270,7 @@ export function useTransactionForm(transactionId?: string, initialDate?: string)
     deleteTransaction.mutate(transactionId, {
       onSuccess: () => {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        leave(() => router.back());
+        leave(() => goBackOrHome());
       },
       onError: (error) => {
         showError(i18n.t(k.addTransaction.failedToDelete), error);
@@ -357,7 +358,7 @@ export function useTransactionForm(transactionId?: string, initialDate?: string)
     setDescription,
     confirmDelete,
     /** Cancel: leaves the form; unsaved changes are confirmed first. */
-    cancel: () => router.back(),
+    cancel: () => leave(goBackOrHome, { confirm: true }),
     openProofs,
     openCategoryPicker,
   };

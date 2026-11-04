@@ -1,12 +1,13 @@
 import * as Clipboard from 'expo-clipboard';
 import * as Haptics from 'expo-haptics';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Alert } from 'react-native';
 
 import { useDiscardGuard } from '@/hooks/use-discard-guard';
 import { useCreateInvite } from '@/hooks/use-workspace-invites';
 import i18n from '@/lib/i18n';
+import { goBackOrHome } from '@/lib/navigation';
 import { k } from '@/locales/keys';
 import { getErrorMessage } from '@/utils/error';
 
@@ -23,7 +24,6 @@ export interface WorkspaceInviteSheetParams {
  * unsent address (Cancel, swipe-down) is confirmed first.
  */
 export function useWorkspaceInviteSheet() {
-  const router = useRouter();
   const { workspaceId } = useLocalSearchParams<Partial<WorkspaceInviteSheetParams>>();
   const createInvite = useCreateInvite();
   const [email, setEmail] = useState('');
@@ -31,7 +31,7 @@ export function useWorkspaceInviteSheet() {
   const [isCopied, setIsCopied] = useState(false);
 
   const canSubmit = !!workspaceId && !!email.trim() && !createInvite.isPending;
-  useDiscardGuard(!createdToken && !!email.trim());
+  const leave = useDiscardGuard(!createdToken && !!email.trim());
 
   function submit() {
     const trimmed = email.trim();
@@ -77,6 +77,6 @@ export function useWorkspaceInviteSheet() {
     submit,
     copyToken,
     /** Cancel (before sending) or Close (after): unsent input is confirmed first. */
-    close: () => router.back(),
+    close: () => leave(goBackOrHome, { confirm: true }),
   };
 }

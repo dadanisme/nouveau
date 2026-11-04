@@ -4,9 +4,9 @@ import type { Tables } from '@/types/supabase';
  * Results that sheet routes (`app/(sheets)/*`) hand back to the screen that presented them.
  *
  * A sheet gets its inputs as serializable route params (including a `requestId`), and returns its
- * result in memory through this one-shot pub/sub: the sheet emits once, then calls `router.back()`.
- * Nothing is stored, so a result nobody is listening for is dropped. Add one entry per sheet route,
- * keyed by the route name.
+ * result in memory through this one-shot pub/sub: the sheet emits once, then leaves
+ * (`goBackOrHome`). Nothing is stored, so a result nobody is listening for is dropped. Add one
+ * entry per sheet route, keyed by the route name.
  */
 export interface SheetResultPayloads {
   'category-picker': { category: Tables<'categories'> };
