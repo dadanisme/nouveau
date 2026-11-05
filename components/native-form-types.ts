@@ -274,6 +274,19 @@ export type FormValueRowProps = {
   emphasized?: boolean;
 };
 
+/**
+ * A statement row: a period's main message in a title style, an optional second line under it.
+ * Static, read as one element (`accessibilityLabel` replaces both lines, e.g. with full amounts).
+ */
+export type FormHeadlineRowProps = {
+  title: string;
+  subtitle?: string;
+  /** The title as spoken (e.g. with full amounts). */
+  titleAccessibilityLabel?: string;
+  /** The subtitle as spoken. */
+  subtitleAccessibilityLabel?: string;
+};
+
 export type FormProgressRowProps = {
   title: string;
   /** Leading glyph; its color also tints the bar. */

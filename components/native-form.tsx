@@ -61,6 +61,7 @@ import { PlatformColor, StyleSheet, useWindowDimensions, type ColorValue } from 
 import type {
   FormButtonRowProps,
   FormEmptyRowProps,
+  FormHeadlineRowProps,
   FormIcon,
   FormListRowProps,
   FormNavRowProps,
@@ -688,6 +689,41 @@ export function FormValueRow({ title, value, tone = 'default', emphasized }: For
       <Spacer />
       {valueText}
     </HStack>
+  );
+}
+
+/**
+ * A statement row: the title in the semibold `title3` style, the subtitle in secondary
+ * `subheadline` under it. Both wrap (no line limit, at any text size) and read as one element.
+ */
+export function FormHeadlineRow({
+  title,
+  subtitle,
+  titleAccessibilityLabel,
+  subtitleAccessibilityLabel,
+}: FormHeadlineRowProps) {
+  // Its ideal height, so the row doesn't propose one line to the text (as on iOS 18).
+  const wrap = fixedSize({ horizontal: false, vertical: true });
+  const spokenTitle = titleAccessibilityLabel ?? title;
+  const spokenSubtitle = subtitle ? (subtitleAccessibilityLabel ?? subtitle) : undefined;
+  const label = spokenSubtitle ? `${spokenTitle}. ${spokenSubtitle}` : spokenTitle;
+  return (
+    <VStack
+      alignment="leading"
+      spacing={4}
+      modifiers={[
+        frame({ maxWidth: Infinity, alignment: 'leading' }),
+        COMBINED,
+        accessibilityLabel(label),
+      ]}
+    >
+      <Text modifiers={[PRIMARY, font({ textStyle: 'title3', weight: 'semibold' }), wrap]}>
+        {title}
+      </Text>
+      {subtitle ? (
+        <Text modifiers={[SECONDARY, font({ textStyle: 'subheadline' }), wrap]}>{subtitle}</Text>
+      ) : null}
+    </VStack>
   );
 }
 
