@@ -33,6 +33,7 @@ export const androidOverrides: { en: Overrides<Translations>; id: Overrides<Tran
       signOutConfirmTitle: 'Sign out?',
       signOutFailed: 'Sign-out failed',
     },
+    profile: { signInSection: 'Sign-in method', saveFailed: "Couldn't save name" },
     deleteAccount: {
       title: 'Delete account',
       deleting: 'Deleting account…',
@@ -109,6 +110,7 @@ export const androidOverrides: { en: Overrides<Translations>; id: Overrides<Tran
       deleteTransaction: 'Hapus transaksi',
     },
     settings: { signOutConfirmTitle: 'Keluar?', signOutFailed: 'Gagal keluar' },
+    profile: { saveFailed: 'Gagal menyimpan nama' },
     deleteAccount: {
       title: 'Hapus akun',
       deleting: 'Menghapus akun…',

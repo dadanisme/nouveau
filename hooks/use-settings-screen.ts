@@ -3,25 +3,20 @@ import { useRouter } from 'expo-router';
 import { LANGUAGE_OPTIONS } from '@/constants/languages';
 import { useLanguage } from '@/contexts/language';
 import { useWorkspace } from '@/contexts/workspace';
-import { useSession, useSignOut, useUserProfile } from '@/hooks/use-auth';
+import { useSignOut } from '@/hooks/use-auth';
+import { useProfileSummary } from '@/hooks/use-profile-summary';
 import { useMyPendingInvites } from '@/hooks/use-workspace-invites';
 import { showAlertDialog } from '@/lib/alert-dialog';
 import { k } from '@/locales/keys';
 
-/** Screen hook for Settings: profile, active workspace, language, sign-out and account deletion. */
+/** Screen hook for Settings: the profile row (opens Profile), active workspace, language, sign-out. */
 export function useSettingsScreen() {
   const router = useRouter();
   const { t, locale, setLocale } = useLanguage();
-  const { session } = useSession();
-  const { data: user, error: userError } = useUserProfile(session?.user.id);
+  const profile = useProfileSummary();
   const signOut = useSignOut();
   const { currentWorkspace } = useWorkspace();
   const { data: pendingInvites = [] } = useMyPendingInvites();
-
-  const displayName = user?.display_name ?? session?.user.user_metadata?.full_name ?? '';
-  const email = user?.email ?? session?.user.email ?? '';
-  const profileImage: string | null =
-    user?.profile_image ?? session?.user.user_metadata?.avatar_url ?? null;
 
   const languageOptions = LANGUAGE_OPTIONS.map((option) => ({
     value: option.locale,
@@ -48,12 +43,9 @@ export function useSettingsScreen() {
   }
 
   return {
-    profile: {
-      name: displayName || t(k.settings.unknown),
-      email: email || t(k.settings.noEmail),
-      imageUri: profileImage,
-    },
-    hasProfileError: Boolean(userError),
+    profile: profile.header,
+    hasProfileError: profile.hasError,
+    openProfile: () => router.push('/profile'),
     workspaceName: currentWorkspace?.name,
     pendingInviteCount: pendingInvites.length,
     locale,
@@ -65,6 +57,5 @@ export function useSettingsScreen() {
     openWorkspaces: () => router.push('/workspaces'),
     openCategories: () => router.push('/categories'),
     openSubscriptions: () => router.push('/subscriptions'),
-    openDeleteAccount: () => router.push('/delete-account'),
   };
 }

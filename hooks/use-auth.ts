@@ -39,6 +39,56 @@ export function useUserProfile(userId: string | undefined) {
   });
 }
 
+/**
+ * The sign-in providers linked to the signed-in account (`apple`, `google`, `email`, …), from its
+ * auth identities. Fetched from the server, since the cached session's user can be stale; until
+ * then (or if that fails) the session's own identities stand in.
+ */
+export function useLinkedProviders() {
+  const { session } = useSession();
+  const userId = session?.user.id;
+  const sessionProviders = session?.user.identities?.map((identity) => identity.provider);
+
+  return useQuery({
+    queryKey: ['auth-identities', userId],
+    queryFn: async () => {
+      const { data, error } = await supabase.auth.getUserIdentities();
+      if (error) throw error;
+      return data.identities.map((identity) => identity.provider);
+    },
+    enabled: !!userId,
+    placeholderData: sessionProviders,
+  });
+}
+
+/**
+ * Renames the signed-in user (`users.display_name`; RLS `users_update_own`). The profile query is
+ * updated with the saved row, and workspace member lists, which show the name, refetch.
+ */
+export function useUpdateDisplayName() {
+  const queryClient = useQueryClient();
+  const { session } = useSession();
+  const userId = session?.user.id;
+
+  return useMutation({
+    mutationFn: async (displayName: string) => {
+      if (!userId) throw new Error('Not signed in');
+      const { data, error } = await supabase
+        .from('users')
+        .update({ display_name: displayName })
+        .eq('id', userId)
+        .select('*')
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.setQueryData(['user-profile', data.id], data);
+      queryClient.invalidateQueries({ queryKey: ['workspace-members'] });
+    },
+  });
+}
+
 export function useSignInWithEmail() {
   return useMutation({
     mutationFn: async ({ email, password }: { email: string; password: string }) => {

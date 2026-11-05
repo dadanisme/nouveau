@@ -165,7 +165,10 @@ export type FormListRowProps = {
 export type FormTextFieldRowProps = {
   /** Imperative focus, e.g. to move to the next field on the return key. */
   ref?: Ref<FormTextFieldRowRef>;
-  /** Shown while empty; also the label when `label` is unset. */
+  /**
+   * Shown while empty, unless it repeats `label` (the field's section header or floating label
+   * already names it); also the label when `label` is unset.
+   */
   placeholder: string;
   /**
    * What the field holds. iOS: the accessibility label. Android: the floating label, with the

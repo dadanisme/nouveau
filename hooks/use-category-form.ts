@@ -1,7 +1,7 @@
 import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useRef, useState } from 'react';
-import { Keyboard, Platform } from 'react-native';
+import { Platform } from 'react-native';
 
 import { useWorkspace } from '@/contexts/workspace';
 import { useSession } from '@/hooks/use-auth';
@@ -12,6 +12,7 @@ import { useDiscardGuard } from '@/hooks/use-discard-guard';
 import { useSheetResult } from '@/hooks/use-sheet-result';
 import { showAlertDialog } from '@/lib/alert-dialog';
 import i18n from '@/lib/i18n';
+import { dismissKeyboard } from '@/lib/keyboard';
 import { goBackOrHome } from '@/lib/navigation';
 import { k } from '@/locales/keys';
 import type { Tables } from '@/types/supabase';
@@ -156,7 +157,7 @@ export function useCategoryForm() {
   // iOS pushes the pickers inside this sheet's Stack (one sheet at a time, HIG); Android keeps
   // its picker sheets.
   function openIconPicker() {
-    Keyboard.dismiss();
+    void dismissKeyboard();
     router.push({
       pathname: Platform.OS === 'ios' ? '/category-form/icon-picker' : '/icon-picker',
       params: { selected: icon ?? '', color, requestId: iconRequestId },
@@ -164,7 +165,7 @@ export function useCategoryForm() {
   }
 
   function openColorPicker() {
-    Keyboard.dismiss();
+    void dismissKeyboard();
     router.push({
       pathname: Platform.OS === 'ios' ? '/category-form/color-picker' : '/color-picker',
       params: { selected: color, requestId: colorRequestId },

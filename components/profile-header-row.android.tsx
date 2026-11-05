@@ -1,17 +1,21 @@
 import { Icon, Image, ListItem, Text, useMaterialColors } from '@expo/ui/jetpack-compose';
-import { clip, Shapes, size } from '@expo/ui/jetpack-compose/modifiers';
+import { clickable, clip, Shapes, size } from '@expo/ui/jetpack-compose/modifiers';
 
-import type { SettingsProfileRowProps } from '@/components/settings-profile-row';
+import type { ProfileHeaderRowProps } from '@/components/profile-header-row';
 
 // Material 3 list item large leading avatar.
 const AVATAR_SIZE = 56;
 
-/** The profile header row of the Settings list: avatar, name and email. Not interactive. */
-export function SettingsProfileRow({ name, email, imageUri }: SettingsProfileRowProps) {
+/**
+ * The profile header row: avatar, name and email. With `onPress` the whole list item is clickable
+ * (TalkBack reads the name and email and announces it as actionable); Material lists show no
+ * chevron. `accessibilityHint` is iOS-only: Compose has no hint, the row's text names it.
+ */
+export function ProfileHeaderRow({ name, email, imageUri, onPress }: ProfileHeaderRowProps) {
   const colors = useMaterialColors();
 
   return (
-    <ListItem>
+    <ListItem modifiers={onPress ? [clickable(onPress)] : undefined}>
       <ListItem.LeadingContent>
         {imageUri ? (
           <Image

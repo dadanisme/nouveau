@@ -26,6 +26,8 @@ export default function SettingsLayout() {
       />
       <Stack.Screen name="workspace-invites" options={{ title: t(k.workspace.invitations) }} />
       <Stack.Screen name="create-workspace" options={{ title: t(k.workspace.newWorkspace) }} />
+      <Stack.Screen name="profile" options={{ title: t(k.profile.title) }} />
+      <Stack.Screen name="profile-name" options={{ title: t(k.profile.name) }} />
       <Stack.Screen name="delete-account" options={{ title: t(k.deleteAccount.title) }} />
     </Stack>
   );

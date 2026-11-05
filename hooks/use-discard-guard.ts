@@ -1,9 +1,9 @@
 import { useNavigation, usePreventRemove } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Keyboard } from 'react-native';
 
 import { confirmDestructive } from '@/lib/confirm-destructive';
 import i18n from '@/lib/i18n';
+import { dismissKeyboard } from '@/lib/keyboard';
 import { k } from '@/locales/keys';
 
 /**
@@ -47,13 +47,14 @@ export function useDiscardGuard(
 
   const disablePrevention = usePreventRemove(isDirty && !isLeaving, ({ repeat }) => {
     // Close the keyboard first: it commits a pending autocorrection on blur, and that edit must
-    // land before the prompt, not while leaving.
-    Keyboard.dismiss();
-    confirmDiscard(() => {
-      setIsLeaving(true);
-      // Repeat once the lifted guard has rendered, so the repeated action isn't held again.
-      requestAnimationFrame(repeat);
-    });
+    // land before the prompt, not while leaving. A sheet shown while it's up sits under it.
+    void dismissKeyboard().then(() =>
+      confirmDiscard(() => {
+        setIsLeaving(true);
+        // Repeat once the lifted guard has rendered, so the repeated action isn't held again.
+        requestAnimationFrame(repeat);
+      }),
+    );
   });
 
   return (navigate, { confirm = false } = {}) => {
@@ -63,7 +64,6 @@ export function useDiscardGuard(
       navigate();
     };
     if (!confirm || !isDirty || isLeaving) return go();
-    Keyboard.dismiss();
-    confirmDiscard(go);
+    void dismissKeyboard().then(() => confirmDiscard(go));
   };
 }
