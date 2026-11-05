@@ -16,6 +16,7 @@ import {
   Row,
   SegmentedButton,
   SingleChoiceSegmentedButtonRow,
+  Surface,
   Text,
   TextField,
   useMaterialColors,
@@ -32,6 +33,7 @@ import {
   fillMaxSize,
   fillMaxWidth,
   height,
+  imePadding,
   padding,
   selectable,
   semantics,
@@ -39,7 +41,18 @@ import {
   size,
   type ModifierConfig,
 } from '@expo/ui/jetpack-compose/modifiers';
-import { useEffect, useImperativeHandle, useRef, useState } from 'react';
+import {
+  Children,
+  cloneElement,
+  Fragment,
+  isValidElement,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+  type ReactElement,
+  type ReactNode,
+} from 'react';
 import { StyleSheet } from 'react-native';
 
 import { ComposeHost } from '@/components/compose-host';
@@ -66,6 +79,10 @@ import { k } from '@/locales/keys';
 
 // Material 3 list metrics: 16dp side padding, section headers spaced from the previous group.
 const SIDE = 16;
+// The space above a section, titled or not, so an untitled one still reads as its own group.
+const SECTION_GAP = 24;
+// M3 disabled content: `onSurface` at 38% opacity (`#RRGGBBAA`, 0x61 ≈ 0.38).
+const DISABLED_ALPHA = '61';
 
 // The system (dynamic) palette, so surfaces match the native tab bar; the accent only tints, as
 // the `primary` role (section headers).
@@ -105,7 +122,8 @@ function FormSurface({ title, onRefresh, bottomInset = 0, children }: NativeForm
         top: title ? SHEET_TOP : 0,
         bottom: (title ? SHEET_BOTTOM : 24) + bottomInset,
       }}
-      modifiers={[fillMaxSize(), background(colors.surface)]}
+      // Insets the list above the keyboard, so a focused text field can scroll clear of it.
+      modifiers={[fillMaxSize(), background(colors.surface), imePadding()]}
     >
       {title ? (
         <Text
@@ -116,7 +134,7 @@ function FormSurface({ title, onRefresh, bottomInset = 0, children }: NativeForm
           {title}
         </Text>
       ) : null}
-      {children}
+      {withoutLeadingGap(children)}
     </LazyColumn>
   );
 
@@ -137,7 +155,29 @@ function FormSurface({ title, onRefresh, bottomInset = 0, children }: NativeForm
   );
 }
 
-export function FormSection({ title, footer, children }: FormSectionProps) {
+/**
+ * The gap above an untitled section separates it from the section before it, so the form's first
+ * section skips it: the list's top padding (or the sheet heading) already spaces it.
+ */
+function withoutLeadingGap(children: ReactNode): ReactNode[] {
+  const items = Children.toArray(children);
+  const [first, ...rest] = items;
+  if (!isValidElement(first)) return items;
+  // Screens often wrap their sections in a fragment: look inside it for the first section.
+  if (first.type === Fragment) {
+    const inner = (first.props as { children?: ReactNode }).children;
+    return [cloneElement(first, undefined, ...withoutLeadingGap(inner)), ...rest];
+  }
+  if (first.type !== FormSection) return items;
+  return [
+    cloneElement(first as ReactElement<FormSectionInternalProps>, { isFirst: true }),
+    ...rest,
+  ];
+}
+
+type FormSectionInternalProps = FormSectionProps & { isFirst?: boolean };
+
+export function FormSection({ title, footer, children, isFirst }: FormSectionInternalProps) {
   const colors = useMaterialColors();
   return (
     <>
@@ -145,11 +185,13 @@ export function FormSection({ title, footer, children }: FormSectionProps) {
         <Text
           color={colors.primary}
           style={{ typography: 'titleSmall' }}
-          modifiers={[padding(SIDE, 24, SIDE, 8)]}
+          modifiers={[padding(SIDE, SECTION_GAP, SIDE, 8)]}
         >
           {title}
         </Text>
-      ) : null}
+      ) : isFirst ? null : (
+        <Box modifiers={[fillMaxWidth(), height(SECTION_GAP)]} />
+      )}
       {children}
       {footer ? (
         <Text
@@ -173,12 +215,19 @@ function RowIcon({ icon, tint }: { icon?: FormNavRowProps['icon']; tint?: string
   );
 }
 
-export function FormNavRow({ title, icon, value, badge, onPress }: FormNavRowProps) {
+/** A row that opens a screen or sheet; `destructive` paints the title and icon in the error role. */
+export function FormNavRow({ title, role, icon, value, badge, onPress }: FormNavRowProps) {
+  const colors = useMaterialColors();
+  const color = role === 'destructive' ? colors.error : undefined;
   return (
     // Keyed on whether a value shows: a supporting slot added after the first render (e.g. the
     // workspace name once it loads) sometimes never appeared.
-    <ListItem key={value ? 'value' : 'plain'} modifiers={[clickable(onPress)]}>
-      <RowIcon icon={icon} />
+    <ListItem
+      key={value ? 'value' : 'plain'}
+      modifiers={[clickable(onPress)]}
+      colors={color ? { contentColor: color, leadingContentColor: color } : undefined}
+    >
+      <RowIcon icon={icon} tint={color} />
       <ListItem.HeadlineContent>
         <Text>{title}</Text>
       </ListItem.HeadlineContent>
@@ -281,16 +330,32 @@ export function FormButtonRow({
       </ActionButton>
     );
   }
+  const isEnabled = !disabled && !pending;
+  // Disabled, the row takes M3's disabled content color whatever its role.
+  const contentColor = isEnabled ? color : `${colors.onSurface.slice(0, 7)}${DISABLED_ALPHA}`;
   return (
-    <ListItem
-      modifiers={disabled || pending ? [] : [clickable(onPress)]}
-      colors={color ? { contentColor: color, leadingContentColor: color } : undefined}
-    >
-      <RowIcon icon={icon} tint={color} />
-      <ListItem.HeadlineContent>
-        <Text>{title}</Text>
-      </ListItem.HeadlineContent>
-    </ListItem>
+    // The clickable Surface, rather than a `clickable` modifier, reports the disabled state to
+    // TalkBack ("Delete account, disabled") and drops the ripple.
+    <Surface onClick={onPress} enabled={isEnabled} modifiers={[fillMaxWidth()]}>
+      <ListItem
+        colors={contentColor ? { contentColor, leadingContentColor: contentColor } : undefined}
+      >
+        {pending ? (
+          // The running action: M3's circular indicator in place of the icon.
+          <ListItem.LeadingContent>
+            <CircularProgressIndicator
+              strokeWidth={2}
+              modifiers={[size(PROGRESS_SIZE, PROGRESS_SIZE)]}
+            />
+          </ListItem.LeadingContent>
+        ) : (
+          <RowIcon icon={icon} tint={contentColor} />
+        )}
+        <ListItem.HeadlineContent>
+          <Text>{title}</Text>
+        </ListItem.HeadlineContent>
+      </ListItem>
+    </Surface>
   );
 }
 
@@ -554,7 +619,8 @@ export function FormTextFieldRow({
       <TextField.Label>
         <Text>{label ?? placeholder}</Text>
       </TextField.Label>
-      {label ? (
+      {/* A placeholder that repeats the floating label would show the same word twice. */}
+      {label && placeholder && placeholder !== label ? (
         <TextField.Placeholder>
           <Text>{placeholder}</Text>
         </TextField.Placeholder>

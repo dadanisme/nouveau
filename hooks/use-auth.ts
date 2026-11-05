@@ -1,21 +1,16 @@
-import {
-  GoogleSignin,
-  isCancelledResponse,
-  isErrorWithCode,
-  statusCodes,
-} from '@react-native-google-signin/google-signin';
 import type { User } from '@supabase/supabase-js';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { isAppleSignInAvailable, requestAppleCredential, type AppleName } from '@/lib/apple-auth';
-import i18n from '@/lib/i18n';
+import {
+  signInWithAppleCredential,
+  signInWithEmailPassword,
+  signInWithGoogleCredential,
+  signOutLocally,
+} from '@/lib/auth';
+import { requestGoogleCredential } from '@/lib/google-auth';
 import { supabase } from '@/lib/supabase';
-import { k } from '@/locales/keys';
-import { withTimeout } from '@/utils/promise';
 import { isPlaceholderDisplayName } from '@/utils/string';
-
-// A sign-in that hasn't answered by then fails with an alert instead of spinning forever.
-const SIGN_IN_TIMEOUT_MS = 30_000;
 
 export function useSession() {
   const { data: session, isLoading } = useQuery({
@@ -47,12 +42,7 @@ export function useUserProfile(userId: string | undefined) {
 export function useSignInWithEmail() {
   return useMutation({
     mutationFn: async ({ email, password }: { email: string; password: string }) => {
-      const { error } = await withTimeout(
-        supabase.auth.signInWithPassword({ email, password }),
-        SIGN_IN_TIMEOUT_MS,
-        i18n.t(k.common.requestTimedOut),
-      );
-      if (error) throw error;
+      await signInWithEmailPassword(email, password);
     },
   });
 }
@@ -75,29 +65,9 @@ export type ProviderSignInResult = 'signedIn' | 'cancelled';
 export function useSignInWithGoogle() {
   return useMutation({
     mutationFn: async (): Promise<ProviderSignInResult> => {
-      await GoogleSignin.hasPlayServices();
-
-      let response;
-      try {
-        response = await GoogleSignin.signIn();
-      } catch (error) {
-        // Older native paths reject on cancel instead of resolving a cancelled response.
-        if (isErrorWithCode(error) && error.code === statusCodes.SIGN_IN_CANCELLED) {
-          return 'cancelled';
-        }
-        throw error;
-      }
-      if (isCancelledResponse(response)) return 'cancelled';
-
-      if (!response.data.idToken) {
-        throw new Error('No ID token received from Google Sign-In');
-      }
-
-      const { error } = await supabase.auth.signInWithIdToken({
-        provider: 'google',
-        token: response.data.idToken,
-      });
-      if (error) throw error;
+      const credential = await requestGoogleCredential();
+      if (credential === 'cancelled') return 'cancelled';
+      await signInWithGoogleCredential(credential);
       return 'signedIn';
     },
   });
@@ -151,16 +121,11 @@ export function useSignInWithApple() {
       const credential = await requestAppleCredential();
       if (credential === 'cancelled') return 'cancelled';
 
-      const { data, error } = await supabase.auth.signInWithIdToken({
-        provider: 'apple',
-        token: credential.identityToken,
-        nonce: credential.rawNonce,
-      });
-      if (error) throw error;
+      const user = await signInWithAppleCredential(credential);
 
-      if (credential.name && data.user) {
-        await saveAppleName(data.user, credential.name);
-        queryClient.invalidateQueries({ queryKey: ['user-profile', data.user.id] });
+      if (credential.name && user) {
+        await saveAppleName(user, credential.name);
+        queryClient.invalidateQueries({ queryKey: ['user-profile', user.id] });
       }
       return 'signedIn';
     },
@@ -171,11 +136,7 @@ export function useSignOut() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async () => {
-      // This device only: other devices signed in to the account stay signed in.
-      const { error } = await supabase.auth.signOut({ scope: 'local' });
-      if (error) throw error;
-    },
+    mutationFn: signOutLocally,
     onSuccess: () => {
       queryClient.clear();
     },

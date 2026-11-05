@@ -91,5 +91,5 @@ Check, and add only what is missing:
 - [ ] Open `https://app.nouveau.my.id/categories` directly (deep link served by the rewrite).
 - [ ] Sign in with email and with Google; both land back on `app.nouveau.my.id`.
 - [ ] Transactions load; open a row's side panel so the proofs request to
-      `https://goofy.nouveau.my.id` runs (CORS must allow the new origin).
+      `https://moneymail-api-1016548251938.asia-southeast2.run.app` runs (CORS must allow the new origin).
 - [ ] Response headers: `/assets/*.js` is `immutable`, `/` is `max-age=0, must-revalidate`.

@@ -49,7 +49,7 @@ Separate insights page, receipt scanning/upload, attaching proofs, workspace adm
 - Vite + React SPA, TanStack Router, TanStack Query, Tailwind, shadcn/ui, TanStack Table.
 - Same conventions as mobile: components render, logic in hooks, pure functions in `utils/`, Supabase only through React Query hooks.
 - Env: `VITE_SUPABASE_URL`, `VITE_SUPABASE_KEY` in `web/.env.local` (gitignored). Same values as the root `.env.local`.
-- Custom API: `https://goofy.nouveau.my.id`, sends `Authorization: Bearer <token>` and `X-Workspace-Id`. CORS already allows browser origins.
+- Custom API: `https://moneymail-api-1016548251938.asia-southeast2.run.app`, sends `Authorization: Bearer <token>` and `X-Workspace-Id`. CORS already allows browser origins.
 - Checks: typecheck, lint, Vitest for money and date logic only.
 - Check Context7 for current library APIs before using them.
 - Hosting: Vercel at `app.nouveau.my.id`.

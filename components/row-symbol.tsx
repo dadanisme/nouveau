@@ -1,5 +1,5 @@
 import { Image } from '@expo/ui/swift-ui';
-import { font, frame } from '@expo/ui/swift-ui/modifiers';
+import { accessibilityHidden, font, frame } from '@expo/ui/swift-ui/modifiers';
 
 import type { FormSymbol } from '@/components/native-form-types';
 import { useIsAccessibilityTextSize, useScaledSize } from '@/hooks/use-accessibility-text-size';
@@ -20,6 +20,8 @@ const SYMBOL_COLUMN_MAX_SCALE = 1.4;
  * Type like the text beside it ("Increase the size of meaningful interface icons as font size
  * increases", HIG typography). Side by side with the title it sits in a fixed-width column; in a
  * stacked row (accessibility text sizes) it's on its own line, leading-aligned at its own width.
+ * Decorative: the row's text names what it stands for (a category, a file), so VoiceOver skips the
+ * glyph instead of reading its symbol name ("Two People") as a separate element.
  */
 export function RowSymbol({ symbol }: { symbol: FormSymbol }) {
   const isStacked = useIsAccessibilityTextSize();
@@ -34,6 +36,7 @@ export function RowSymbol({ symbol }: { symbol: FormSymbol }) {
         isStacked
           ? frame({ minHeight: SYMBOL_MIN_HEIGHT })
           : frame({ minWidth: columnWidth, maxWidth: columnWidth, minHeight: SYMBOL_MIN_HEIGHT }),
+        accessibilityHidden(true),
       ]}
     />
   );

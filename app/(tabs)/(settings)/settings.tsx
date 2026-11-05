@@ -22,6 +22,7 @@ const ICONS = {
   },
   language: { sf: 'globe', md: require('@/assets/icons/language.xml') },
   signOut: { sf: 'rectangle.portrait.and.arrow.right', md: require('@/assets/icons/logout.xml') },
+  deleteAccount: { sf: 'trash', md: require('@/assets/icons/delete.xml') },
 } as const;
 
 // The form must be the screen's root view: the native header's large title collapses with it.
@@ -82,6 +83,17 @@ export default function SettingsScreen() {
           icon={ICONS.signOut}
           pending={screen.signOutPending}
           onPress={screen.confirmSignOut}
+        />
+      </FormSection>
+
+      <FormSection>
+        {/* Red like the destructive action it leads to; it pushes a screen that explains and
+            confirms the deletion first (HIG managing-accounts#Deleting-accounts). */}
+        <FormNavRow
+          title={t(k.deleteAccount.title)}
+          role="destructive"
+          icon={ICONS.deleteAccount}
+          onPress={screen.openDeleteAccount}
         />
       </FormSection>
     </NativeForm>

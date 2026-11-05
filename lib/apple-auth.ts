@@ -18,6 +18,13 @@ export type AppleCredential = {
   /** The unhashed nonce, for Supabase to check against the token's hashed `nonce` claim. */
   rawNonce: string;
   name: AppleName | null;
+  /** Apple's stable user ID (the identity token's `sub`), to check which account signed in. */
+  user: string;
+  /**
+   * The short-lived code the server exchanges for a refresh token, so it can revoke the app's
+   * tokens when the account is deleted. Sign-in ignores it.
+   */
+  authorizationCode: string | null;
 };
 
 /** Whether this device offers Sign in with Apple. The `.android` sibling always says no. */
@@ -58,6 +65,8 @@ export async function requestAppleCredential(): Promise<AppleCredential | 'cance
   return {
     identityToken: credential.identityToken,
     rawNonce,
+    user: credential.user,
+    authorizationCode: credential.authorizationCode,
     name: fullName
       ? {
           fullName,
