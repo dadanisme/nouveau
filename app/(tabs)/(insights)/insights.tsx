@@ -1,4 +1,4 @@
-import { Stack, useLocalSearchParams } from 'expo-router';
+import { Stack } from 'expo-router';
 
 import { MonthlySpendingChart } from '@/components/monthly-spending-chart';
 import {
@@ -14,7 +14,6 @@ import { usePeriodNavToolbar } from '@/components/period-nav-toolbar';
 import { useLanguage } from '@/contexts/language';
 import { useInsightsScreen, type InsightsMode } from '@/hooks/use-insights-screen';
 import { k } from '@/locales/keys';
-import { parseIntParam } from '@/utils/params';
 
 const EMPTY_SYMBOL = { sf: 'chart.pie', material: 'pie_chart' } as const;
 
@@ -26,8 +25,7 @@ const EMPTY_SYMBOL = { sf: 'chart.pie', material: 'pie_chart' } as const;
  */
 export default function InsightsScreen() {
   const { t } = useLanguage();
-  const params = useLocalSearchParams<{ year?: string; month?: string }>();
-  const screen = useInsightsScreen(parseIntParam(params.year), parseIntParam(params.month));
+  const screen = useInsightsScreen();
   const periodToolbar = usePeriodNavToolbar(screen.nav);
 
   const modeOptions = [

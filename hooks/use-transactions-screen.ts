@@ -149,11 +149,9 @@ export function useTransactionsScreen() {
     router.push({ pathname: '/proof-viewer', params: { transactionId } });
   }
 
+  // Insights reads the same shared period (`PeriodProvider`); `mode` only puts it in month mode.
   function openInsights() {
-    router.navigate({
-      pathname: '/insights',
-      params: { year: String(year), month: String(month) },
-    });
+    router.navigate({ pathname: '/insights', params: { mode: 'month' } });
   }
 
   function openCategory(categoryId: string) {

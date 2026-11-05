@@ -1,12 +1,13 @@
-import { useState } from 'react';
 import { AccessibilityInfo } from 'react-native';
 
 import { useLanguage } from '@/contexts/language';
+import { usePeriod } from '@/contexts/period';
 import {
   formatPeriodLabel,
   getPeriodMenuYears,
   isSamePeriod,
   shiftPeriod,
+  withPeriodYear,
   type Period,
   type PeriodMenuYear,
   type PeriodMode,
@@ -34,20 +35,20 @@ function currentPeriod(): Period {
 
 /**
  * The period a screen shows (a month, or a year in year mode) and how to move it: previous /
- * next, jump to a period, back to today. Starts on the current period, or `initial`. Pair it
+ * next, jump to a period, back to today. The period is the shared one from `PeriodProvider`, so
+ * Transactions and Insights move together (#93). In year mode a change moves only the year and
+ * keeps the month (clamped to today's, `withPeriodYear`), which Transactions shows next. Pair it
  * with `usePeriodNavToolbar` for the native header controls. Each change is announced to the
  * screen reader (the title and list change, but focus stays on the control that was used).
  */
-export function usePeriodNavigation(
-  mode: PeriodMode = 'month',
-  initial?: Period,
-): PeriodNavigation {
-  const [period, setPeriod] = useState<Period>(() => initial ?? currentPeriod());
+export function usePeriodNavigation(mode: PeriodMode = 'month'): PeriodNavigation {
+  const { period, setPeriod } = usePeriod();
   const today = currentPeriod();
   // The in-app language, so the labels follow it (they are memoized on their inputs).
   const { locale } = useLanguage();
 
-  const changePeriod = (next: Period) => {
+  const changePeriod = (target: Period) => {
+    const next = mode === 'year' ? withPeriodYear(period, target.year, today) : target;
     setPeriod(next);
     // Queued, so it follows whatever VoiceOver is saying about the control that was used.
     AccessibilityInfo.announceForAccessibilityWithOptions(

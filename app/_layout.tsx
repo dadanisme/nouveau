@@ -13,6 +13,7 @@ import { ACCENT_HEX } from '@/constants/accent';
 import { formHeaderBackground } from '@/constants/form-header';
 import { sheetOptions } from '@/constants/sheet-options';
 import { LanguageProvider, useLanguage } from '@/contexts/language';
+import { PeriodProvider } from '@/contexts/period';
 import { WorkspaceProvider } from '@/contexts/workspace';
 import { useSession } from '@/hooks/use-auth';
 import { goBackOrHome, resetTo } from '@/lib/navigation';
@@ -237,9 +238,11 @@ export default function RootLayout() {
             <ShareIntentNavigator />
             <AuthListener>
               <WorkspaceProvider>
-                <AuthGuard>
-                  <RootStack />
-                </AuthGuard>
+                <PeriodProvider>
+                  <AuthGuard>
+                    <RootStack />
+                  </AuthGuard>
+                </PeriodProvider>
               </WorkspaceProvider>
             </AuthListener>
           </ShareIntentProvider>

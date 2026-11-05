@@ -47,3 +47,6 @@ app-example
 
 # Supabase CLI local artifacts
 supabase/
+
+# Agent worktrees (Claude Code isolation)
+.claude/worktrees/

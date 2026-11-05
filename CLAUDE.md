@@ -71,7 +71,7 @@ Provider hierarchy:
 
 ```
 GestureHandlerRootView → LanguageProvider → QueryClientProvider → ShareIntentProvider
-  → AuthListener → WorkspaceProvider → AuthGuard → Stack
+  → AuthListener → WorkspaceProvider → PeriodProvider → AuthGuard → Stack
 ```
 
 ### State management
@@ -81,6 +81,7 @@ GestureHandlerRootView → LanguageProvider → QueryClientProvider → ShareInt
 - Data hooks: `use-auth` (session, profile, linked sign-in providers, display-name update, email/Google/Apple sign-in, sign-out), `use-profile-summary` (the profile header shown by Settings and Profile), `use-auth-listener`, `use-transactions` / `use-transaction`, `use-add-` / `use-update-` / `use-delete-transaction`, `use-categories(workspaceId)`, `use-category-mutations`, `use-subscriptions`, `use-proofs`, `use-proof-download`, `use-workspaces`, `use-workspace-members`, `use-workspace-invites`, `use-exchange-rate`, `use-classify-description`, `use-scan-receipt`.
 - Screen hooks: `use-<screen>-screen` (transactions, insights, settings, profile, profile-name, subscriptions, login, signup, share-intent, workspaces, create-workspace, workspace-settings, workspace-invites, delete-account), `use-transaction-form`, `use-category-form`, `use-category-management`, and a `use-<sheet>-sheet` per sheet route.
 - `contexts/workspace.tsx`: `useWorkspace()` holds the active workspace (persisted under `active_workspace_id`).
+- `contexts/period.tsx`: `usePeriod()` holds the selected `{ year, month }` that Transactions and Insights share through `usePeriodNavigation` (#93). Global across workspaces, not persisted (a cold launch opens on the current month); Insights' year mode changes only the year, clamping a future month to the current one (`withPeriodYear`, `utils/date.ts`). Insights' Month/Year mode stays local to Insights; Transactions' "View insights" sends `mode=month`, read once by `use-insights-screen`.
 - `lib/api.ts`: `authenticatedFetch` for the moneymail backend on Cloud Run (`https://moneymail-api-1016548251938.asia-southeast2.run.app`) (AI classification, receipt scan, proofs).
 
 Conventions:

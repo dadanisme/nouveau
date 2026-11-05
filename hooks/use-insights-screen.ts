@@ -1,4 +1,9 @@
-import { useNavigation, useRouter, type NativeStackNavigationProp } from 'expo-router';
+import {
+  useLocalSearchParams,
+  useNavigation,
+  useRouter,
+  type NativeStackNavigationProp,
+} from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 
 import type { FormSymbol } from '@/components/native-form-types';
@@ -14,7 +19,8 @@ import { joinWithDot } from '@/utils/string';
 
 export type InsightsMode = PeriodMode;
 
-type InsightsParams = { year?: string; month?: string };
+/** `mode` asks Insights to switch to that mode once (Transactions' "View insights" sends month). */
+export type InsightsParams = { mode?: InsightsMode };
 
 /** A category row: its symbol, "Rp1.2M · 34%" and the share for the bar. */
 export interface InsightsCategoryRow {
@@ -31,43 +37,33 @@ export interface InsightsCategoryRow {
 /**
  * Insights screen: the period (a month, or a year in year mode) with its native header controls,
  * the period summary, the monthly trend (year mode) and spending by category with its drill-down.
- *
- * @param requestedYear / requestedMonth The month asked for through the route params (Transactions'
- * "View insights"), or null to open on the current month.
+ * The period is shared with Transactions (`PeriodProvider`), so either tab's change shows here.
  */
-export function useInsightsScreen(requestedYear: number | null, requestedMonth: number | null) {
+export function useInsightsScreen() {
   // `locale` follows the in-app language, so the memoized amounts rebuild when it changes.
   const { locale } = useLanguage();
   const { currentWorkspaceId } = useWorkspace();
   const router = useRouter();
   const navigation = useNavigation<NativeStackNavigationProp<{ insights: InsightsParams }>>();
+  const { mode: requestedMode } = useLocalSearchParams<InsightsParams>();
 
-  const [mode, setMode] = useState<InsightsMode>('month');
-  const nav = usePeriodNavigation(
-    mode,
-    requestedYear !== null && requestedMonth !== null
-      ? { year: requestedYear, month: requestedMonth }
-      : undefined,
-  );
-  const { year, month } = nav.period;
+  // Month / year mode is Insights' own; the period itself is shared with Transactions.
+  const [mode, setMode] = useState<InsightsMode>(requestedMode ?? 'month');
 
-  // Insights is a tab, so it stays mounted: a later request for a month arrives as new params on
-  // this same screen. Jump to it when the params change (state adjusted during render), then clear
-  // the params so requesting the same month again is still a change.
-  const requestKey =
-    requestedYear !== null && requestedMonth !== null ? `${requestedYear}-${requestedMonth}` : null;
-  const [handledRequestKey, setHandledRequestKey] = useState(requestKey);
-  if (requestKey !== handledRequestKey) {
-    setHandledRequestKey(requestKey);
-    if (requestedYear !== null && requestedMonth !== null) {
-      setMode('month');
-      nav.goTo({ year: requestedYear, month: requestedMonth });
-    }
+  // Insights is a tab, so it stays mounted: a mode request arrives as a new param on this same
+  // screen. Switch to it when the param changes (state adjusted during render), then clear the
+  // param so the next request is still a change.
+  const [handledMode, setHandledMode] = useState(requestedMode);
+  if (requestedMode !== handledMode) {
+    setHandledMode(requestedMode);
+    if (requestedMode) setMode(requestedMode);
   }
 
   useEffect(() => {
-    if (requestKey !== null) navigation.setParams({ year: undefined, month: undefined });
-  }, [requestKey, navigation]);
+    if (requestedMode) navigation.setParams({ mode: undefined });
+  }, [requestedMode, navigation]);
+  const nav = usePeriodNavigation(mode);
+  const { year, month } = nav.period;
 
   // Month mode shares the Transactions screen's query cache (same key), so opening Insights on
   // the month shown there is an instant cache hit. The year query only fires in year mode.
