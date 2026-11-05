@@ -1,7 +1,7 @@
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { Keyboard, Platform } from 'react-native';
+import { Platform } from 'react-native';
 
 import { useLanguage } from '@/contexts/language';
 import { useWorkspace } from '@/contexts/workspace';
@@ -10,6 +10,7 @@ import { useSession } from '@/hooks/use-auth';
 import { showAlertDialog } from '@/lib/alert-dialog';
 import { confirmDestructive } from '@/lib/confirm-destructive';
 import i18n from '@/lib/i18n';
+import { dismissKeyboard } from '@/lib/keyboard';
 import { goBackOrHome } from '@/lib/navigation';
 import { k } from '@/locales/keys';
 import { useCategories } from '@/hooks/use-categories';
@@ -283,7 +284,7 @@ export function useTransactionForm(transactionId?: string, initialDate?: string)
   }
 
   function confirmDelete() {
-    Keyboard.dismiss();
+    void dismissKeyboard();
     confirmDestructive({
       dialogTitle: i18n.t(k.addTransaction.deleteTransactionPrompt),
       message: i18n.t(k.addTransaction.deleteTransactionMessage),
@@ -303,7 +304,7 @@ export function useTransactionForm(transactionId?: string, initialDate?: string)
   }
 
   function openCategoryPicker() {
-    Keyboard.dismiss();
+    void dismissKeyboard();
     router.push({
       pathname: Platform.OS === 'ios' ? '/add-transaction/category-picker' : '/category-picker',
       params: {

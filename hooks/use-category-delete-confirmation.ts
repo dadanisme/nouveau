@@ -1,12 +1,12 @@
 import { useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
-import { Keyboard } from 'react-native';
 
 import { categoryTransactionCountQuery } from '@/hooks/use-categories';
 import { useDeleteCategory } from '@/hooks/use-category-mutations';
 import { showAlertDialog } from '@/lib/alert-dialog';
 import { confirmDestructive } from '@/lib/confirm-destructive';
 import i18n from '@/lib/i18n';
+import { dismissKeyboard } from '@/lib/keyboard';
 import { k } from '@/locales/keys';
 
 function showDeleteError(error: unknown) {
@@ -45,7 +45,7 @@ export function useCategoryDeleteConfirmation() {
   }
 
   async function requestDelete(category: { id: string; name: string }, onDeleted?: () => void) {
-    Keyboard.dismiss();
+    await dismissKeyboard();
     let count: number;
     try {
       count = await queryClient.fetchQuery(categoryTransactionCountQuery(category.id));

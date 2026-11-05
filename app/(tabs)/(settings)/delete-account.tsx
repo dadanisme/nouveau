@@ -93,7 +93,7 @@ export default function DeleteAccountScreen() {
             >
               <FormTextFieldRow
                 label={t(k.deleteAccount.passwordSection)}
-                placeholder={t(k.deleteAccount.passwordPlaceholder)}
+                placeholder={t(k.deleteAccount.passwordSection)}
                 value={screen.password}
                 onChangeText={screen.setPassword}
                 secure

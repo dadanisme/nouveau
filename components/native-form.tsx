@@ -50,7 +50,7 @@ import {
   textInputAutocapitalization,
   tint,
 } from '@expo/ui/swift-ui/modifiers';
-import { useEffect, useImperativeHandle, useRef } from 'react';
+import { useCallback, useEffect, useImperativeHandle, useRef } from 'react';
 import { PlatformColor, StyleSheet, type ColorValue } from 'react-native';
 
 import type {
@@ -74,6 +74,7 @@ import type {
 import { RowSymbol } from '@/components/row-symbol';
 import { ACCENT_COLOR } from '@/constants/accent';
 import { useIsAccessibilityTextSize } from '@/hooks/use-accessibility-text-size';
+import { reportFieldFocus } from '@/lib/keyboard';
 
 // Explicit label colors: inside a Button, hierarchical styles resolve against the accent tint.
 const PRIMARY = foregroundStyle(PlatformColor('label'));
@@ -148,16 +149,17 @@ export function FormNavRow({ title, role, icon, value, badge: count, onPress }: 
   const isStacked = useIsAccessibilityTextSize();
   const isDestructive = role === 'destructive';
   const titleText = <Text modifiers={[isDestructive ? DESTRUCTIVE_TEXT : PRIMARY]}>{title}</Text>;
-  const label = <Label systemImage={icon?.sf}>{titleText}</Label>;
+  // A form button paints its `Label` icon with the Host's accent, over a `tint` on the button, so a
+  // destructive icon takes its red from a foreground style on the label itself.
+  const label = (
+    <Label systemImage={icon?.sf} modifiers={isDestructive ? [DESTRUCTIVE_TEXT] : undefined}>
+      {titleText}
+    </Label>
+  );
   const valueText = value ? <Text modifiers={[SECONDARY]}>{value}</Text> : null;
-  // The tint colors the `Label` icon, which otherwise takes the Host's accent.
-  const modifiers = [
-    ...(isDestructive ? [DESTRUCTIVE_TINT] : []),
-    ...(count ? [badge(String(count))] : []),
-  ];
 
   return (
-    <Button onPress={onPress} modifiers={modifiers.length ? modifiers : undefined}>
+    <Button onPress={onPress} modifiers={count ? [badge(String(count))] : undefined}>
       {isStacked ? (
         <HStack>
           {/* The icon on its own line: beside the text it would leave words room to hyphenate only. */}
@@ -458,6 +460,14 @@ export function FormTextFieldRow({
     [],
   );
 
+  // RN's `Keyboard.dismiss` can't resign a SwiftUI field, so the field reports its focus to
+  // `dismissKeyboard`, which blurs it (e.g. before a Discard Changes sheet, which the keyboard hid).
+  const blur = useCallback(async () => {
+    await (textField.current ?? secureField.current)?.blur();
+  }, []);
+  const handleFocusChange = (focused: boolean) => reportFieldFocus(blur, focused);
+  useEffect(() => () => reportFieldFocus(blur, 'unmounted'), [blur]);
+
   useEffect(() => {
     if (value === undefined || value === lastText.current) return;
     lastText.current = value;
@@ -473,6 +483,9 @@ export function FormTextFieldRow({
     lastText.current = next;
     onChangeText(next);
   };
+  // A labelled field is named on screen by its section header, so a placeholder that repeats the
+  // label would show the same word twice (as on Android, where the label floats).
+  const shownPlaceholder = label && placeholder === label ? undefined : placeholder;
   const modifiers = [
     accessibilityLabel(label ?? placeholder),
     textInputAutocapitalization(capitalization === 'none' ? 'never' : capitalization),
@@ -489,10 +502,11 @@ export function FormTextFieldRow({
       <SecureField
         ref={secureField}
         text={text}
-        placeholder={placeholder}
+        placeholder={shownPlaceholder}
         autoFocus={autoFocus}
         maxLength={maxLength}
         onTextChange={handleTextChange}
+        onFocusChange={handleFocusChange}
         modifiers={modifiers}
       />
     );
@@ -502,10 +516,11 @@ export function FormTextFieldRow({
     <TextField
       ref={textField}
       text={text}
-      placeholder={placeholder}
+      placeholder={shownPlaceholder}
       autoFocus={autoFocus}
       maxLength={maxLength}
       onTextChange={handleTextChange}
+      onFocusChange={handleFocusChange}
       modifiers={modifiers}
     />
   );

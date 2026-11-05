@@ -110,6 +110,17 @@ const en = {
     english: 'English',
     indonesian: 'Bahasa Indonesia',
   },
+  profile: {
+    title: 'Profile',
+    // VoiceOver hint on Settings' profile row.
+    openHint: 'Opens your profile.',
+    name: 'Name',
+    email: 'Email',
+    signInSection: 'Sign-In Method',
+    signInMethodsError: "Couldn't load your sign-in methods.",
+    providers: { apple: 'Apple', google: 'Google', email: 'Email' },
+    saveFailed: "Couldn't Save Name",
+  },
   deleteAccount: {
     title: 'Delete Account',
     deleting: 'Deleting Account…',
@@ -123,7 +134,6 @@ const en = {
     passesTo: 'Passes to %{name}',
     sharedFooter: 'Anything you added stays with the owner.',
     passwordSection: 'Password',
-    passwordPlaceholder: 'Password',
     confirmWithGoogle: "You'll sign in with Google to confirm.",
     confirmWithApple: "You'll sign in with Apple to confirm.",
     prompt: 'Delete account?',

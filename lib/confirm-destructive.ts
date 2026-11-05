@@ -2,6 +2,7 @@ import { ActionSheetIOS, Platform } from 'react-native';
 
 import { showAlertDialog } from '@/lib/alert-dialog';
 import i18n from '@/lib/i18n';
+import { dismissKeyboard } from '@/lib/keyboard';
 import { k } from '@/locales/keys';
 
 type ConfirmDestructiveOptions = {
@@ -40,19 +41,22 @@ export function confirmDestructive({
 }: ConfirmDestructiveOptions) {
   const cancel: string = cancelLabel ?? i18n.t(k.common.cancel);
   if (Platform.OS === 'ios') {
-    ActionSheetIOS.showActionSheetWithOptions(
-      {
-        title,
-        message,
-        options: [confirmLabel, cancel],
-        destructiveButtonIndex: 0,
-        cancelButtonIndex: 1,
-        // No tintColor: the accent (#E24A00) sits next to system red, so a tinted Cancel read as
-        // a second destructive button. The stock tint keeps the confirm the only red choice.
-      },
-      (index) => {
-        if (index === 0) onConfirm();
-      },
+    // The keyboard closes first: an action sheet presented while it's up sits under it.
+    void dismissKeyboard().then(() =>
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          title,
+          message,
+          options: [confirmLabel, cancel],
+          destructiveButtonIndex: 0,
+          cancelButtonIndex: 1,
+          // No tintColor: the accent (#E24A00) sits next to system red, so a tinted Cancel read
+          // as a second destructive button. The stock tint keeps the confirm the only red choice.
+        },
+        (index) => {
+          if (index === 0) onConfirm();
+        },
+      ),
     );
     return;
   }

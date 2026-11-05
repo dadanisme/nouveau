@@ -32,7 +32,8 @@ module.exports = defineConfig([
   },
   {
     // Alerts go through `showAlertDialog`: `Alert.alert` on iOS, a Material 3 dialog on Android
-    // (`Alert.alert` there is the legacy AppCompat dialog).
+    // (`Alert.alert` there is the legacy AppCompat dialog). The keyboard closes through
+    // `dismissKeyboard`: `Keyboard.dismiss` leaves a focused SwiftUI field's keyboard up.
     files: ['**/*.{js,jsx,ts,tsx}'],
     ignores: ['lib/alert-dialog*'],
     rules: {
@@ -42,6 +43,11 @@ module.exports = defineConfig([
           object: 'Alert',
           property: 'alert',
           message: "Use showAlertDialog from '@/lib/alert-dialog' (M3 dialog on Android).",
+        },
+        {
+          object: 'Keyboard',
+          property: 'dismiss',
+          message: "Use dismissKeyboard from '@/lib/keyboard' (it also blurs SwiftUI fields).",
         },
       ],
     },
