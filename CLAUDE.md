@@ -81,7 +81,7 @@ GestureHandlerRootView → LanguageProvider → QueryClientProvider → ShareInt
 - Data hooks: `use-auth` (session, profile, email/Google sign-in, sign-out), `use-auth-listener`, `use-transactions` / `use-transaction`, `use-add-` / `use-update-` / `use-delete-transaction`, `use-categories(workspaceId)`, `use-category-mutations`, `use-subscriptions`, `use-proofs`, `use-proof-download`, `use-workspaces`, `use-workspace-members`, `use-workspace-invites`, `use-exchange-rate`, `use-classify-description`, `use-scan-receipt`.
 - Screen hooks: `use-<screen>-screen` (transactions, insights, settings, subscriptions, login, signup, share-intent, workspaces, create-workspace, workspace-settings, workspace-invites), `use-transaction-form`, `use-category-form`, `use-category-management`, and a `use-<sheet>-sheet` per sheet route.
 - `contexts/workspace.tsx`: `useWorkspace()` holds the active workspace (persisted under `active_workspace_id`).
-- `lib/api.ts`: `authenticatedFetch` for the backend at `goofy.nouveau.my.id` (AI classification, receipt scan, proofs).
+- `lib/api.ts`: `authenticatedFetch` for the moneymail backend on Cloud Run (`https://moneymail-api-1016548251938.asia-southeast2.run.app`) (AI classification, receipt scan, proofs).
 
 Conventions:
 

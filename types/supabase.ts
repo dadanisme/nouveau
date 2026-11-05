@@ -8,159 +8,6 @@ export type Database = {
   };
   public: {
     Tables: {
-      _backup_categories_20260514: {
-        Row: {
-          color: string | null;
-          created_at: string | null;
-          icon: string | null;
-          id: string | null;
-          is_default: boolean | null;
-          name: string | null;
-          type: string | null;
-          updated_at: string | null;
-          user_id: string | null;
-        };
-        Insert: {
-          color?: string | null;
-          created_at?: string | null;
-          icon?: string | null;
-          id?: string | null;
-          is_default?: boolean | null;
-          name?: string | null;
-          type?: string | null;
-          updated_at?: string | null;
-          user_id?: string | null;
-        };
-        Update: {
-          color?: string | null;
-          created_at?: string | null;
-          icon?: string | null;
-          id?: string | null;
-          is_default?: boolean | null;
-          name?: string | null;
-          type?: string | null;
-          updated_at?: string | null;
-          user_id?: string | null;
-        };
-        Relationships: [];
-      };
-      _backup_receipt_proofs_20260514: {
-        Row: {
-          created_at: string | null;
-          filename: string | null;
-          id: string | null;
-          mime_type: string | null;
-          r2_key: string | null;
-          size_bytes: number | null;
-          transaction_id: string | null;
-          user_id: string | null;
-        };
-        Insert: {
-          created_at?: string | null;
-          filename?: string | null;
-          id?: string | null;
-          mime_type?: string | null;
-          r2_key?: string | null;
-          size_bytes?: number | null;
-          transaction_id?: string | null;
-          user_id?: string | null;
-        };
-        Update: {
-          created_at?: string | null;
-          filename?: string | null;
-          id?: string | null;
-          mime_type?: string | null;
-          r2_key?: string | null;
-          size_bytes?: number | null;
-          transaction_id?: string | null;
-          user_id?: string | null;
-        };
-        Relationships: [];
-      };
-      _backup_transactions_20260514: {
-        Row: {
-          amount: number | null;
-          category_id: string | null;
-          created_at: string | null;
-          currency: string | null;
-          date: string | null;
-          description: string | null;
-          home_amount: number | null;
-          home_currency: string | null;
-          id: string | null;
-          type: string | null;
-          updated_at: string | null;
-          user_id: string | null;
-        };
-        Insert: {
-          amount?: number | null;
-          category_id?: string | null;
-          created_at?: string | null;
-          currency?: string | null;
-          date?: string | null;
-          description?: string | null;
-          home_amount?: number | null;
-          home_currency?: string | null;
-          id?: string | null;
-          type?: string | null;
-          updated_at?: string | null;
-          user_id?: string | null;
-        };
-        Update: {
-          amount?: number | null;
-          category_id?: string | null;
-          created_at?: string | null;
-          currency?: string | null;
-          date?: string | null;
-          description?: string | null;
-          home_amount?: number | null;
-          home_currency?: string | null;
-          id?: string | null;
-          type?: string | null;
-          updated_at?: string | null;
-          user_id?: string | null;
-        };
-        Relationships: [];
-      };
-      _backup_users_20260514: {
-        Row: {
-          created_at: string | null;
-          currency: string | null;
-          display_name: string | null;
-          email: string | null;
-          id: string | null;
-          profile_image: string | null;
-          role: string | null;
-          role_updated_by: string | null;
-          theme: string | null;
-          updated_at: string | null;
-        };
-        Insert: {
-          created_at?: string | null;
-          currency?: string | null;
-          display_name?: string | null;
-          email?: string | null;
-          id?: string | null;
-          profile_image?: string | null;
-          role?: string | null;
-          role_updated_by?: string | null;
-          theme?: string | null;
-          updated_at?: string | null;
-        };
-        Update: {
-          created_at?: string | null;
-          currency?: string | null;
-          display_name?: string | null;
-          email?: string | null;
-          id?: string | null;
-          profile_image?: string | null;
-          role?: string | null;
-          role_updated_by?: string | null;
-          theme?: string | null;
-          updated_at?: string | null;
-        };
-        Relationships: [];
-      };
       ai_usage: {
         Row: {
           cost: number | null;
@@ -328,7 +175,7 @@ export type Database = {
         Row: {
           feature_id: string;
           granted_at: string | null;
-          granted_by: string;
+          granted_by: string | null;
           id: string;
           notes: string | null;
           revoked_at: string | null;
@@ -339,7 +186,7 @@ export type Database = {
         Insert: {
           feature_id: string;
           granted_at?: string | null;
-          granted_by: string;
+          granted_by?: string | null;
           id?: string;
           notes?: string | null;
           revoked_at?: string | null;
@@ -350,7 +197,7 @@ export type Database = {
         Update: {
           feature_id?: string;
           granted_at?: string | null;
-          granted_by?: string;
+          granted_by?: string | null;
           id?: string;
           notes?: string | null;
           revoked_at?: string | null;
@@ -773,6 +620,16 @@ export type Database = {
         }[];
       };
       decline_workspace_invite: { Args: { token: string }; Returns: undefined };
+      delete_account: { Args: { p_user_id: string }; Returns: Json };
+      delete_account_plan: {
+        Args: { p_user_id: string };
+        Returns: {
+          action: string;
+          owner_id: string;
+          workspace_id: string;
+        }[];
+      };
+      delete_account_preview: { Args: { p_user_id: string }; Returns: Json };
       get_balance: { Args: { uid: string }; Returns: number };
       get_monthly_totals: {
         Args: { end_date: string; start_date: string; uid: string };

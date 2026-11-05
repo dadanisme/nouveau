@@ -6,7 +6,8 @@ import { supabase } from '@/lib/supabase';
  * another server, such as a tunnel to a local one.
  */
 export const API_BASE_URL = (
-  process.env.EXPO_PUBLIC_API_BASE_URL || 'https://goofy.nouveau.my.id'
+  process.env.EXPO_PUBLIC_API_BASE_URL ||
+  'https://moneymail-api-1016548251938.asia-southeast2.run.app'
 ).replace(/\/+$/, '');
 
 export class ApiError extends Error {

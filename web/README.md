@@ -30,7 +30,7 @@ Copy `.env.example` to `.env.local` (gitignored) and fill in:
 | `VITE_SUPABASE_URL` | Supabase project URL (same value as the root `EXPO_PUBLIC_SUPABASE_URL`)          |
 | `VITE_SUPABASE_KEY` | Supabase publishable/anon key (same value as the root `EXPO_PUBLIC_SUPABASE_KEY`) |
 
-The custom API base URL (`https://goofy.nouveau.my.id`) is fixed in `src/lib/api.ts`.
+The custom API base URL (`https://moneymail-api-1016548251938.asia-southeast2.run.app`) is fixed in `src/lib/api.ts`.
 
 ## Layout
 
