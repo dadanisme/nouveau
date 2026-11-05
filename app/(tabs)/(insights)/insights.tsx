@@ -6,7 +6,7 @@ import {
   FormLoadingRow,
   FormProgressRow,
   FormSection,
-  FormSegmentedRow,
+  FormSegmentedSection,
   FormValueRow,
   NativeForm,
 } from '@/components/native-form';
@@ -43,14 +43,14 @@ export default function InsightsScreen() {
 
       {/* The form must be the screen's root view: the native header tracks its scroll. */}
       <NativeForm onRefresh={screen.refresh}>
-        <FormSection>
-          <FormSegmentedRow<InsightsMode>
-            label={t(k.insights.period)}
-            options={modeOptions}
-            selection={screen.mode}
-            onSelectionChange={screen.setMode}
-          />
-        </FormSection>
+        {/* A view switcher above the content, with no card (like Health's D/W/M). */}
+        <FormSegmentedSection<InsightsMode>
+          placement="plain"
+          label={t(k.insights.period)}
+          options={modeOptions}
+          selection={screen.mode}
+          onSelectionChange={screen.setMode}
+        />
 
         {screen.isLoading ? (
           <FormSection>

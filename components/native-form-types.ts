@@ -240,6 +240,26 @@ export type FormSegmentedRowProps<T extends string> = {
 };
 
 /**
+ * Where a {@link FormSegmentedRowProps segmented control} that stands alone sits on iOS (Android
+ * always keeps it as a full-width row in an untitled section, which isn't a card there):
+ * - `plain`: a row with no card background, in the form's flow (a view switcher at the top of a
+ *   screen, like Health's or Screen Time's D/W/M).
+ * - `navigationBar`: in the sheet's navigation bar in place of the title (like Calendar's New
+ *   Event / Reminder), at standard text sizes. At accessibility sizes, where a bar can't grow, it
+ *   stays in the form as a `plain` row and the title comes back.
+ */
+export type FormSegmentedPlacement = 'plain' | 'navigationBar';
+
+export type FormSegmentedSectionProps<T extends string> = FormSegmentedRowProps<T> & {
+  placement: FormSegmentedPlacement;
+  /**
+   * The screen's title, which a `navigationBar` control replaces: VoiceOver names the control's
+   * group with it, so the screen still announces what it is.
+   */
+  screenTitle?: string;
+};
+
+/**
  * How a value reads: `positive` is money coming in (iOS system green; Android keeps the
  * on-surface color, since Material 3 has no success role, and relies on the value's `+` sign).
  */
