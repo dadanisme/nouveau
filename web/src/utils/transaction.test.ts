@@ -47,6 +47,7 @@ function tx(overrides: Partial<TransactionWithCategory> = {}): TransactionWithCa
     currency: 'IDR',
     home_currency: 'IDR',
     category_id: food.id,
+    order_id: null,
     date: '2026-10-05',
     description: 'Lunch',
     type: 'expense',
@@ -265,6 +266,7 @@ describe('buildTransactionFromDraft', () => {
       ok: true,
       transaction: {
         id: 'new-id',
+        order_id: null,
         amount: 25000,
         home_amount: 25000,
         currency: 'IDR',
