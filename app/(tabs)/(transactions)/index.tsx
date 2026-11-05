@@ -1,15 +1,8 @@
 import { Stack } from 'expo-router';
 
 import { ADD_FAB_CLEARANCE, AddTransactionFab } from '@/components/add-transaction-fab';
-import {
-  FormEmptyRow,
-  FormLoadingRow,
-  FormNavRow,
-  FormProgressRow,
-  FormSection,
-  FormValueRow,
-  NativeForm,
-} from '@/components/native-form';
+import { CategoryBar } from '@/components/category-bar';
+import { FormEmptyRow, FormLoadingRow, FormSection, NativeForm } from '@/components/native-form';
 import { usePeriodNavToolbar } from '@/components/period-nav-toolbar';
 import { TransactionRow } from '@/components/transaction-row';
 import { TransactionsHeaderToolbar } from '@/components/transactions-header-toolbar';
@@ -24,8 +17,9 @@ const EMPTY_SYMBOL = { sf: 'list.bullet.rectangle', material: 'receipt_long' } a
 
 /**
  * Transactions for a month in a native grouped list. The month is the nav title; chevrons and a
- * month menu in the header change it. A summary and spend breakdown come first, then one section
- * per day. Tap a row to edit it; long-press for Edit / View Proofs / Delete; swipe to delete (iOS).
+ * month menu in the header change it. A storage-style bar of the month's spending by category comes
+ * first (tap it for Insights), then one section per day. Tap a row to edit it; long-press for
+ * Edit / View Proofs / Delete; swipe to delete (iOS).
  */
 export default function TransactionsScreen() {
   const { t } = useLanguage();
@@ -65,33 +59,9 @@ export default function TransactionsScreen() {
           </FormSection>
         ) : (
           <>
-            <FormSection title={t(k.transactions.summary)}>
-              <FormValueRow
-                title={t(k.transactions.income)}
-                value={screen.summary.income}
-                tone="positive"
-              />
-              <FormValueRow title={t(k.transactions.expense)} value={screen.summary.expense} />
-              <FormValueRow
-                title={t(k.insights.balance)}
-                value={screen.summary.balance}
-                emphasized
-              />
-              <FormNavRow title={t(k.insights.viewInsights)} onPress={screen.openInsights} />
-            </FormSection>
-
-            {screen.breakdown.length > 0 ? (
-              <FormSection title={t(k.insights.spendingByCategory)}>
-                {screen.breakdown.map(({ key, title, symbol, amount, share, categoryId }) => (
-                  <FormProgressRow
-                    key={key}
-                    title={title}
-                    symbol={symbol}
-                    value={amount}
-                    progress={share}
-                    onPress={categoryId ? () => screen.openCategory(categoryId) : undefined}
-                  />
-                ))}
+            {screen.categoryBar ? (
+              <FormSection>
+                <CategoryBar {...screen.categoryBar} onPress={screen.openInsights} />
               </FormSection>
             ) : null}
 

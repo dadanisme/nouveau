@@ -42,6 +42,13 @@ const en = {
     hasProofs: 'Has proofs',
     daySpent: 'Spent %{amount}',
     dayReceived: 'Received %{amount}',
+    // The category bar's headline: the month's total expenses (compact).
+    spentTotal: '%{amount} spent',
+    // The category bar for VoiceOver / TalkBack: the full total, then each segment's share.
+    spentSummary: 'Spent %{amount}: %{breakdown}',
+    spentShare: '%{name} %{share}',
+    // VoiceOver hint on the category bar.
+    spentHint: 'Opens Insights for this month.',
   },
   periodNav: {
     chooseMonth: 'Choose month',
@@ -63,7 +70,6 @@ const en = {
     nextYear: 'Next year',
     noData: 'No data for this period',
     noDataMessage: 'Add a transaction in this period to see its insights.',
-    viewInsights: 'View insights',
   },
   addTransaction: {
     addTransaction: 'Add Transaction',
