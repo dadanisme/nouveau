@@ -33,22 +33,29 @@ export function computeTotals(transactions: TransactionWithCategory[] | undefine
   );
 }
 
-export function computeExpenseBreakdown(
+export type TransactionType = 'income' | 'expense';
+
+/**
+ * Per-category totals for one transaction type (by `home_amount`), largest first, each with its
+ * percentage of the type's total. With `maxCategories`, the rest are summed into "Others".
+ */
+export function computeCategoryBreakdown(
   transactions: TransactionWithCategory[] | undefined,
+  type: TransactionType,
   maxCategories = Infinity,
 ): CategorySpend[] {
   if (!transactions) return [];
-  const expenseTotal = transactions.reduce(
-    (sum, tx) => (tx.type === 'expense' ? sum + tx.home_amount : sum),
+  const typeTotal = transactions.reduce(
+    (sum, tx) => (tx.type === type ? sum + tx.home_amount : sum),
     0,
   );
-  if (expenseTotal === 0) return [];
+  if (typeTotal === 0) return [];
 
   // Aggregate by category
   const categoryMap: Record<string, { id: string; name: string; color: string; amount: number }> =
     {};
   for (const tx of transactions) {
-    if (tx.type !== 'expense') continue;
+    if (tx.type !== type) continue;
     const catId = tx.category.id;
     if (!categoryMap[catId]) {
       categoryMap[catId] = {
@@ -67,7 +74,7 @@ export function computeExpenseBreakdown(
   if (sorted.length <= maxCategories) {
     return sorted.map((cat) => ({
       ...cat,
-      percentage: (cat.amount / expenseTotal) * 100,
+      percentage: (cat.amount / typeTotal) * 100,
     }));
   }
 
@@ -77,14 +84,22 @@ export function computeExpenseBreakdown(
   return [
     ...top.map((cat) => ({
       ...cat,
-      percentage: (cat.amount / expenseTotal) * 100,
+      percentage: (cat.amount / typeTotal) * 100,
     })),
     {
       name: i18n.t(k.transactions.others),
       amount: othersAmount,
-      percentage: (othersAmount / expenseTotal) * 100,
+      percentage: (othersAmount / typeTotal) * 100,
     },
   ];
+}
+
+/** Spending by category: {@link computeCategoryBreakdown} for expenses. */
+export function computeExpenseBreakdown(
+  transactions: TransactionWithCategory[] | undefined,
+  maxCategories = Infinity,
+): CategorySpend[] {
+  return computeCategoryBreakdown(transactions, 'expense', maxCategories);
 }
 
 export function computeMonthlyTrend(

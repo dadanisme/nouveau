@@ -12,8 +12,14 @@ import { useWorkspace } from '@/contexts/workspace';
 import { useCategories } from '@/hooks/use-categories';
 import { usePeriodNavigation } from '@/hooks/use-period-navigation';
 import { useTransactions, useTransactionsByYear } from '@/hooks/use-transactions';
-import { computeExpenseBreakdown, computeMonthlyTrend, computeTotals } from '@/utils/analytics';
-import type { PeriodMode } from '@/utils/date';
+import {
+  computeCategoryBreakdown,
+  computeMonthlyTrend,
+  computeTotals,
+  type TransactionType,
+} from '@/utils/analytics';
+import { shiftPeriod, type PeriodMode } from '@/utils/date';
+import { buildInsightsSummary } from '@/utils/insights-summary';
 import { formatPeriodSummary, toSpendBreakdownRows } from '@/utils/period-summary';
 import { joinWithDot } from '@/utils/string';
 
@@ -29,14 +35,15 @@ export interface InsightsCategoryRow {
   symbol: FormSymbol;
   /** Amount and share, e.g. "Rp1.2M · 34%". */
   value: string;
-  /** Share of the period's spending, 0–1. */
+  /** Share of the period's spending (or income), 0–1. */
   share: number;
   categoryId?: string;
 }
 
 /**
  * Insights screen: the period (a month, or a year in year mode) with its native header controls,
- * the period summary, the monthly trend (year mode) and spending by category with its drill-down.
+ * a headline compared with the previous period, the period summary, the monthly trend (year mode),
+ * and spending and income by category with their drill-down.
  * The period is shared with Transactions (`PeriodProvider`), so either tab's change shows here.
  */
 export function useInsightsScreen() {
@@ -72,23 +79,42 @@ export function useInsightsScreen() {
   const activeQuery = mode === 'month' ? monthQuery : yearQuery;
   const transactions = activeQuery.data;
 
+  // The previous month (or year) for the headline's comparison. The previous month's query is
+  // the one Transactions uses for that month, so stepping back a month is a cache hit.
+  const previous = shiftPeriod(mode, nav.period, -1);
+  const previousMonthQuery = useTransactions(
+    mode === 'month' ? currentWorkspaceId : null,
+    previous.year,
+    previous.month,
+  );
+  const previousYearQuery = useTransactionsByYear(
+    currentWorkspaceId,
+    previous.year,
+    mode === 'year',
+  );
+  const previousQuery = mode === 'month' ? previousMonthQuery : previousYearQuery;
+  const previousTransactions = previousQuery.data;
+
   const { data: categories = [] } = useCategories(currentWorkspaceId);
 
   const totals = useMemo(() => computeTotals(transactions), [transactions]);
   const summary = useMemo(() => formatPeriodSummary(totals, locale), [totals, locale]);
 
-  const categoryRows = useMemo(
-    (): InsightsCategoryRow[] =>
-      toSpendBreakdownRows(computeExpenseBreakdown(transactions), categories, { locale }).map(
-        (row) => ({
-          key: row.key,
-          title: row.title,
-          symbol: row.symbol,
-          value: joinWithDot([row.amount, row.shareLabel]),
-          share: row.share,
-          categoryId: row.categoryId,
-        }),
+  const headline = useMemo(
+    () =>
+      buildInsightsSummary(
+        { mode, period: { year, month }, current: transactions, previous: previousTransactions },
+        locale,
       ),
+    [mode, year, month, transactions, previousTransactions, locale],
+  );
+
+  const spendingRows = useMemo(
+    () => toCategoryRows(transactions, 'expense', categories, locale),
+    [transactions, categories, locale],
+  );
+  const incomeRows = useMemo(
+    () => toCategoryRows(transactions, 'income', categories, locale),
     [transactions, categories, locale],
   );
 
@@ -107,17 +133,20 @@ export function useInsightsScreen() {
   }
 
   async function refresh() {
-    await activeQuery.refetch();
+    await Promise.all([activeQuery.refetch(), previousQuery.refetch()]);
   }
 
-  const isLoading = activeQuery.isLoading;
+  // Wait for the previous period too, so the headline doesn't gain its comparison after showing.
+  const isLoading = activeQuery.isLoading || previousQuery.isLoading;
 
   return {
     nav,
     mode,
     setMode,
+    headline,
     summary,
-    categoryRows,
+    spendingRows,
+    incomeRows,
     monthlyTrend,
     highlightMonth,
     isLoading,
@@ -126,4 +155,23 @@ export function useInsightsScreen() {
     openCategory,
     refresh,
   };
+}
+
+/** A breakdown's rows for one type: symbol, "Rp1.2M · 34%" and the share for the bar. */
+function toCategoryRows(
+  transactions: Parameters<typeof computeCategoryBreakdown>[0],
+  type: TransactionType,
+  categories: Parameters<typeof toSpendBreakdownRows>[1],
+  locale: string,
+): InsightsCategoryRow[] {
+  return toSpendBreakdownRows(computeCategoryBreakdown(transactions, type), categories, {
+    locale,
+  }).map((row) => ({
+    key: row.key,
+    title: row.title,
+    symbol: row.symbol,
+    value: joinWithDot([row.amount, row.shareLabel]),
+    share: row.share,
+    categoryId: row.categoryId,
+  }));
 }
