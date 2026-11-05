@@ -4,7 +4,7 @@ import {
   FormListRow,
   FormLoadingRow,
   FormSection,
-  FormSegmentedRow,
+  FormSegmentedSection,
   FormTextFieldRow,
   NativeForm,
 } from '@/components/native-form';
@@ -31,6 +31,7 @@ export default function CategoryFormSheet() {
     { value: 'income', label: t(k.common.income) },
   ] as const;
 
+  const title = form.isEditing ? t(k.categories.editCategory) : t(k.categories.newCategory);
   const saveTitle = form.isEditing ? t(k.common.update) : t(k.common.save);
 
   return (
@@ -46,9 +47,7 @@ export default function CategoryFormSheet() {
           />
         </>
       ) : null}
-      <NativeForm
-        title={form.isEditing ? t(k.categories.editCategory) : t(k.categories.newCategory)}
-      >
+      <NativeForm title={title}>
         {form.isLoading ? (
           <FormSection>
             <FormLoadingRow />
@@ -65,14 +64,15 @@ export default function CategoryFormSheet() {
               />
             </FormSection>
 
-            <FormSection>
-              <FormSegmentedRow
-                label={t(k.transactions.type)}
-                options={typeOptions}
-                selection={form.type}
-                onSelectionChange={form.setType}
-              />
-            </FormSection>
+            {/* iOS: in the sheet header in place of the title (Calendar's New Event). */}
+            <FormSegmentedSection
+              placement="navigationBar"
+              screenTitle={title}
+              label={t(k.transactions.type)}
+              options={typeOptions}
+              selection={form.type}
+              onSelectionChange={form.setType}
+            />
 
             <FormSection>
               <FormListRow

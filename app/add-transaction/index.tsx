@@ -8,7 +8,7 @@ import {
   FormLoadingRow,
   FormNavRow,
   FormSection,
-  FormSegmentedRow,
+  FormSegmentedSection,
   FormTextFieldRow,
   NativeForm,
 } from '@/components/native-form';
@@ -23,7 +23,7 @@ const NOTE_MAX_LENGTH = 100;
 /**
  * Add / edit transaction (`?id=` edits, `?date=` presets the date), presented as a form sheet on
  * iOS and a full-screen modal on Android (see the root layout), with its own Stack. A native form:
- * a large amount field with the decimal keyboard, the type, the category (pushes Select Category
+ * a large amount field with the decimal keyboard, the type (in the header on iOS), the category (pushes Select Category
  * on iOS, a picker sheet on Android), the date, a note, and View Proofs and Delete Transaction
  * (edit) or Save and Add Another (add). Cancel and Save sit in the header; Cancel, swipe-down and
  * Back confirm before dropping unsaved changes.
@@ -37,6 +37,11 @@ export default function AddTransactionScreen() {
     { value: 'expense', label: t(k.addTransaction.expense) },
     { value: 'income', label: t(k.addTransaction.income) },
   ] as const;
+
+  // The layout's title; the type control replaces it in the iOS header, so it names that control.
+  const screenTitle = form.isEditMode
+    ? t(k.addTransaction.editTransaction)
+    : t(k.addTransaction.addTransaction);
 
   return (
     <>
@@ -71,14 +76,15 @@ export default function AddTransactionScreen() {
               />
             </FormSection>
 
-            <FormSection>
-              <FormSegmentedRow
-                label={t(k.transactions.type)}
-                options={typeOptions}
-                selection={form.type}
-                onSelectionChange={form.handleTypeChange}
-              />
-            </FormSection>
+            {/* iOS: in the sheet header in place of the title (Calendar's New Event). */}
+            <FormSegmentedSection
+              placement="navigationBar"
+              screenTitle={screenTitle}
+              label={t(k.transactions.type)}
+              options={typeOptions}
+              selection={form.type}
+              onSelectionChange={form.handleTypeChange}
+            />
 
             <FormSection title={t(k.addTransaction.category)}>
               <FormListRow

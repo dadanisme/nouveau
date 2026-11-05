@@ -4,6 +4,14 @@ import { Platform } from 'react-native';
 import { useLanguage } from '@/contexts/language';
 import { useSymbolIcon } from '@/hooks/use-symbol-icon';
 import { k } from '@/locales/keys';
+import { isIOSVersionAtLeast } from '@/utils/platform';
+
+/**
+ * iOS 26+ editors show their header actions as symbols, as Apple's own sheets do (Calendar's New
+ * Event): `xmark` to cancel, `checkmark` (or `arrow.up` to send) to confirm, each with its word
+ * as the VoiceOver label. iOS 17–18 keep the words.
+ */
+export const HEADER_ACTIONS_AS_SYMBOLS = isIOSVersionAtLeast(26);
 
 type SheetToolbarProps = {
   onPress: () => void;
@@ -30,11 +38,24 @@ export function SheetCloseToolbar({ onPress }: SheetToolbarProps) {
 
 /**
  * The leading Cancel of an editor (it leaves without saving; the screen's discard guard confirms
- * unsaved changes). iOS shows the word; Android shows the M3 full-screen dialog's close icon.
+ * unsaved changes). iOS 26+ shows `xmark` (labelled "Cancel"), iOS 17–18 the word; Android
+ * shows the M3 full-screen dialog's close icon.
  */
 export function SheetCancelToolbar({ onPress }: SheetToolbarProps) {
   const { t } = useLanguage();
   const closeIcon = useSymbolIcon({ sf: 'xmark', md: 'close' });
+
+  if (HEADER_ACTIONS_AS_SYMBOLS) {
+    return (
+      <Stack.Toolbar placement="left">
+        <Stack.Toolbar.Button
+          icon="xmark"
+          accessibilityLabel={t(k.common.cancel)}
+          onPress={onPress}
+        />
+      </Stack.Toolbar>
+    );
+  }
 
   if (Platform.OS === 'ios') {
     return (

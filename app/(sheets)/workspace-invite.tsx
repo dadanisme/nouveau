@@ -62,6 +62,7 @@ export default function WorkspaceInviteSheet() {
           <SheetCancelToolbar onPress={invite.close} />
           <FormSaveToolbar
             title={t(k.common.send)}
+            symbol="arrow.up"
             disabled={!invite.canSubmit}
             pending={invite.isPending}
             onPress={invite.submit}

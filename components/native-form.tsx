@@ -30,6 +30,7 @@ import {
   autocorrectionDisabled,
   badge,
   disabled,
+  dynamicTypeSize,
   fixedSize,
   font,
   foregroundStyle,
@@ -38,6 +39,8 @@ import {
   labelsHidden,
   lineLimit,
   listRowBackground,
+  listRowInsets,
+  onGeometryChange,
   onSubmit as onSubmitModifier,
   monospacedDigit,
   multilineTextAlignment,
@@ -49,9 +52,11 @@ import {
   textContentType,
   textInputAutocapitalization,
   tint,
+  type ViewModifier,
 } from '@expo/ui/swift-ui/modifiers';
-import { useCallback, useEffect, useImperativeHandle, useRef } from 'react';
-import { PlatformColor, StyleSheet, type ColorValue } from 'react-native';
+import { Stack } from 'expo-router';
+import { useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
+import { PlatformColor, StyleSheet, useWindowDimensions, type ColorValue } from 'react-native';
 
 import type {
   FormButtonRowProps,
@@ -65,6 +70,7 @@ import type {
   FormProgressRowProps,
   FormSectionProps,
   FormSegmentedRowProps,
+  FormSegmentedSectionProps,
   FormSymbol,
   FormTextFieldContentType,
   FormTextFieldRowProps,
@@ -75,6 +81,7 @@ import { RowSymbol } from '@/components/row-symbol';
 import { ACCENT_COLOR } from '@/constants/accent';
 import { useIsAccessibilityTextSize } from '@/hooks/use-accessibility-text-size';
 import { reportFieldFocus } from '@/lib/keyboard';
+import { isIOSVersionAtLeast } from '@/utils/platform';
 
 // Explicit label colors: inside a Button, hierarchical styles resolve against the accent tint.
 const PRIMARY = foregroundStyle(PlatformColor('label'));
@@ -527,18 +534,114 @@ export function FormTextFieldRow({
 }
 
 /** A full-width segmented control (`Picker` with the segmented style). */
-export function FormSegmentedRow<T extends string>({
+export function FormSegmentedRow<T extends string>(props: FormSegmentedRowProps<T>) {
+  return <SegmentedPicker {...props} />;
+}
+
+// The header segmented control. The bar's title view takes its frame from React Native's layout,
+// where a `matchContents` host stayed 0×0, so its host gets an explicit size from the window
+// width alone (known on the first render, so it never shifts after the first layout): the window
+// less, on each side, the room the widest leading or trailing bar item takes (an iOS 26+ symbol
+// button, "Cancel" on iOS 17–18) plus its margins, so UIKit keeps it centred between them. The
+// control is as wide as its longest label needs, at least HEADER_MIN_WIDTH, and its text stays at
+// the default size, as a bar title's does.
+const HEADER_SIDE_RESERVE = isIOSVersionAtLeast(26) ? 76 : 84;
+const HEADER_MIN_WIDTH = 172;
+const HEADER_CONTROL_HEIGHT = 32;
+const HEADER_TEXT_SIZE = dynamicTypeSize('large');
+
+// A plain row: no card background and no insets, so the control spans the cards' width.
+const PLAIN_ROW = [
+  listRowBackground('clear'),
+  listRowInsets({ top: 0, leading: 0, bottom: 0, trailing: 0 }),
+];
+
+/**
+ * A segmented control that stands alone, without a card around it (#94). `plain` puts it on a
+ * clear row in its own section, e.g. a view switcher above a screen's content. `navigationBar`
+ * moves it into the sheet's navigation bar in place of the title (HIG
+ * segmented-controls#iOS-iPadOS: "the segmented control in Calendar's New Event sheet switches
+ * between the subviews for creating a new event and a new reminder"); the screen keeps its title
+ * option, which UIKit still uses for the Back button of what it pushes. Bars don't grow with
+ * Dynamic Type, so at accessibility text sizes the control stays in the form as a plain row,
+ * where it can, and the text title comes back. So does a control whose labels don't fit between
+ * the bar items (e.g. "Pengeluaran / Pemasukan" on a glass bar): it's measured in the bar, and
+ * moves to the form rather than truncate.
+ */
+export function FormSegmentedSection<T extends string>({
+  placement,
+  screenTitle,
+  ...props
+}: FormSegmentedSectionProps<T>) {
+  const isStacked = useIsAccessibilityTextSize();
+  const { width: windowWidth } = useWindowDimensions();
+  const slotWidth = Math.max(0, Math.floor(windowWidth - 2 * HEADER_SIDE_RESERVE));
+  // The control's measured width, for these labels in this slot.
+  const measureKey = `${slotWidth}|${props.options.map((option) => option.label).join('|')}`;
+  const [measured, setMeasured] = useState<{ key: string; width: number } | null>(null);
+  const fitsBar = measured?.key !== measureKey || measured.width <= slotWidth + 0.5;
+
+  if (placement === 'navigationBar' && !isStacked && fitsBar) {
+    return (
+      <Stack.Title asChild>
+        <Host
+          style={{ width: slotWidth, height: HEADER_CONTROL_HEIGHT }}
+          alignment="center"
+          seedColor={ACCENT_COLOR}
+        >
+          {/* The control replaces the title, so its group carries the screen's name. */}
+          <HStack
+            modifiers={[
+              HEADER_TEXT_SIZE,
+              ...(screenTitle
+                ? [accessibilityElement('contain'), accessibilityLabel(screenTitle)]
+                : []),
+            ]}
+          >
+            <SegmentedPicker
+              {...props}
+              modifiers={[
+                // Its ideal width: what the longest label needs, at least the minimum.
+                frame({ minWidth: Math.min(HEADER_MIN_WIDTH, slotWidth) }),
+                fixedSize(),
+                onGeometryChange(({ width }) => {
+                  if (measured?.key !== measureKey || Math.abs(measured.width - width) > 0.5) {
+                    setMeasured({ key: measureKey, width });
+                  }
+                }),
+              ]}
+            />
+          </HStack>
+        </Host>
+      </Stack.Title>
+    );
+  }
+
+  return (
+    <Section>
+      <SegmentedPicker {...props} modifiers={PLAIN_ROW} />
+    </Section>
+  );
+}
+
+function SegmentedPicker<T extends string>({
   label,
   options,
   selection,
   onSelectionChange,
-}: FormSegmentedRowProps<T>) {
+  modifiers = [],
+}: FormSegmentedRowProps<T> & { modifiers?: ViewModifier[] }) {
   return (
     <Picker<T>
       label={label}
       selection={selection}
       onSelectionChange={onSelectionChange}
-      modifiers={[pickerStyle('segmented'), labelsHidden(), accessibilityLabel(label)]}
+      modifiers={[
+        pickerStyle('segmented'),
+        labelsHidden(),
+        accessibilityLabel(label),
+        ...modifiers,
+      ]}
     >
       {options.map((option) => (
         <Text key={option.value} modifiers={[tag(option.value)]}>

@@ -68,6 +68,7 @@ import type {
   FormSectionProps,
   FormProgressRowProps,
   FormSegmentedRowProps,
+  FormSegmentedSectionProps,
   FormTextFieldContentType,
   FormTextFieldRowProps,
   FormValueRowProps,
@@ -168,11 +169,8 @@ function withoutLeadingGap(children: ReactNode): ReactNode[] {
     const inner = (first.props as { children?: ReactNode }).children;
     return [cloneElement(first, undefined, ...withoutLeadingGap(inner)), ...rest];
   }
-  if (first.type !== FormSection) return items;
-  return [
-    cloneElement(first as ReactElement<FormSectionInternalProps>, { isFirst: true }),
-    ...rest,
-  ];
+  if (first.type !== FormSection && first.type !== FormSegmentedSection) return items;
+  return [cloneElement(first as ReactElement<{ isFirst?: boolean }>, { isFirst: true }), ...rest];
 }
 
 type FormSectionInternalProps = FormSectionProps & { isFirst?: boolean };
@@ -672,6 +670,24 @@ export function FormSegmentedRow<T extends string>({
         </SegmentedButton>
       ))}
     </SingleChoiceSegmentedButtonRow>
+  );
+}
+
+/**
+ * A segmented control that stands alone. Android's `FormSection` isn't a card, so every placement
+ * stays a full-width row in an untitled section, in the form's flow (iOS moves it out of the
+ * card, or into the sheet's navigation bar).
+ */
+export function FormSegmentedSection<T extends string>({
+  placement: _placement,
+  screenTitle: _screenTitle,
+  isFirst,
+  ...props
+}: FormSegmentedSectionProps<T> & { isFirst?: boolean }) {
+  return (
+    <FormSection isFirst={isFirst}>
+      <FormSegmentedRow {...props} />
+    </FormSection>
   );
 }
 

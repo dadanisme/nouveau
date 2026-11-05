@@ -1,6 +1,7 @@
 import { Color, Stack } from 'expo-router';
 import { ActivityIndicator, Platform } from 'react-native';
 
+import { HEADER_ACTIONS_AS_SYMBOLS } from '@/components/sheet-toolbar';
 import { useLanguage } from '@/contexts/language';
 import { useSymbolIcon } from '@/hooks/use-symbol-icon';
 import { k } from '@/locales/keys';
@@ -14,8 +15,9 @@ interface TransactionFormToolbarProps {
 
 /**
  * Right side of the add/edit transaction header: Save as the confirmation action (Cancel is the
- * left item). iOS shows Save as a text "done" button; Android header actions are icon buttons, so
- * a check icon. View Proofs and Delete are rows in the form, not a header menu.
+ * left item). iOS 26+ shows a prominent `checkmark` labelled "Save" (see
+ * `HEADER_ACTIONS_AS_SYMBOLS`), iOS 17–18 a text "done" button; Android header actions are icon
+ * buttons, so a check icon. View Proofs and Delete are rows in the form, not a header menu.
  */
 export function TransactionFormToolbar({
   isSaving,
@@ -39,7 +41,16 @@ export function TransactionFormToolbar({
           <ActivityIndicator accessibilityLabel={t(k.common.pleaseWait)} />
         </Stack.Toolbar.View>
       ) : (
-        canShowSave && (
+        canShowSave &&
+        (HEADER_ACTIONS_AS_SYMBOLS ? (
+          <Stack.Toolbar.Button
+            icon="checkmark"
+            variant="prominent"
+            disabled={isSaveDisabled}
+            accessibilityLabel={t(k.common.save)}
+            onPress={onSave}
+          />
+        ) : (
           <Stack.Toolbar.Button
             icon={saveIcon}
             variant="done"
@@ -50,7 +61,7 @@ export function TransactionFormToolbar({
           >
             {t(k.common.save)}
           </Stack.Toolbar.Button>
-        )
+        ))
       )}
     </Stack.Toolbar>
   );
