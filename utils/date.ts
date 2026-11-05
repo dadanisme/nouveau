@@ -83,6 +83,15 @@ export function shiftPeriod(mode: PeriodMode, period: Period, delta: number): Pe
   return { year: Math.floor(index / 12), month: ((index % 12) + 12) % 12 };
 }
 
+/**
+ * `period` moved to `year`, keeping its month unless that lands after `today`'s month, in which
+ * case the month becomes today's (a year-mode change shouldn't leave a month view in the future).
+ */
+export function withPeriodYear(period: Period, year: number, today: Period): Period {
+  const isAfterToday = year > today.year || (year === today.year && period.month > today.month);
+  return { year, month: isAfterToday ? today.month : period.month };
+}
+
 /** Whether two periods are the same month (month mode) or year (year mode). */
 export function isSamePeriod(mode: PeriodMode, a: Period, b: Period): boolean {
   return a.year === b.year && (mode === 'year' || a.month === b.month);
