@@ -44,6 +44,7 @@ function tx(
     currency: 'IDR',
     home_currency: 'IDR',
     category_id: category.id,
+    order_id: null,
     date: '2026-10-01',
     description: null,
     type: category.type,

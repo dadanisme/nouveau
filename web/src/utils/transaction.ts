@@ -191,6 +191,7 @@ export function buildTransactionFromDraft(
     ok: true,
     transaction: {
       id,
+      order_id: null,
       amount,
       home_amount: amount,
       currency: homeCurrency,
