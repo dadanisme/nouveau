@@ -712,25 +712,42 @@ export function FormValueRow({ title, value, emphasized }: FormValueRowProps) {
 
 /**
  * A statement list item: the title in `titleMedium`, the subtitle as `bodyMedium` supporting text.
- * Both wrap; the list item merges them into one TalkBack element (`accessibilityLabel` replaces
- * both lines, e.g. with full amounts).
+ * Both wrap. Each line carries its own spoken label (e.g. full amounts), so TalkBack reads the
+ * title and then the subtitle: expo-ui can't merge a non-clickable item's children into one node.
  */
-export function FormHeadlineRow({ title, subtitle, accessibilityLabel }: FormHeadlineRowProps) {
+export function FormHeadlineRow({
+  title,
+  subtitle,
+  titleAccessibilityLabel,
+  subtitleAccessibilityLabel,
+}: FormHeadlineRowProps) {
   const colors = useMaterialColors();
   return (
-    <ListItem
-      modifiers={
-        accessibilityLabel ? [semantics({ contentDescription: accessibilityLabel })] : undefined
-      }
-    >
+    <ListItem>
       <ListItem.HeadlineContent>
-        <Text color={colors.onSurface} style={{ typography: 'titleMedium' }}>
+        <Text
+          color={colors.onSurface}
+          style={{ typography: 'titleMedium' }}
+          modifiers={
+            titleAccessibilityLabel
+              ? [semantics({ contentDescription: titleAccessibilityLabel })]
+              : undefined
+          }
+        >
           {title}
         </Text>
       </ListItem.HeadlineContent>
       {subtitle ? (
         <ListItem.SupportingContent>
-          <Text color={colors.onSurfaceVariant} style={{ typography: 'bodyMedium' }}>
+          <Text
+            color={colors.onSurfaceVariant}
+            style={{ typography: 'bodyMedium' }}
+            modifiers={
+              subtitleAccessibilityLabel
+                ? [semantics({ contentDescription: subtitleAccessibilityLabel })]
+                : undefined
+            }
+          >
             {subtitle}
           </Text>
         </ListItem.SupportingContent>

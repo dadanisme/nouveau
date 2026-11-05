@@ -281,7 +281,10 @@ export type FormValueRowProps = {
 export type FormHeadlineRowProps = {
   title: string;
   subtitle?: string;
-  accessibilityLabel?: string;
+  /** The title as spoken (e.g. with full amounts). */
+  titleAccessibilityLabel?: string;
+  /** The subtitle as spoken. */
+  subtitleAccessibilityLabel?: string;
 };
 
 export type FormProgressRowProps = {

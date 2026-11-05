@@ -136,7 +136,7 @@ Use the platform component, not a custom look-alike. Check Context7 for the exac
 
 ### Forms and lists (#32)
 
-Full-screen forms and grouped lists use the shared primitives in `components/native-form{,.android}.tsx` (same props on both platforms): `NativeForm`, `FormSection({title?, footer?})`, `FormNavRow`, `FormPickerRow`, `FormButtonRow({role?: 'destructive'})`, `FormNoticeRow`, `FormHeadlineRow` (a statement in a title style with a secondary line, read as one element). Icons are `{ sf: '<SF Symbol>', md: require('@/assets/icons/<name>.xml') }`.
+Full-screen forms and grouped lists use the shared primitives in `components/native-form{,.android}.tsx` (same props on both platforms): `NativeForm`, `FormSection({title?, footer?})`, `FormNavRow`, `FormPickerRow`, `FormButtonRow({role?: 'destructive'})`, `FormNoticeRow`, `FormHeadlineRow` (a statement in a title style with a secondary line; one VoiceOver element on iOS, one TalkBack stop per line on Android, each with its spoken label). Icons are `{ sf: '<SF Symbol>', md: require('@/assets/icons/<name>.xml') }`.
 
 - iOS: `Host style={{ flex: 1 }}` → SwiftUI `Form` → `Section`s, as the screen's root view. The native large title collapses with the Form scroll on iOS 18 and 27 with no workaround.
 - Android: `ComposeHost` (`components/compose-host.tsx`, a `Host` with the light/dark scheme passed explicitly, so screens that were detached during a theme change don't keep the old palette; use it for every Compose host) → Compose `LazyColumn` → section header `Text` + M3 `ListItem`s; palette is the system one with only `primary` set to the accent.

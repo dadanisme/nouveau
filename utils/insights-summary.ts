@@ -17,8 +17,10 @@ export interface InsightsSummary {
   headline: string;
   /** "Food was your top category; Transport rose the most (+Rp300K)". Absent with no spending. */
   detail?: string;
-  /** Both lines with full amounts, for VoiceOver / TalkBack. */
-  accessibilityLabel: string;
+  /** The headline with full amounts, for VoiceOver / TalkBack. */
+  spokenHeadline: string;
+  /** The detail with full amounts. */
+  spokenDetail?: string;
 }
 
 export interface InsightsSummaryInput {
@@ -104,7 +106,7 @@ export function buildInsightsSummary(
         ? yearLabel(period.year)
         : formatPeriodLabel('month', period.year, period.month, { locale });
     const headline = t(k.insights.headline.noSpending, { period: periodName });
-    return { headline, accessibilityLabel: headline };
+    return { headline, spokenHeadline: headline };
   }
 
   const previousPeriod = shiftPeriod(mode, period, -1);
@@ -165,5 +167,5 @@ export function buildInsightsSummary(
 
   const [headline, detail] = compose((value) => formatCompactAmount(value, locale));
   const spoken = compose(formatCurrency);
-  return { headline, detail, accessibilityLabel: `${spoken[0]}. ${spoken[1]}` };
+  return { headline, detail, spokenHeadline: spoken[0], spokenDetail: spoken[1] };
 }

@@ -76,7 +76,8 @@ export default function InsightsScreen() {
               <FormHeadlineRow
                 title={screen.headline.headline}
                 subtitle={screen.headline.detail}
-                accessibilityLabel={screen.headline.accessibilityLabel}
+                titleAccessibilityLabel={screen.headline.spokenHeadline}
+                subtitleAccessibilityLabel={screen.headline.spokenDetail}
               />
             </FormSection>
 

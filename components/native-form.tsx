@@ -699,10 +699,14 @@ export function FormValueRow({ title, value, tone = 'default', emphasized }: For
 export function FormHeadlineRow({
   title,
   subtitle,
-  accessibilityLabel: label,
+  titleAccessibilityLabel,
+  subtitleAccessibilityLabel,
 }: FormHeadlineRowProps) {
   // Its ideal height, so the row doesn't propose one line to the text (as on iOS 18).
   const wrap = fixedSize({ horizontal: false, vertical: true });
+  const spokenTitle = titleAccessibilityLabel ?? title;
+  const spokenSubtitle = subtitle ? (subtitleAccessibilityLabel ?? subtitle) : undefined;
+  const label = spokenSubtitle ? `${spokenTitle}. ${spokenSubtitle}` : spokenTitle;
   return (
     <VStack
       alignment="leading"
@@ -710,7 +714,7 @@ export function FormHeadlineRow({
       modifiers={[
         frame({ maxWidth: Infinity, alignment: 'leading' }),
         COMBINED,
-        ...(label ? [accessibilityLabel(label)] : []),
+        accessibilityLabel(label),
       ]}
     >
       <Text modifiers={[PRIMARY, font({ textStyle: 'title3', weight: 'semibold' }), wrap]}>
