@@ -44,6 +44,10 @@ const id: Translations = {
     hasProofs: 'Ada bukti',
     daySpent: 'Keluar %{amount}',
     dayReceived: 'Masuk %{amount}',
+    spentTotal: '%{amount} dibelanjakan',
+    spentSummary: 'Dibelanjakan %{amount}: %{breakdown}',
+    spentShare: '%{name} %{share}',
+    spentHint: 'Membuka Wawasan untuk bulan ini.',
   },
   periodNav: {
     chooseMonth: 'Pilih bulan',
@@ -65,7 +69,6 @@ const id: Translations = {
     nextYear: 'Tahun berikutnya',
     noData: 'Tidak ada data untuk periode ini',
     noDataMessage: 'Tambahkan transaksi pada periode ini untuk melihat wawasannya.',
-    viewInsights: 'Lihat wawasan',
   },
   addTransaction: {
     addTransaction: 'Tambah Transaksi',

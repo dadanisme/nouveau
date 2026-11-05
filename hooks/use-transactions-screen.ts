@@ -10,10 +10,10 @@ import { usePeriodNavigation } from '@/hooks/use-period-navigation';
 import { useTransactions } from '@/hooks/use-transactions';
 import { k } from '@/locales/keys';
 import type { Tables } from '@/types/supabase';
-import { computeExpenseBreakdown, computeTotals } from '@/utils/analytics';
+import { computeExpenseBreakdown } from '@/utils/analytics';
+import { toCategoryBarModel } from '@/utils/category-bar';
 import { formatCompactAmount } from '@/utils/currency';
 import { formatDayLabel } from '@/utils/date';
-import { formatPeriodSummary, toSpendBreakdownRows } from '@/utils/period-summary';
 import { joinWithDot } from '@/utils/string';
 import { groupTransactionsByDay, toTransactionRowData } from '@/utils/transaction';
 
@@ -34,12 +34,12 @@ export interface TransactionDaySection {
   rows: TransactionRowData[];
 }
 
-/** Top categories shown before the rest fold into "Others". */
-const BREAKDOWN_TOP_CATEGORIES = 4;
+/** Top categories the category bar shows before the rest fold into "Others". */
+const BAR_TOP_CATEGORIES = 4;
 
 /**
- * Transactions screen: the month (with its native header controls), filters, the month summary
- * and spend breakdown, the day sections and the row actions.
+ * Transactions screen: the month (with its native header controls), filters, the month's category
+ * bar, the day sections and the row actions.
  */
 export function useTransactionsScreen() {
   const router = useRouter();
@@ -65,7 +65,7 @@ export function useTransactionsScreen() {
   const filterType = activeFilter === 'all' ? undefined : activeFilter;
   const filteredQuery = useTransactions(currentWorkspaceId, year, month, filterType);
 
-  // Categories for the filter menu and the breakdown symbols
+  // Categories for the filter menu
   const { data: categories = [] } = useCategories(currentWorkspaceId);
 
   const allTransactions = allQuery.data;
@@ -75,17 +75,15 @@ export function useTransactionsScreen() {
     await Promise.all([allQuery.refetch(), filteredQuery.refetch()]);
   }
 
-  const totals = useMemo(() => computeTotals(allTransactions), [allTransactions]);
-  const summary = useMemo(() => formatPeriodSummary(totals, locale), [totals, locale]);
-
-  const breakdown = useMemo(
+  // From the unfiltered query, so the type and category filters don't change the bar. Null (the
+  // bar hidden) when the month has no expenses.
+  const categoryBar = useMemo(
     () =>
-      toSpendBreakdownRows(
-        computeExpenseBreakdown(allTransactions, BREAKDOWN_TOP_CATEGORIES),
-        categories,
-        { locale, othersTitle: t(k.transactions.others) },
-      ),
-    [allTransactions, categories, t, locale],
+      toCategoryBarModel(computeExpenseBreakdown(allTransactions, BAR_TOP_CATEGORIES), {
+        locale,
+        othersTitle: t(k.transactions.others),
+      }),
+    [allTransactions, t, locale],
   );
 
   const daySections = useMemo((): TransactionDaySection[] => {
@@ -154,13 +152,6 @@ export function useTransactionsScreen() {
     router.navigate({ pathname: '/insights', params: { mode: 'month' } });
   }
 
-  function openCategory(categoryId: string) {
-    router.push({
-      pathname: '/category-transactions',
-      params: { categoryId, mode: 'month', year: String(year), month: String(month) },
-    });
-  }
-
   const isLoading = allQuery.isLoading || filteredQuery.isLoading;
 
   return {
@@ -171,11 +162,10 @@ export function useTransactionsScreen() {
     setCategoryFilter,
     categoryGroups,
     isFilterActive: activeFilter !== 'all' || categoryFilter !== null,
-    summary,
-    breakdown,
+    categoryBar,
     daySections,
     isLoading,
-    /** The month has no transactions at all (so no summary either). */
+    /** The month has no transactions at all (so no category bar either). */
     isMonthEmpty: !isLoading && (allTransactions?.length ?? 0) === 0,
     /** The month has transactions, but none match the filter: why the list is empty. */
     noMatchesMessage: filterName
@@ -187,6 +177,5 @@ export function useTransactionsScreen() {
     viewProofs,
     requestDelete,
     openInsights,
-    openCategory,
   };
 }

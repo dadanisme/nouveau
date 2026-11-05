@@ -36,3 +36,27 @@ export const MonthlyBarChart = requireNativeView<MonthlyBarChartProps>(
   'NativeCharts',
   'MonthlyBarChartView',
 );
+
+/** A category's segment of the bar, with its strings already formatted (see `utils/category-bar.ts`). */
+export type NativeCategoryBarSegment = {
+  id: string;
+  name: string;
+  value: number;
+  shareLabel: string;
+  color: ColorValue;
+};
+
+export type CategoryBarChartProps = {
+  segments: NativeCategoryBarSegment[];
+  /** What VoiceOver reads for the whole chart. */
+  summary: string;
+};
+
+/**
+ * The Swift Charts storage-style category bar with its legend (`ios/CategoryBarChartView.swift`).
+ * A SwiftUI view: render it inside an `@expo/ui` `Host` tree, e.g. in a `Form` row. iOS only.
+ */
+export const CategoryBarChart = requireNativeView<CategoryBarChartProps>(
+  'NativeCharts',
+  'CategoryBarChartView',
+);

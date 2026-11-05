@@ -66,6 +66,7 @@ Navigation conventions (#25–#27):
 - Unsaved changes: editors (Add/Edit Transaction, category form, invite sheet, Workspace settings, Create workspace) guard swipe-down, Cancel and Back with `useDiscardGuard(isDirty)` (`hooks/use-discard-guard.ts`, `usePreventRemove`): a Discard Changes / Keep Editing action sheet on iOS, an alert on Android. Pushed screens pass `{ pushed: true }`, which turns swipe-back off while dirty (the native swipe-back can't be held). Leave after a save or delete through the `leave(navigate)` it returns. Close the keyboard with `dismissKeyboard()` (`lib/keyboard.ts`), not `Keyboard.dismiss` (ESLint flags it): RN's dismiss can't resign a SwiftUI field, and a sheet shown while that keyboard is up sits under it. `FormTextFieldRow` reports its focus there, and the guard and `confirmDestructive` wait for it before they prompt.
 - Period change (Transactions, Insights): the period is the nav title, with chevrons and a period menu in the header from `usePeriodNavigation(mode)` + `usePeriodNavToolbar(nav)` (a left toolbar on iOS, leading right-toolbar items on Android). No pan gestures.
 - Charts are form rows too: `MonthlySpendingChart` (`components/monthly-spending-chart{,.android}.tsx`, Insights year mode) goes straight into a `FormSection`. Its strings (month labels, full amounts for VoiceOver/TalkBack, compact ticks, summary) come from `utils/monthly-chart.ts`.
+- Transactions shows the month's spending as one storage-style bar (#90): `CategoryBar` (`components/category-bar{,.android}.tsx`), a button row in its own `FormSection` that opens Insights. iOS draws it with the Swift Charts `CategoryBarChart` (`modules/native-charts`: interval `BarMark`s in a capsule, gaps as separators, a wrapping legend); Android with Compose `Row`/`Box` segments and a `FlowRow` legend. Top 4 categories + Others from the unfiltered query; its headline, legend percents and screen-reader summary come from `utils/category-bar.ts`. Hidden when the month has no expenses.
 
 Provider hierarchy:
 
@@ -93,7 +94,7 @@ Conventions:
 
 ### Utilities
 
-Pure functions live in `utils/`: `analytics` (totals, breakdown, monthly trend), `array`, `currency` (formatting, decimals, symbols), `date`, `error`, `file`, `icon` (`parseIcon`), `monthly-chart` (the monthly spending chart model and axis ticks), `params`, `period-summary` (summary values and spend breakdown rows), `platform` (OS version checks, add-action placement), `promise`, `string`, `transaction`, `workspace`. `currency.ts` and `date.ts` use `i18n` for locale-aware formatting. The DB-to-native icon/color mapping also lives here (see below).
+Pure functions live in `utils/`: `analytics` (totals, breakdown, monthly trend), `array`, `category-bar` (the Transactions category bar model), `currency` (formatting, decimals, symbols), `date`, `error`, `file`, `icon` (`parseIcon`), `monthly-chart` (the monthly spending chart model and axis ticks), `params`, `period-summary` (summary values and spend breakdown rows), `platform` (OS version checks, add-action placement), `promise`, `string`, `transaction`, `workspace`. `currency.ts` and `date.ts` use `i18n` for locale-aware formatting. The DB-to-native icon/color mapping also lives here (see below).
 
 ### Localization
 
