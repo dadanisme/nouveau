@@ -7,16 +7,14 @@ import {
   useSignInWithApple,
   useSignInWithEmail,
   useSignInWithGoogle,
-  useStartGuest,
 } from '@/hooks/use-auth';
 import { showAlertDialog } from '@/lib/alert-dialog';
 import { k } from '@/locales/keys';
 import { getErrorCode, getErrorMessage } from '@/utils/error';
 
 /**
- * Screen hook for Login: the email/password form, Apple (iOS) and Google sign-in, the switch to
- * Sign Up, and Continue Without an Account (guest mode, data on this device only, #100).
- * Cancelling a provider sheet is silent; failures alert.
+ * Screen hook for Login: the email/password form, Apple (iOS) and Google sign-in, and the switch
+ * to Sign Up. Guest mode starts from Welcome's Get Started instead (#78). Cancelling a provider sheet is silent; failures alert.
  */
 export function useLoginScreen() {
   const router = useRouter();
@@ -24,17 +22,22 @@ export function useLoginScreen() {
   const signInWithEmail = useSignInWithEmail();
   const signInWithGoogle = useSignInWithGoogle();
   const signInWithApple = useSignInWithApple();
-  const startGuest = useStartGuest();
   const isAppleAvailable = useAppleSignInAvailable();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
+  // Signed in: Login stays up until the root Stack moves on (after a new sign-in's currency check),
+  // so the form stays busy until then rather than coming back enabled.
+  const hasSignedIn =
+    signInWithEmail.isSuccess ||
+    signInWithGoogle.data === 'signedIn' ||
+    signInWithApple.data === 'signedIn';
   const isSubmitting =
     signInWithEmail.isPending ||
     signInWithGoogle.isPending ||
     signInWithApple.isPending ||
-    startGuest.isPending;
+    hasSignedIn;
 
   function showSignInError(error: unknown) {
     // Supabase's wrong-password message is English only; the rest pass through as sent.
@@ -64,28 +67,15 @@ export function useLoginScreen() {
     signInWithApple.mutate(undefined, { onError: showSignInError });
   }
 
-  function continueWithoutAccount() {
-    if (isSubmitting) return;
-    // AuthGuard leaves Login once the guest is set.
-    startGuest.mutate(undefined, {
-      onError: (error) =>
-        showAlertDialog(
-          t(k.login.continueWithoutAccountFailed),
-          getErrorMessage(error, t(k.common.unexpectedError)),
-        ),
-    });
-  }
-
   return {
     setEmail,
     setPassword,
     isSubmitting,
-    isSigningIn: signInWithEmail.isPending,
+    isSigningIn: signInWithEmail.isPending || signInWithEmail.isSuccess,
     signIn,
     signInWithGoogle: signInWithGoogleAccount,
     isAppleAvailable,
     signInWithApple: signInWithAppleId,
     openSignUp: () => router.push('/signup'),
-    continueWithoutAccount,
   };
 }

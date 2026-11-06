@@ -21,6 +21,7 @@ const ICONS = {
     md: require('@/assets/icons/autorenew.xml'),
   },
   language: { sf: 'globe', md: require('@/assets/icons/language.xml') },
+  introduction: { sf: 'sparkles', md: require('@/assets/icons/auto_awesome.xml') },
   signOut: { sf: 'rectangle.portrait.and.arrow.right', md: require('@/assets/icons/logout.xml') },
 } as const;
 
@@ -77,6 +78,12 @@ export default function SettingsScreen() {
           options={screen.languageOptions}
           selection={screen.locale}
           onSelectionChange={screen.setLocale}
+        />
+        {/* The first-run value pages again, in a modal (HIG onboarding: replayable later). */}
+        <FormNavRow
+          title={t(k.settings.viewIntroduction)}
+          icon={ICONS.introduction}
+          onPress={screen.openIntroduction}
         />
       </FormSection>
 

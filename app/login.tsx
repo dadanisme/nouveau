@@ -10,7 +10,7 @@ import { useLanguage } from '@/contexts/language';
 import { useLoginScreen } from '@/hooks/use-login-screen';
 import { k } from '@/locales/keys';
 
-// The form is the screen's root view under an empty native bar on iOS (the signed-out root).
+// The form is the screen's root view under a native bar with only Back (to Welcome).
 export default function LoginScreen() {
   const { t } = useLanguage();
   // Return-key flow: Next on the email field moves focus to the password field.
@@ -18,7 +18,7 @@ export default function LoginScreen() {
   const screen = useLoginScreen();
 
   return (
-    <AuthForm title={t(k.login.heading)} subtitle={t(k.login.subtitle)} insetTop>
+    <AuthForm title={t(k.login.heading)} subtitle={t(k.login.subtitle)}>
       <AuthFormSection>
         <FormTextFieldRow
           placeholder={t(k.login.email)}
@@ -53,11 +53,6 @@ export default function LoginScreen() {
           action={t(k.login.signUp)}
           disabled={screen.isSubmitting}
           onPress={screen.openSignUp}
-        />
-        <AuthSwitchRow
-          action={t(k.login.continueWithoutAccount)}
-          disabled={screen.isSubmitting}
-          onPress={screen.continueWithoutAccount}
         />
       </AuthFormSection>
 

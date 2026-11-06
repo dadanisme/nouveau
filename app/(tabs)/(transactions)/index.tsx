@@ -55,6 +55,11 @@ export default function TransactionsScreen() {
               title={t(k.transactions.noTransactions)}
               description={t(k.transactions.noTransactionsMessage)}
               symbol={EMPTY_SYMBOL}
+              // The same add-transaction route the header + (iOS) and the FAB (Android) open.
+              action={{
+                title: t(k.addTransaction.addTransaction),
+                onPress: screen.addTransaction,
+              }}
             />
           </FormSection>
         ) : (

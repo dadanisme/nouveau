@@ -29,6 +29,8 @@ import {
   accessibilityValue,
   autocorrectionDisabled,
   badge,
+  buttonStyle,
+  controlSize,
   disabled,
   dynamicTypeSize,
   fixedSize,
@@ -779,12 +781,23 @@ export function FormProgressRow({ title, symbol, value, progress, onPress }: For
  * An empty state (`ContentUnavailableView`) on a clear row. Its ideal height, so a long title wraps
  * instead of truncating (the row otherwise proposes one line to it on iOS 18 and at AX sizes).
  */
-export function FormEmptyRow({ title, description, symbol }: FormEmptyRowProps) {
+export function FormEmptyRow({ title, description, symbol, action }: FormEmptyRowProps) {
   return (
     <ContentUnavailableView
       title={title}
       systemImage={symbol.sf}
       description={description}
+      actions={
+        action ? (
+          // ContentUnavailableView sizes its actions small (28pt); large prominent clears the
+          // 44pt minimum (HIG buttons) and reads as the screen's one primary action.
+          <Button
+            label={action.title}
+            onPress={action.onPress}
+            modifiers={[buttonStyle('borderedProminent'), controlSize('large')]}
+          />
+        ) : undefined
+      }
       modifiers={[listRowBackground('clear'), fixedSize({ horizontal: false, vertical: true })]}
     />
   );

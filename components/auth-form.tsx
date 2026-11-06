@@ -1,5 +1,7 @@
 import { Button, Form, Host, HStack, Section, Text, VStack } from '@expo/ui/swift-ui';
 import {
+  accessibilityLabel,
+  contentShape,
   disabled,
   font,
   foregroundStyle,
@@ -10,6 +12,7 @@ import {
   multilineTextAlignment,
   scrollDismissesKeyboard,
   scrollEdgeEffectStyle,
+  shapes,
 } from '@expo/ui/swift-ui/modifiers';
 import { PlatformColor, StyleSheet } from 'react-native';
 
@@ -23,15 +26,15 @@ const CLEAR_ROW = [
   listRowSeparator('hidden'),
 ];
 
+// HIG accessibility: "a minimum control size of 44x44 pt", for the link row outside a Form too.
+const MIN_TARGET = 44;
+// The whole row takes the tap, not only its glyphs.
+const ROW_SHAPE = contentShape(shapes.rectangle());
+
 export type AuthFormProps = {
   /** The headline above the form. */
   title: string;
   subtitle: string;
-  /**
-   * Android only: pad the form below the status bar, for a screen without a header. iOS
-   * respects the safe area natively.
-   */
-  insetTop?: boolean;
   children: React.ReactNode;
 };
 
@@ -90,17 +93,21 @@ export type AuthSwitchRowProps = {
   prompt?: string;
   /** e.g. "Sign Up", in the accent color. */
   action: string;
+  /** What VoiceOver / TalkBack say for the row; unset, the prompt and action both read. */
+  accessibilityLabel?: string;
   disabled?: boolean;
   onPress: () => void;
 };
 
 /**
- * A centered "prompt + action" link between Sign In and Sign Up, on a clear row. At accessibility
- * text sizes the action sits below the prompt.
+ * A centered "prompt + action" link (between Sign In and Sign Up, Welcome's Sign In), on a clear
+ * row at least 44pt tall, so it works in a Form and on its own. At accessibility text sizes the
+ * action sits below the prompt.
  */
 export function AuthSwitchRow({
   prompt,
   action,
+  accessibilityLabel: label,
   disabled: isDisabled,
   onPress,
 }: AuthSwitchRowProps) {
@@ -127,14 +134,27 @@ export function AuthSwitchRow({
   );
 
   return (
-    <Button onPress={onPress} modifiers={[disabled(Boolean(isDisabled)), ...CLEAR_ROW]}>
+    <Button
+      onPress={onPress}
+      modifiers={[
+        disabled(Boolean(isDisabled)),
+        ...CLEAR_ROW,
+        ...(label ? [accessibilityLabel(label)] : []),
+      ]}
+    >
       {isStacked ? (
-        <VStack spacing={4} modifiers={[frame({ maxWidth: Infinity })]}>
+        <VStack
+          spacing={4}
+          modifiers={[frame({ maxWidth: Infinity, minHeight: MIN_TARGET }), ROW_SHAPE]}
+        >
           {promptText}
           {actionText}
         </VStack>
       ) : (
-        <HStack spacing={4} modifiers={[frame({ maxWidth: Infinity })]}>
+        <HStack
+          spacing={4}
+          modifiers={[frame({ maxWidth: Infinity, minHeight: MIN_TARGET }), ROW_SHAPE]}
+        >
           {promptText}
           {actionText}
         </HStack>

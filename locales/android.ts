@@ -32,6 +32,7 @@ export const androidOverrides: { en: Overrides<Translations>; id: Overrides<Tran
       // An M3 dialog headline states the action as a question.
       signOutConfirmTitle: 'Sign out?',
       signOutFailed: 'Sign-out failed',
+      viewIntroduction: 'View introduction',
     },
     profile: { signInSection: 'Sign-in method', saveFailed: "Couldn't save name" },
     deleteAccount: {
@@ -50,8 +51,15 @@ export const androidOverrides: { en: Overrides<Translations>; id: Overrides<Tran
       signUp: 'Sign up',
       missingFields: 'Missing fields',
       signInFailed: 'Sign-in failed',
-      continueWithoutAccount: 'Continue without an account',
-      continueWithoutAccountFailed: "Couldn't continue",
+    },
+    onboarding: {
+      trackTitle: 'Know where your money goes',
+      scanTitle: 'Snap a receipt, skip the typing',
+      shareTitle: 'Track money together',
+      getStarted: 'Get started',
+      currencyTitle: 'Choose your currency',
+      allCurrencies: 'All currencies',
+      continueFailed: "Couldn't continue",
     },
     signup: {
       signUp: 'Sign up',
@@ -111,7 +119,11 @@ export const androidOverrides: { en: Overrides<Translations>; id: Overrides<Tran
       rateUnavailable: 'Kurs tidak tersedia',
       deleteTransaction: 'Hapus transaksi',
     },
-    settings: { signOutConfirmTitle: 'Keluar?', signOutFailed: 'Gagal keluar' },
+    settings: {
+      signOutConfirmTitle: 'Keluar?',
+      signOutFailed: 'Gagal keluar',
+      viewIntroduction: 'Lihat pengenalan',
+    },
     profile: { saveFailed: 'Gagal menyimpan nama' },
     deleteAccount: {
       title: 'Hapus akun',
@@ -129,8 +141,15 @@ export const androidOverrides: { en: Overrides<Translations>; id: Overrides<Tran
       password: 'Kata sandi',
       missingFields: 'Kolom belum lengkap',
       signInFailed: 'Gagal masuk',
-      continueWithoutAccount: 'Lanjutkan tanpa akun',
-      continueWithoutAccountFailed: 'Tidak dapat melanjutkan',
+    },
+    onboarding: {
+      trackTitle: 'Ketahui ke mana uang Anda pergi',
+      scanTitle: 'Foto struk, tak perlu mengetik',
+      shareTitle: 'Kelola uang bersama',
+      welcomeTitle: 'Selamat datang di Nouveau',
+      currencyTitle: 'Pilih mata uang Anda',
+      allCurrencies: 'Semua mata uang',
+      continueFailed: 'Tidak dapat melanjutkan',
     },
     signup: {
       password: 'Kata sandi',

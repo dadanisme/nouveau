@@ -1,3 +1,4 @@
+import type { CommonCurrency } from '@/constants/currencies';
 import i18n, { getDateLocale } from '@/lib/i18n';
 import { k } from '@/locales/keys';
 import {
@@ -151,4 +152,24 @@ export function formatForeignAmount(value: number, currency: string): string {
   } catch {
     return `${currency} ${value.toLocaleString(getDateLocale())}`;
   }
+}
+
+const CURRENCY_NAME_KEYS: Record<CommonCurrency, string> = {
+  IDR: k.currencyNames.IDR,
+  USD: k.currencyNames.USD,
+  EUR: k.currencyNames.EUR,
+  GBP: k.currencyNames.GBP,
+  JPY: k.currencyNames.JPY,
+  SGD: k.currencyNames.SGD,
+  AUD: k.currencyNames.AUD,
+  MYR: k.currencyNames.MYR,
+};
+
+/**
+ * A common currency's name in the app language ("Indonesian Rupiah"), from the locales rather
+ * than `Intl.DisplayNames`, so both platforms say the same; undefined for any other code.
+ */
+export function getCurrencyName(code: string): string | undefined {
+  const key = CURRENCY_NAME_KEYS[code as CommonCurrency];
+  return key ? i18n.t(key) : undefined;
 }

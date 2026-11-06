@@ -3,8 +3,8 @@ import { DarkTheme, DefaultTheme, Stack, ThemeProvider, useRouter, useSegments }
 import { ShareIntentProvider, useShareIntentContext } from 'expo-share-intent';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useState } from 'react';
-import { Platform, StyleSheet, useColorScheme } from 'react-native';
+import { useEffect } from 'react';
+import { Platform, PlatformColor, StyleSheet, useColorScheme } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { AlertDialogHost } from '@/components/alert-dialog-host';
@@ -15,12 +15,13 @@ import { sheetOptions } from '@/constants/sheet-options';
 import { LanguageProvider, useLanguage } from '@/contexts/language';
 import { PeriodProvider } from '@/contexts/period';
 import { WorkspaceProvider } from '@/contexts/workspace';
-import { useGuestSession, useSession } from '@/hooks/use-auth';
-import { goBackOrHome, resetTo } from '@/lib/navigation';
+import { type AuthRoutes, useAuthRoutes } from '@/hooks/use-auth-routes';
+import { goBackOrHome } from '@/lib/navigation';
 import { k } from '@/locales/keys';
 
-// The system launch screen (expo-splash-screen, app.json) stays up until AuthGuard has routed, so
-// the first screen people see is the right one. No branded overlay or zoom (HIG launching).
+// The system launch screen (expo-splash-screen, app.json) stays up until the first screen the
+// guards allow has appeared (useAuthRoutes), so the first screen people see is the right one. No
+// branded overlay or zoom (HIG launching).
 SplashScreen.preventAutoHideAsync();
 
 // The tab shell sits under every route opened cold from a deep link (`nouveau://add-transaction`,
@@ -52,38 +53,23 @@ function ShareIntentNavigator() {
   return null;
 }
 
-function AuthGuard({ children }: { children: React.ReactNode }) {
-  const { session, isLoading } = useSession();
-  // A guest (#100) uses the app like a signed-in user, with on-device data.
-  const { guestId } = useGuestSession();
-  const isSignedIn = !!session || !!guestId;
-  const segments = useSegments();
-  const [isNavigationReady, setIsNavigationReady] = useState(false);
+/**
+ * Mounts the root Stack once the guards are known (useAuthRoutes), so the first screen rendered is
+ * the one the guards allow. Until then nothing renders and the native splash stays up.
+ */
+function RootNavigator() {
+  const routes = useAuthRoutes();
+  if (!routes.isReady) return null;
 
-  useEffect(() => {
-    if (isLoading) return;
-
-    const inAuthGroup = segments[0] === 'login' || segments[0] === 'signup';
-    const inShareIntent = segments[0] === 'shareintent';
-
-    if (!isSignedIn && !inAuthGroup && !inShareIntent) {
-      resetTo('/login');
-    } else if (isSignedIn && inAuthGroup) {
-      resetTo('/');
-    }
-
-    const timeout = setTimeout(() => setIsNavigationReady(true), 50);
-    return () => clearTimeout(timeout);
-  }, [isSignedIn, isLoading, segments]);
-
-  useEffect(() => {
-    if (!isLoading && isNavigationReady) SplashScreen.hideAsync();
-  }, [isLoading, isNavigationReady]);
-
-  return children;
+  return (
+    <>
+      <ShareIntentNavigator />
+      <RootStack routes={routes} />
+    </>
+  );
 }
 
-function RootStack() {
+function RootStack({ routes }: { routes: AuthRoutes }) {
   const { t } = useLanguage();
   const colorScheme = useColorScheme();
 
@@ -99,46 +85,137 @@ function RootStack() {
           headerBackButtonDisplayMode: 'minimal',
           headerBackTitle: t(k.common.back),
         }}
+        // The first allowed screen to finish appearing takes the splash down (useAuthRoutes).
+        // `focus` comes too early: the route is in the state, but its screen isn't drawn yet.
+        screenListeners={({ route }) => ({
+          transitionEnd: (event) => {
+            if (!event.data.closing) routes.onRouteShown(route.name);
+          },
+        })}
       >
-        <Stack.Screen
-          name="(tabs)"
-          options={{
-            headerShown: false,
-            animation: 'flip',
-            animationDuration: 300,
-            gestureEnabled: false,
-          }}
-        />
-        <Stack.Screen
-          name="login"
-          // iOS: an empty native bar, as on Signup, so scrolled content doesn't run under the
-          // status bar (it blurs behind the bar on iOS 26+). Android pads the form itself.
-          options={{
-            headerShown: Platform.OS === 'ios',
-            title: '',
-            // The signed-out root: AuthGuard replaces into it, so there is nothing to go back to.
-            headerBackVisible: false,
-            headerShadowVisible: false,
-            headerStyle: {
-              backgroundColor: formHeaderBackground(colorScheme === 'dark' ? 'dark' : 'light'),
-            },
-            animation: 'flip',
-            animationDuration: 300,
-            gestureEnabled: false,
-          }}
-        />
-        <Stack.Screen
-          name="signup"
-          // A native push from Login: the system back button and swipe-back. No title, since
-          // the form's own headline names the screen; the bar takes the form's background.
-          options={{
-            title: '',
-            headerShadowVisible: false,
-            headerStyle: {
-              backgroundColor: formHeaderBackground(colorScheme === 'dark' ? 'dark' : 'light'),
-            },
-          }}
-        />
+        {/* Signed in or a guest (useAuthRoutes): the tab shell and everything opened from it.
+            Signed out, the focused one redirects to onboarding (on a cold launch, the tabs).
+            Moving between these and the entry routes mid-session (sign in or out, Get Started)
+            fades: it's a change of context, not a step deeper. A cold launch shows the first
+            screen with no animation, straight from the splash. */}
+        <Stack.Protected guard={routes.canUseApp} redirectTo={routes.signedOutHref}>
+          <Stack.Screen
+            name="(tabs)"
+            options={{
+              headerShown: false,
+              animation: routes.isLaunched ? 'fade' : 'none',
+              animationDuration: 300,
+              gestureEnabled: false,
+            }}
+          />
+          <Stack.Screen
+            name="add-transaction"
+            // A nested Stack (app/add-transaction/_layout.tsx) draws the header: the title, Cancel
+            // and Save, and the pickers it pushes. Android form sheets have no header, which would
+            // drop all of that, so Android gets a full-screen modal (M3 full-screen dialog) instead.
+            options={{
+              headerShown: false,
+              presentation: Platform.OS === 'ios' ? 'formSheet' : 'modal',
+              // One large detent: the amount field opens the keyboard, which needs the full
+              // height to keep the form visible; swipe down (or the grabber) dismisses.
+              sheetAllowedDetents: [1.0],
+              sheetGrabberVisible: true,
+            }}
+          />
+          <Stack.Screen
+            name="proof-viewer"
+            options={{
+              title: t(k.proofs.title),
+              // Opened from rows, so it's always a modal (iOS page sheet, Android full-screen).
+              // A read-only viewer: iOS gets the leading Close (xmark, HIG); Android keeps its
+              // back arrow. Inside Edit Transaction it's pushed instead (add-transaction/proofs).
+              presentation: 'modal',
+              unstable_headerLeftItems: () => [
+                {
+                  type: 'button',
+                  label: t(k.common.close),
+                  icon: { type: 'sfSymbol', name: 'xmark' },
+                  accessibilityLabel: t(k.common.close),
+                  // A cold deep link has nothing behind it, so this falls back to the tabs.
+                  onPress: goBackOrHome,
+                },
+              ],
+            }}
+          />
+          {/* Sheet routes (app/(sheets)/*): results come back through lib/sheet-result.ts. iOS
+              sheets get the native header (title, Cancel/Close, Save); Android's are headerless. */}
+          <Stack.Screen
+            name="(sheets)/category-transactions"
+            options={sheetOptions([0.6, 1], { header: true })}
+          />
+          <Stack.Screen
+            name="(sheets)/workspace-switcher"
+            options={{
+              ...sheetOptions([0.5, 1], { header: true }),
+              title: t(k.workspace.switch),
+            }}
+          />
+          {/* One detent: the email field autofocuses, and the keyboard always takes it to full
+              height anyway (HIG sheets: no medium detent when the content needs full height). */}
+          <Stack.Screen
+            name="(sheets)/workspace-invite"
+            options={sheetOptions([1], { header: true })}
+          />
+          {/* A nested Stack: the icon and color pickers push inside it on iOS. One large detent
+              on iOS: the name field autofocuses and the pickers need the full height, and with a
+              medium detent the sheet dropped back to it whenever the keyboard closed (opening a
+              picker, returning from one). */}
+          <Stack.Screen
+            name="(sheets)/category-form"
+            options={sheetOptions(Platform.OS === 'ios' ? [1] : [0.85, 1])}
+          />
+          {/* Pickers presented as their own sheet on Android only; iOS pushes them inside the
+              editor's Stack (add-transaction/category-picker, category-form/*-picker). */}
+          <Stack.Screen name="(sheets)/category-picker" options={sheetOptions([0.5, 1])} />
+          <Stack.Screen name="(sheets)/icon-picker" options={sheetOptions([0.75, 1])} />
+          <Stack.Screen name="(sheets)/color-picker" options={sheetOptions([0.8, 1])} />
+        </Stack.Protected>
+        {/* Signed out (and a new account's currency step): onboarding, Login and Signup. Once
+            signed in, the focused one redirects to the tabs. */}
+        <Stack.Protected guard={routes.canUseEntry} redirectTo="/">
+          {/* The first-run flow (#78): value pages, Welcome, the currency step. Its own Stack
+              draws the bars; swipe-back would leave the flow for whatever is under it. */}
+          <Stack.Screen
+            name="onboarding"
+            options={{
+              headerShown: false,
+              gestureEnabled: false,
+              animation: routes.isLaunched ? 'fade' : 'none',
+              animationDuration: 300,
+            }}
+          />
+          <Stack.Screen
+            name="login"
+            // A native push from Welcome: the system back button (Android's Up arrow) and
+            // swipe-back return there. A bar with only Back and no title, as on Signup, so scrolled
+            // content doesn't run under the status bar (it blurs behind the bar on iOS 26+).
+            options={{
+              title: '',
+              headerShadowVisible: false,
+              headerStyle: {
+                backgroundColor: formHeaderBackground(colorScheme === 'dark' ? 'dark' : 'light'),
+              },
+            }}
+          />
+          <Stack.Screen
+            name="signup"
+            // A native push from Login: the system back button and swipe-back. No title, since
+            // the form's own headline names the screen; the bar takes the form's background.
+            options={{
+              title: '',
+              headerShadowVisible: false,
+              headerStyle: {
+                backgroundColor: formHeaderBackground(colorScheme === 'dark' ? 'dark' : 'light'),
+              },
+            }}
+          />
+        </Stack.Protected>
+        {/* Open to both. */}
         <Stack.Screen
           name="shareintent"
           options={{
@@ -152,71 +229,24 @@ function RootStack() {
           }}
         />
         <Stack.Screen
-          name="add-transaction"
-          // A nested Stack (app/add-transaction/_layout.tsx) draws the header: the title, Cancel
-          // and Save, and the pickers it pushes. Android form sheets have no header, which would
-          // drop all of that, so Android gets a full-screen modal (M3 full-screen dialog) instead.
+          name="introduction"
+          // Settings' View Introduction: the value pages in a modal (iOS page sheet, Android
+          // full-screen). An empty bar for iOS's leading Close (the screen's toolbar) and
+          // Android's Up arrow; the page titles name the content.
           options={{
-            headerShown: false,
-            presentation: Platform.OS === 'ios' ? 'formSheet' : 'modal',
-            // One large detent: the amount field opens the keyboard, which needs the full
-            // height to keep the form visible; swipe down (or the grabber) dismisses.
-            sheetAllowedDetents: [1.0],
-            sheetGrabberVisible: true,
-          }}
-        />
-        <Stack.Screen
-          name="proof-viewer"
-          options={{
-            title: t(k.proofs.title),
-            // Opened from rows, so it's always a modal (iOS page sheet, Android full-screen).
-            // A read-only viewer: iOS gets the leading Close (xmark, HIG); Android keeps its
-            // back arrow. Inside Edit Transaction it's pushed instead (add-transaction/proofs).
+            title: '',
             presentation: 'modal',
-            unstable_headerLeftItems: () => [
-              {
-                type: 'button',
-                label: t(k.common.close),
-                icon: { type: 'sfSymbol', name: 'xmark' },
-                accessibilityLabel: t(k.common.close),
-                // A cold deep link has nothing behind it, so this falls back to the tabs.
-                onPress: goBackOrHome,
-              },
-            ],
+            headerShadowVisible: false,
+            headerStyle: {
+              backgroundColor: formHeaderBackground(colorScheme === 'dark' ? 'dark' : 'light'),
+            },
+            // iOS: the grouped background the pager is drawn on, as in the first-run flow.
+            contentStyle:
+              Platform.OS === 'ios'
+                ? { backgroundColor: PlatformColor('systemGroupedBackground') }
+                : undefined,
           }}
         />
-        {/* Sheet routes (app/(sheets)/*): results come back through lib/sheet-result.ts. iOS
-            sheets get the native header (title, Cancel/Close, Save); Android's are headerless. */}
-        <Stack.Screen
-          name="(sheets)/category-transactions"
-          options={sheetOptions([0.6, 1], { header: true })}
-        />
-        <Stack.Screen
-          name="(sheets)/workspace-switcher"
-          options={{
-            ...sheetOptions([0.5, 1], { header: true }),
-            title: t(k.workspace.switch),
-          }}
-        />
-        {/* One detent: the email field autofocuses, and the keyboard always takes it to full
-            height anyway (HIG sheets: no medium detent when the content needs full height). */}
-        <Stack.Screen
-          name="(sheets)/workspace-invite"
-          options={sheetOptions([1], { header: true })}
-        />
-        {/* A nested Stack: the icon and color pickers push inside it on iOS. One large detent
-            on iOS: the name field autofocuses and the pickers need the full height, and with a
-            medium detent the sheet dropped back to it whenever the keyboard closed (opening a
-            picker, returning from one). */}
-        <Stack.Screen
-          name="(sheets)/category-form"
-          options={sheetOptions(Platform.OS === 'ios' ? [1] : [0.85, 1])}
-        />
-        {/* Pickers presented as their own sheet on Android only; iOS pushes them inside the
-            editor's Stack (add-transaction/category-picker, category-form/*-picker). */}
-        <Stack.Screen name="(sheets)/category-picker" options={sheetOptions([0.5, 1])} />
-        <Stack.Screen name="(sheets)/icon-picker" options={sheetOptions([0.75, 1])} />
-        <Stack.Screen name="(sheets)/color-picker" options={sheetOptions([0.8, 1])} />
       </Stack>
       {/* Android: presents `showAlertDialog` / `confirmDestructive` as Material 3 dialogs. */}
       <AlertDialogHost />
@@ -238,13 +268,10 @@ export default function RootLayout() {
               onResetShareIntent: () => router.dismissTo('/'),
             }}
           >
-            <ShareIntentNavigator />
             <AuthListener>
               <WorkspaceProvider>
                 <PeriodProvider>
-                  <AuthGuard>
-                    <RootStack />
-                  </AuthGuard>
+                  <RootNavigator />
                 </PeriodProvider>
               </WorkspaceProvider>
             </AuthListener>

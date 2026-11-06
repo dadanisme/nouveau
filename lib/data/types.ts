@@ -40,6 +40,8 @@ export interface DataSource {
   ): Promise<TransactionWithCategory[]>;
   getTransactionsByYear(workspaceId: string, year: number): Promise<TransactionWithCategory[]>;
   getTransaction(id: string): Promise<TransactionWithFullCategory>;
+  /** Whether the workspace holds any transaction (the new-account currency step, #78). */
+  hasTransactions(workspaceId: string): Promise<boolean>;
   addTransaction(transaction: TablesInsert<'transactions'>): Promise<void>;
   updateTransaction(id: string, updates: TablesUpdate<'transactions'>): Promise<void>;
   deleteTransaction(id: string): Promise<void>;

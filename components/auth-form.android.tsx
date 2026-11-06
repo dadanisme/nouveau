@@ -12,10 +12,10 @@ import {
   fillMaxWidth,
   imePadding,
   padding,
+  semantics,
   verticalScroll,
 } from '@expo/ui/jetpack-compose/modifiers';
 import { StyleSheet } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ComposeHost } from '@/components/compose-host';
 import type {
@@ -45,24 +45,17 @@ const COLOR_OVERRIDES: Partial<MaterialColors> = {
  * supporting text, then the field and button groups. `imePadding` keeps the focused field and
  * the button above the keyboard.
  */
-export function AuthForm({ title, subtitle, insetTop, children }: AuthFormProps) {
-  const insets = useSafeAreaInsets();
-
+export function AuthForm({ title, subtitle, children }: AuthFormProps) {
   return (
     <ComposeHost style={styles.fill} colorOverrides={COLOR_OVERRIDES}>
-      <AuthSurface title={title} subtitle={subtitle} statusBarInset={insetTop ? insets.top : 0}>
+      <AuthSurface title={title} subtitle={subtitle}>
         {children}
       </AuthSurface>
     </ComposeHost>
   );
 }
 
-function AuthSurface({
-  title,
-  subtitle,
-  statusBarInset,
-  children,
-}: Omit<AuthFormProps, 'insetTop'> & { statusBarInset: number }) {
+function AuthSurface({ title, subtitle, children }: AuthFormProps) {
   const colors = useMaterialColors();
 
   return (
@@ -71,8 +64,6 @@ function AuthSurface({
       modifiers={[
         fillMaxSize(),
         background(colors.surface),
-        // Outside the scroll viewport, so scrolled content clips below the status bar.
-        padding(0, statusBarInset, 0, 0),
         imePadding(),
         verticalScroll(),
         padding(0, TOP, 0, GROUP_GAP),
@@ -111,8 +102,17 @@ export function AuthFormSection({ title, children }: AuthFormSectionProps) {
   );
 }
 
-/** A centered "prompt + action" link between Sign In and Sign Up. */
-export function AuthSwitchRow({ prompt, action, disabled, onPress }: AuthSwitchRowProps) {
+/**
+ * A centered "prompt + action" link (between Sign In and Sign Up, Welcome's Sign In). The M3 text
+ * button keeps its 48dp touch target.
+ */
+export function AuthSwitchRow({
+  prompt,
+  action,
+  accessibilityLabel,
+  disabled,
+  onPress,
+}: AuthSwitchRowProps) {
   const colors = useMaterialColors();
 
   return (
@@ -126,7 +126,13 @@ export function AuthSwitchRow({ prompt, action, disabled, onPress }: AuthSwitchR
           {prompt}
         </Text>
       ) : null}
-      <TextButton onClick={onPress} enabled={!disabled}>
+      <TextButton
+        onClick={onPress}
+        enabled={!disabled}
+        modifiers={
+          accessibilityLabel ? [semantics({ contentDescription: accessibilityLabel })] : undefined
+        }
+      >
         <Text>{action}</Text>
       </TextButton>
     </Row>

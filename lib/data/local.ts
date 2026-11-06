@@ -22,6 +22,10 @@ export const localDataSource: DataSource = {
     return (await getLocalDb()).getTransaction(id);
   },
 
+  async hasTransactions(workspaceId) {
+    return (await getLocalDb()).hasTransactions(workspaceId);
+  },
+
   async addTransaction(transaction) {
     await (await getLocalDb()).insertTransaction(transaction);
   },

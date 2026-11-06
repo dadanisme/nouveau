@@ -21,6 +21,7 @@ import {
 import { shiftPeriod, type PeriodMode } from '@/utils/date';
 import { buildInsightsSummary } from '@/utils/insights-summary';
 import { formatPeriodSummary, toSpendBreakdownRows } from '@/utils/period-summary';
+import { isAwaitingData } from '@/utils/query';
 import { joinWithDot } from '@/utils/string';
 
 export type InsightsMode = PeriodMode;
@@ -49,7 +50,7 @@ export interface InsightsCategoryRow {
 export function useInsightsScreen() {
   // `locale` follows the in-app language, so the memoized amounts rebuild when it changes.
   const { locale } = useLanguage();
-  const { currentWorkspaceId, homeCurrency } = useWorkspace();
+  const { currentWorkspaceId, homeCurrency, isLoading: isWorkspaceResolving } = useWorkspace();
   const router = useRouter();
   const navigation = useNavigation<NativeStackNavigationProp<{ insights: InsightsParams }>>();
   const { mode: requestedMode } = useLocalSearchParams<InsightsParams>();
@@ -141,7 +142,11 @@ export function useInsightsScreen() {
   }
 
   // Wait for the previous period too, so the headline doesn't gain its comparison after showing.
-  const isLoading = activeQuery.isLoading || previousQuery.isLoading;
+  // No data yet is loading, also while the queries wait (disabled) for the workspace.
+  const isLoading = isAwaitingData([activeQuery, previousQuery], {
+    id: currentWorkspaceId,
+    isResolving: isWorkspaceResolving,
+  });
 
   return {
     nav,
