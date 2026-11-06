@@ -12,6 +12,7 @@ import { useSettingsScreen } from '@/hooks/use-settings-screen';
 import { k } from '@/locales/keys';
 
 const ICONS = {
+  signIn: { sf: 'person.crop.circle', md: require('@/assets/icons/account_circle.xml') },
   warning: { sf: 'exclamationmark.triangle', md: require('@/assets/icons/warning.xml') },
   currentWorkspace: { sf: 'arrow.left.arrow.right', md: require('@/assets/icons/swap_horiz.xml') },
   workspaces: { sf: 'person.2', md: require('@/assets/icons/group.xml') },
@@ -32,6 +33,17 @@ export default function SettingsScreen() {
 
   return (
     <NativeForm>
+      {/* A guest's way to an account (#100); signing in uploads their device data. */}
+      {screen.isGuest ? (
+        <FormSection>
+          <FormNavRow
+            title={t(k.settings.signIn)}
+            icon={ICONS.signIn}
+            onPress={screen.openSignIn}
+          />
+        </FormSection>
+      ) : null}
+
       <FormSection>
         <ProfileHeaderRow
           {...screen.profile}

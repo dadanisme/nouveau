@@ -127,6 +127,7 @@ const id: Translations = {
     manageSection: 'Kelola',
     preferencesSection: 'Preferensi',
     viewIntroduction: 'Lihat Pengenalan',
+    signIn: 'Masuk',
     signOutFailed: 'Gagal Keluar',
     profileError: 'Gagal memuat data profil. Beberapa informasi mungkin tidak lengkap.',
     unknown: 'Tidak diketahui',
@@ -211,6 +212,13 @@ const id: Translations = {
     suggestedFooter: 'Dari wilayah perangkat Anda.',
     allCurrencies: 'Semua Mata Uang',
     continueFailed: 'Tidak Dapat Melanjutkan',
+  },
+  guestUpload: {
+    title: 'Ditambahkan dari Perangkat Ini',
+    message: {
+      one: '%{count} transaksi dari perangkat ini kini ada di akun Anda.',
+      other: '%{count} transaksi dari perangkat ini kini ada di akun Anda.',
+    },
   },
   currencyNames: {
     IDR: 'Rupiah Indonesia',

@@ -10,8 +10,13 @@ import { markOnboardingSeen, readOnboardingSeen, subscribeOnboardingSeen } from 
 /** A brand-new account's currency step, shown once per sign-in. */
 const ACCOUNT_CURRENCY_STEP: Href = '/onboarding/currency?for=account';
 
-/** Root routes open to signed-out people only (and to an account during its currency step). */
-const ENTRY_ROUTES = new Set(['onboarding', 'login', 'signup']);
+/** The first-run flow: open signed out (and to an account during its currency step). */
+const ONBOARDING_ROUTES = new Set(['onboarding']);
+/**
+ * Sign In and Sign Up: open without a session (signed out, or a guest, #100), and while a sign-in
+ * settles (a guest's upload, an account's currency check or step).
+ */
+const SIGN_IN_ROUTES = new Set(['login', 'signup']);
 /** Root routes open to everyone: an incoming share intent, and Settings' View Introduction. */
 const SHARED_ROUTES = new Set(['shareintent', 'introduction']);
 
@@ -26,8 +31,17 @@ export interface AuthRoutes {
   isReady: boolean;
   /** `Stack.Protected` guard for the tabs and every in-app route: signed in, or a guest. */
   canUseApp: boolean;
-  /** `Stack.Protected` guard for onboarding, Login and Signup. */
-  canUseEntry: boolean;
+  /** `Stack.Protected` guard for onboarding. */
+  canUseOnboarding: boolean;
+  /** `Stack.Protected` guard for Login and Signup. */
+  canUseSignIn: boolean;
+  /**
+   * A guest's sign-in is handing over: their Login (or Signup), pushed over the tabs, fades out as
+   * the handover pops back to them, like the other access changes, instead of sliding off.
+   */
+  fadesSignInOut: boolean;
+  /** No handover, and the focused screen is in the app (the guest upload's notice waits for it). */
+  isSettled: boolean;
   /** Where a signed-out person lands: the value pages on a fresh install, Welcome after. */
   signedOutHref: Href;
   /** The splash is down; until then the screens the guards redirect to don't animate in. */
@@ -42,17 +56,29 @@ export interface AuthRoutes {
 /** Which of the root Stack's `Stack.Protected` groups are open. */
 interface Guards {
   app: boolean;
-  entry: boolean;
+  onboarding: boolean;
+  signIn: boolean;
 }
 
 /** Whether the root route (a route name, or the first URL segment) is open under `guards`. */
 function isRouteOpen(routeName: string | undefined, guards: Guards): boolean {
   if (!routeName || SHARED_ROUTES.has(routeName)) return true;
-  return ENTRY_ROUTES.has(routeName) ? guards.entry : guards.app;
+  if (ONBOARDING_ROUTES.has(routeName)) return guards.onboarding;
+  if (SIGN_IN_ROUTES.has(routeName)) return guards.signIn;
+  return guards.app;
 }
 
 function sameGuards(a: Guards, b: Guards): boolean {
-  return a.app === b.app && a.entry === b.entry;
+  return a.app === b.app && a.onboarding === b.onboarding && a.signIn === b.signIn;
+}
+
+/** Each group open in either. */
+function eitherGuards(a: Guards, b: Guards): Guards {
+  return {
+    app: a.app || b.app,
+    onboarding: a.onboarding || b.onboarding,
+    signIn: a.signIn || b.signIn,
+  };
 }
 
 /**
@@ -62,21 +88,24 @@ function sameGuards(a: Guards, b: Guards): boolean {
  *   (the anchor), or on a deep link over them.
  * - Signed out: onboarding, Login and Signup. The tabs (the route a cold launch starts on) are
  *   guarded, so they render a redirect to `signedOutHref` instead of their screens.
+ * - A guest also gets Login and Signup (Settings' Sign In pushes Login over the tabs). Once they
+ *   sign in, those stay open until the first upload of their device data has finished
+ *   (`isUploading`, `useGuestUpload`), then the handover pops them back to the tabs.
  * - Both: a share intent and the introduction replay.
  * When the access changes mid-session (sign in, Get Started, sign out) and the focused screen loses
  * it, a guarded screen would swap its content for expo-router's redirect, a blank screen until the
  * next one slides in. So both groups stay open for a moment (the handover): the focused screen keeps
  * its content, `resetTo` replaces it with where the person now belongs (the incoming screen's
- * `fade`), and once that's focused the guards close and drop the rest. Entry routes stay open while a
- * new sign-in's currency check runs, so Login waits for it, and while a brand-new account needs the
- * currency step, which it's sent to once.
+ * `fade`), and once that's focused the guards close and drop the rest. Onboarding, Login and Signup
+ * stay open while a new sign-in's currency check runs, so Login waits for it, and while a brand-new
+ * account needs the currency step, which it's sent to once.
  *
  * The native splash stays up until the first open route has finished appearing (`transitionEnd`,
  * not `focus`, which comes as soon as the route is in the state, well before its native screen is
  * on screen), with a timed fallback so it can never stay up for good. `isLaunched` turns on only
  * then, so a cold launch's redirect stays unanimated.
  */
-export function useAuthRoutes(): AuthRoutes {
+export function useAuthRoutes({ isUploading }: { isUploading: boolean }): AuthRoutes {
   const { session, isLoading } = useSession();
   const { guestId } = useGuestSession();
   const isSignedIn = !!session || !!guestId;
@@ -91,21 +120,26 @@ export function useAuthRoutes(): AuthRoutes {
   const [isReady, setIsReady] = useState(false);
   if (!isReady && (!!guestId || !isLoading)) setIsReady(true);
 
+  const isSettling = currencyStep.isChecking || currencyStep.isNeeded;
   const access: Guards = {
     app: isSignedIn,
-    entry: !isSignedIn || currencyStep.isChecking || currencyStep.isNeeded,
+    onboarding: !isSignedIn || isSettling,
+    signIn: !session || isUploading || isSettling,
   };
   const [root, child] = segments as string[];
 
   // The handover: the access before and after the change, both open, while the focused screen that
   // lost access is replaced. Derived during render, so the guard never closes on that screen.
   const [handover, setHandover] = useState<Guards | null>(null);
+  // Whether the app was already open when the handover began (a guest signing in on a Login pushed
+  // over the tabs), rather than the app replacing onboarding.
+  const [handoverOverApp, setHandoverOverApp] = useState(false);
   const [lastAccess, setLastAccess] = useState(access);
   if (!sameGuards(lastAccess, access)) {
     setLastAccess(access);
     if (isReady && !isRouteOpen(root, access)) {
-      const open = handover ?? lastAccess;
-      setHandover({ app: open.app || access.app, entry: open.entry || access.entry });
+      setHandover(eitherGuards(handover ?? lastAccess, access));
+      setHandoverOverApp((handover ?? lastAccess).app);
     }
   }
   if (handover && isRouteOpen(root, access)) setHandover(null);
@@ -167,7 +201,10 @@ export function useAuthRoutes(): AuthRoutes {
   return {
     isReady,
     canUseApp: guards.app,
-    canUseEntry: guards.entry,
+    canUseOnboarding: guards.onboarding,
+    canUseSignIn: guards.signIn,
+    fadesSignInOut: !!handover && handoverOverApp && access.app,
+    isSettled: !handover && !ONBOARDING_ROUTES.has(root) && !SIGN_IN_ROUTES.has(root),
     signedOutHref,
     isLaunched,
     onRouteShown,

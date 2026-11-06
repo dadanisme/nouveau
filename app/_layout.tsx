@@ -16,6 +16,7 @@ import { LanguageProvider, useLanguage } from '@/contexts/language';
 import { PeriodProvider } from '@/contexts/period';
 import { WorkspaceProvider } from '@/contexts/workspace';
 import { type AuthRoutes, useAuthRoutes } from '@/hooks/use-auth-routes';
+import { useGuestUpload, useGuestUploadNotice } from '@/hooks/use-guest-upload';
 import { goBackOrHome } from '@/lib/navigation';
 import { k } from '@/locales/keys';
 
@@ -55,10 +56,13 @@ function ShareIntentNavigator() {
 
 /**
  * Mounts the root Stack once the guards are known (useAuthRoutes), so the first screen rendered is
- * the one the guards allow. Until then nothing renders and the native splash stays up.
+ * the one the guards allow. Until then nothing renders and the native splash stays up. Also runs a
+ * signed-in guest's upload (#100), which Login waits for, and its notice once the tabs are back.
  */
 function RootNavigator() {
-  const routes = useAuthRoutes();
+  const upload = useGuestUpload();
+  const routes = useAuthRoutes({ isUploading: upload.isUploading });
+  useGuestUploadNotice(upload, routes.isReady && routes.isSettled);
   if (!routes.isReady) return null;
 
   return (
@@ -175,9 +179,9 @@ function RootStack({ routes }: { routes: AuthRoutes }) {
           <Stack.Screen name="(sheets)/icon-picker" options={sheetOptions([0.75, 1])} />
           <Stack.Screen name="(sheets)/color-picker" options={sheetOptions([0.8, 1])} />
         </Stack.Protected>
-        {/* Signed out (and a new account's currency step): onboarding, Login and Signup. Once
-            signed in, the focused one redirects to the tabs. */}
-        <Stack.Protected guard={routes.canUseEntry} redirectTo="/">
+        {/* Signed out (and a new account's currency step): the first-run flow. Once signed in or
+            a guest, it redirects to the tabs. */}
+        <Stack.Protected guard={routes.canUseOnboarding} redirectTo="/">
           {/* The first-run flow (#78): value pages, Welcome, the currency step. Its own Stack
               draws the bars; swipe-back would leave the flow for whatever is under it. */}
           <Stack.Screen
@@ -189,6 +193,11 @@ function RootStack({ routes }: { routes: AuthRoutes }) {
               animationDuration: 300,
             }}
           />
+        </Stack.Protected>
+        {/* Without a session (signed out, or a guest from Settings' Sign In), and while a sign-in
+            settles (a guest's upload, a new account's currency step). Then the focused one
+            redirects to the tabs; a guest's Login, pushed over them, fades back to them. */}
+        <Stack.Protected guard={routes.canUseSignIn} redirectTo="/">
           <Stack.Screen
             name="login"
             // A native push from Welcome: the system back button (Android's Up arrow) and
@@ -200,6 +209,7 @@ function RootStack({ routes }: { routes: AuthRoutes }) {
               headerStyle: {
                 backgroundColor: formHeaderBackground(colorScheme === 'dark' ? 'dark' : 'light'),
               },
+              animation: routes.fadesSignInOut ? 'fade' : 'default',
             }}
           />
           <Stack.Screen
@@ -212,6 +222,7 @@ function RootStack({ routes }: { routes: AuthRoutes }) {
               headerStyle: {
                 backgroundColor: formHeaderBackground(colorScheme === 'dark' ? 'dark' : 'light'),
               },
+              animation: routes.fadesSignInOut ? 'fade' : 'default',
             }}
           />
         </Stack.Protected>
