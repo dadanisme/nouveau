@@ -789,7 +789,7 @@ export function FormProgressRow({ title, symbol, value, progress, onPress }: For
 }
 
 /** A centered empty state: large symbol, title and description. */
-export function FormEmptyRow({ title, description, symbol }: FormEmptyRowProps) {
+export function FormEmptyRow({ title, description, symbol, action }: FormEmptyRowProps) {
   const colors = useMaterialColors();
   return (
     <Column
@@ -808,6 +808,14 @@ export function FormEmptyRow({ title, description, symbol }: FormEmptyRowProps) 
         >
           {description}
         </Text>
+      ) : null}
+      {action ? (
+        <FilledTonalButton
+          onClick={action.onPress}
+          modifiers={[padding(0, 8, 0, 0), height(BUTTON_HEIGHT)]}
+        >
+          <Text>{action.title}</Text>
+        </FilledTonalButton>
       ) : null}
     </Column>
   );

@@ -303,4 +303,9 @@ export type FormEmptyRowProps = {
   title: string;
   description?: string;
   symbol: FormSymbol;
+  /**
+   * A button under the description that resolves the empty state, e.g. Add Transaction: a bordered
+   * button (iOS `ContentUnavailableView` actions), an M3 tonal button (Android).
+   */
+  action?: { title: string; onPress: () => void };
 };
