@@ -84,28 +84,30 @@ export default function WorkspaceSettingsScreen() {
               )
             ) : null}
 
-            <FormSection title={screen.membersTitle}>
-              {screen.members.map((member) => (
-                <FormListRow
-                  key={member.id}
-                  title={member.name}
-                  subtitle={member.role}
-                  icon={ICONS.member}
-                  actions={
-                    member.remove
-                      ? [
-                          {
-                            title: t(k.workspace.remove),
-                            role: 'destructive',
-                            icon: ICONS.remove,
-                            onPress: member.remove,
-                          },
-                        ]
-                      : undefined
-                  }
-                />
-              ))}
-            </FormSection>
+            {screen.showsMembers ? (
+              <FormSection title={screen.membersTitle}>
+                {screen.members.map((member) => (
+                  <FormListRow
+                    key={member.id}
+                    title={member.name}
+                    subtitle={member.role}
+                    icon={ICONS.member}
+                    actions={
+                      member.remove
+                        ? [
+                            {
+                              title: t(k.workspace.remove),
+                              role: 'destructive',
+                              icon: ICONS.remove,
+                              onPress: member.remove,
+                            },
+                          ]
+                        : undefined
+                    }
+                  />
+                ))}
+              </FormSection>
+            ) : null}
 
             {screen.isOwner ? (
               <FormSection title={t(k.workspace.sentInvites)}>
