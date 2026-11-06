@@ -25,7 +25,10 @@ export default function CurrencyStepScreen() {
         }}
       />
       <NativeForm>
-        <FormSection title={t(k.onboarding.suggested)} footer={t(k.onboarding.suggestedFooter)}>
+        <FormSection
+          title={t(k.onboarding.suggested)}
+          footer={screen.isSuggestionFromRegion ? t(k.onboarding.suggestedFooter) : undefined}
+        >
           <FormListRow
             title={screen.suggested.title}
             value={screen.suggested.value}

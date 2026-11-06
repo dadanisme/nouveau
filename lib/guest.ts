@@ -11,9 +11,9 @@ export function readGuestId(): string | null {
   return localStorage.getItem(GUEST_USER_ID_KEY);
 }
 
-/** The device region's currency, the onboarding currency step's suggestion; IDR when it has none. */
-export function deviceCurrency(): string {
-  return getLocales()[0]?.currencyCode ?? 'IDR';
+/** The device region's currency code, or null when it has none. */
+export function deviceCurrency(): string | null {
+  return getLocales()[0]?.currencyCode ?? null;
 }
 
 /**

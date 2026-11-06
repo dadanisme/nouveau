@@ -10,11 +10,13 @@ import { deviceCurrency } from '@/lib/guest';
 import { resetTo } from '@/lib/navigation';
 import { k } from '@/locales/keys';
 import { getErrorMessage } from '@/utils/error';
-import { getCurrencyStepRows } from '@/utils/workspace';
+import { getCurrencyStepRows, suggestedHomeCurrency } from '@/utils/workspace';
 
 /**
  * Screen hook for the onboarding currency step (#78): the device region's currency, preselected
- * under Suggested, then the other home currencies; one Continue accepts the selection.
+ * under Suggested, then the other home currencies; one Continue accepts the selection. Only the
+ * home currencies are offered (they all have exchange rates, which the guest upload needs, #100):
+ * a region currency outside them suggests IDR, without the "from your region" footer.
  *
  * - Guest mode (Welcome's Get Started): starts the guest with the currency; the root Stack's guards
  *   (`useAuthRoutes`) then replace onboarding with the tabs.
@@ -28,7 +30,12 @@ export function useCurrencyStepScreen() {
   const params = useLocalSearchParams<{ for?: string }>();
   const isAccountMode = params.for === 'account';
 
-  const [rows] = useState(() => getCurrencyStepRows(deviceCurrency()));
+  const [suggestion] = useState(() => {
+    const region = deviceCurrency();
+    const code = suggestedHomeCurrency(region);
+    return { rows: getCurrencyStepRows(code), isFromRegion: code === region };
+  });
+  const { rows } = suggestion;
   const [selection, setSelection] = useState(rows.suggested.code);
 
   const startGuest = useStartGuest();
@@ -71,6 +78,7 @@ export function useCurrencyStepScreen() {
   return {
     isAccountMode,
     suggested: rows.suggested,
+    isSuggestionFromRegion: suggestion.isFromRegion,
     others: rows.others,
     selection,
     select: setSelection,
