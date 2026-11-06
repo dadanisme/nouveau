@@ -3,23 +3,26 @@ import { useRouter } from 'expo-router';
 import { LANGUAGE_OPTIONS } from '@/constants/languages';
 import { useLanguage } from '@/contexts/language';
 import { useWorkspace } from '@/contexts/workspace';
-import { useGuestSession, useSession, useSignOut } from '@/hooks/use-auth';
+import { useEraseGuestData, useIsGuest, useSignOut } from '@/hooks/use-auth';
 import { useProfileSummary } from '@/hooks/use-profile-summary';
 import { useMyPendingInvites } from '@/hooks/use-workspace-invites';
 import { showAlertDialog } from '@/lib/alert-dialog';
+import { confirmDestructive } from '@/lib/confirm-destructive';
 import { k } from '@/locales/keys';
 
 /**
  * Screen hook for Settings: Sign In for a guest (#100, pushes Login), the profile row (opens
- * Profile), active workspace, language, View Introduction (the value pages again), sign-out.
+ * Profile), active workspace, language, View Introduction (the value pages again), and sign-out,
+ * which a guest has as Erase Data instead (there's no account to sign out of). A guest has no
+ * profile or subscriptions, so the screen hides those.
  */
 export function useSettingsScreen() {
   const router = useRouter();
   const { t, locale, setLocale } = useLanguage();
   const profile = useProfileSummary();
   const signOut = useSignOut();
-  const { session } = useSession();
-  const { guestId } = useGuestSession();
+  const eraseGuestData = useEraseGuestData();
+  const isGuest = useIsGuest();
   const { currentWorkspace } = useWorkspace();
   const { data: pendingInvites = [] } = useMyPendingInvites();
 
@@ -47,8 +50,27 @@ export function useSettingsScreen() {
     ]);
   }
 
+  function confirmEraseData() {
+    confirmDestructive({
+      // The iOS sheet shows the message over its red button; the Android dialog asks first.
+      dialogTitle: t(k.settings.eraseDataPrompt),
+      message: t(k.settings.eraseDataMessage),
+      confirmLabel: t(k.settings.eraseDataConfirm),
+      onConfirm: () =>
+        // Erased, the guest is gone and the guards return to Welcome (useAuthRoutes).
+        eraseGuestData.mutate(undefined, {
+          onError: (error) => {
+            showAlertDialog(
+              t(k.settings.eraseDataFailed),
+              error instanceof Error ? error.message : t(k.common.unexpectedError),
+            );
+          },
+        }),
+    });
+  }
+
   return {
-    isGuest: !session && !!guestId,
+    isGuest,
     openSignIn: () => router.push('/login'),
     profile: profile.header,
     hasProfileError: profile.hasError,
@@ -60,6 +82,8 @@ export function useSettingsScreen() {
     languageOptions,
     signOutPending: signOut.isPending,
     confirmSignOut,
+    erasePending: eraseGuestData.isPending,
+    confirmEraseData,
     openWorkspaceSwitcher: () => router.push('/workspace-switcher'),
     openWorkspaces: () => router.push('/workspaces'),
     openCategories: () => router.push('/categories'),
