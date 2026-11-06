@@ -11,23 +11,23 @@ export function readGuestId(): string | null {
   return localStorage.getItem(GUEST_USER_ID_KEY);
 }
 
-/** The device's currency for a new guest's workspace, IDR when the locale has none. */
-function deviceCurrency(): string {
+/** The device region's currency, the onboarding currency step's suggestion; IDR when it has none. */
+export function deviceCurrency(): string {
   return getLocales()[0]?.currencyCode ?? 'IDR';
 }
 
 /**
- * Starts using the app without an account: a guest id, a Personal workspace in the device's
- * currency with the default categories (seeded once, in one exclusive transaction), and that
- * workspace as the active one. Safe to retry: the seed is idempotent and keeps the first guest.
- * The guest id is stored only once the seed has committed, so an interrupted start leaves no
- * guest without a workspace. Resolves the guest id.
+ * Starts using the app without an account: a guest id, a Personal workspace in `homeCurrency`
+ * (chosen on the onboarding currency step, #78) with the default categories (seeded once, in one
+ * exclusive transaction), and that workspace as the active one. Safe to retry: the seed is
+ * idempotent and keeps the first guest. The guest id is stored only once the seed has committed,
+ * so an interrupted start leaves no guest without a workspace. Resolves the guest id.
  */
-export async function startGuest(): Promise<string> {
+export async function startGuest(homeCurrency: string): Promise<string> {
   const db = await getLocalDb();
   const { guestId, workspaceId } = await db.seedGuestWorkspace({
     guestId: readGuestId() ?? randomUUID(),
-    homeCurrency: deviceCurrency(),
+    homeCurrency,
   });
   localStorage.setItem(GUEST_USER_ID_KEY, guestId);
   localStorage.setItem(WORKSPACE_STORAGE_KEY, workspaceId);

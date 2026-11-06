@@ -45,12 +45,15 @@ export function useGuestSession() {
   return { guestId: guestId ?? null };
 }
 
-/** Starts guest mode: seeds the on-device workspace and categories, then becomes the guest. */
+/**
+ * Starts guest mode in a home currency: seeds the on-device workspace and categories, then
+ * becomes the guest.
+ */
 export function useStartGuest() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: startGuest,
+    mutationFn: (homeCurrency: string) => startGuest(homeCurrency),
     onSuccess: (guestId) => {
       queryClient.setQueryData(GUEST_SESSION_KEY, guestId);
     },

@@ -303,7 +303,11 @@ async function main() {
     [dec31, dec1, nov30Later, nov30, nov1],
   );
 
-  checkEqual('hasTransactions is true once one is added', await q.hasTransactions(workspace.id), true);
+  checkEqual(
+    'hasTransactions is true once one is added',
+    await q.hasTransactions(workspace.id),
+    true,
+  );
   checkEqual(
     'hasTransactions is false for another workspace',
     await q.hasTransactions('other-workspace'),

@@ -24,7 +24,7 @@ const id: Translations = {
   },
   transactions: {
     title: 'Transaksi',
-    noTransactions: 'Tidak ada transaksi',
+    noTransactions: 'Belum ada transaksi',
     noTransactionsMessage: 'Transaksi yang Anda tambahkan untuk bulan ini muncul di sini.',
     noMatches: 'Tidak ada transaksi yang cocok',
     noMatchesMessage:
@@ -178,8 +178,6 @@ const id: Translations = {
     signIn: 'Masuk',
     noAccount: 'Belum punya akun?',
     signUp: 'Daftar',
-    continueWithoutAccount: 'Lanjutkan Tanpa Akun',
-    continueWithoutAccountFailed: 'Tidak Dapat Melanjutkan',
     orContinueWith: 'atau lanjutkan dengan',
     signInWithGoogle: 'Masuk dengan Google',
     signInWithApple: 'Masuk dengan Apple',
@@ -189,6 +187,39 @@ const id: Translations = {
     invalidCredentials: 'Email atau kata sandi salah.',
     showPassword: 'Tampilkan kata sandi',
     hidePassword: 'Sembunyikan kata sandi',
+  },
+  onboarding: {
+    skip: 'Lewati',
+    continue: 'Lanjutkan',
+    pageIndicator: 'Halaman %{page} dari %{count}',
+    trackTitle: 'Ketahui ke Mana Uang Anda Pergi',
+    trackBody:
+      'Catat pemasukan dan pengeluaran dalam hitungan detik, lalu lihat rincian tiap bulan per kategori.',
+    scanTitle: 'Foto Struk, Tak Perlu Mengetik',
+    scanBody:
+      'Bagikan foto struk, dan Nouveau mengisi jumlah, tanggal, dan kategorinya. Kategori disarankan otomatis saat Anda mengetik.',
+    shareTitle: 'Kelola Uang Bersama',
+    shareBody:
+      'Bagikan workspace dengan pasangan atau keluarga, dan semua orang melihat transaksi yang sama.',
+    welcomeTitle: 'Selamat Datang di Nouveau',
+    welcomeBody: 'Kelola uang, transaksi, dan keuangan Anda dengan mudah.',
+    getStarted: 'Mulai',
+    haveAccount: 'Sudah punya akun?',
+    currencyTitle: 'Pilih Mata Uang Anda',
+    suggested: 'Disarankan',
+    suggestedFooter: 'Dari wilayah perangkat Anda.',
+    allCurrencies: 'Semua Mata Uang',
+    continueFailed: 'Tidak Dapat Melanjutkan',
+  },
+  currencyNames: {
+    IDR: 'Rupiah Indonesia',
+    USD: 'Dolar AS',
+    EUR: 'Euro',
+    GBP: 'Pound Sterling',
+    JPY: 'Yen Jepang',
+    SGD: 'Dolar Singapura',
+    AUD: 'Dolar Australia',
+    MYR: 'Ringgit Malaysia',
   },
   signup: {
     heading: 'Buat akun Anda',

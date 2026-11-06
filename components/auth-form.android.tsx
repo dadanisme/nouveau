@@ -12,6 +12,7 @@ import {
   fillMaxWidth,
   imePadding,
   padding,
+  semantics,
   verticalScroll,
 } from '@expo/ui/jetpack-compose/modifiers';
 import { StyleSheet } from 'react-native';
@@ -111,8 +112,17 @@ export function AuthFormSection({ title, children }: AuthFormSectionProps) {
   );
 }
 
-/** A centered "prompt + action" link between Sign In and Sign Up. */
-export function AuthSwitchRow({ prompt, action, disabled, onPress }: AuthSwitchRowProps) {
+/**
+ * A centered "prompt + action" link (between Sign In and Sign Up, Welcome's Sign In). The M3 text
+ * button keeps its 48dp touch target.
+ */
+export function AuthSwitchRow({
+  prompt,
+  action,
+  accessibilityLabel,
+  disabled,
+  onPress,
+}: AuthSwitchRowProps) {
   const colors = useMaterialColors();
 
   return (
@@ -126,7 +136,13 @@ export function AuthSwitchRow({ prompt, action, disabled, onPress }: AuthSwitchR
           {prompt}
         </Text>
       ) : null}
-      <TextButton onClick={onPress} enabled={!disabled}>
+      <TextButton
+        onClick={onPress}
+        enabled={!disabled}
+        modifiers={
+          accessibilityLabel ? [semantics({ contentDescription: accessibilityLabel })] : undefined
+        }
+      >
         <Text>{action}</Text>
       </TextButton>
     </Row>
