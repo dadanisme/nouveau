@@ -227,6 +227,13 @@ function RootStack({ routes }: { routes: AuthRoutes }) {
           />
         </Stack.Protected>
         {/* Open to both. */}
+        {/* The sign-in prompt (#100): over a guest's account-only feature, and over a share
+            intent before anyone has signed in. Small: a symbol, two lines and two buttons; at
+            large text sizes it scrolls, or drags to full height. */}
+        <Stack.Screen
+          name="(sheets)/sign-in-prompt"
+          options={{ ...sheetOptions([0.5, 1], { header: true }), title: '' }}
+        />
         <Stack.Screen
           name="shareintent"
           options={{

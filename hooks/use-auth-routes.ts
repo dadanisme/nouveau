@@ -17,8 +17,13 @@ const ONBOARDING_ROUTES = new Set(['onboarding']);
  * settles (a guest's upload, an account's currency check or step).
  */
 const SIGN_IN_ROUTES = new Set(['login', 'signup']);
-/** Root routes open to everyone: an incoming share intent, and Settings' View Introduction. */
-const SHARED_ROUTES = new Set(['shareintent', 'introduction']);
+/** The sign-in prompt sheet (#100), by its root Stack route name. */
+const SIGN_IN_PROMPT_ROUTE = '(sheets)/sign-in-prompt';
+/**
+ * Root routes open to everyone: an incoming share intent, Settings' View Introduction, and the
+ * sign-in prompt (#100), which a share intent opens before anyone has signed in.
+ */
+const SHARED_ROUTES = new Set(['shareintent', 'introduction', SIGN_IN_PROMPT_ROUTE]);
 
 /** If the first screen never finishes appearing, the splash still goes after this long. */
 const SPLASH_FALLBACK_MS = 3000;
@@ -127,6 +132,8 @@ export function useAuthRoutes({ isUploading }: { isUploading: boolean }): AuthRo
     signIn: !session || isUploading || isSettling,
   };
   const [root, child] = segments as string[];
+  // Sheet routes are named with their group (`(sheets)/sign-in-prompt`), as `onRouteShown` gets them.
+  const rootRoute = root === '(sheets)' && child ? `${root}/${child}` : root;
 
   // The handover: the access before and after the change, both open, while the focused screen that
   // lost access is replaced. Derived during render, so the guard never closes on that screen.
@@ -137,12 +144,12 @@ export function useAuthRoutes({ isUploading }: { isUploading: boolean }): AuthRo
   const [lastAccess, setLastAccess] = useState(access);
   if (!sameGuards(lastAccess, access)) {
     setLastAccess(access);
-    if (isReady && !isRouteOpen(root, access)) {
+    if (isReady && !isRouteOpen(rootRoute, access)) {
       setHandover(eitherGuards(handover ?? lastAccess, access));
       setHandoverOverApp((handover ?? lastAccess).app);
     }
   }
-  if (handover && isRouteOpen(root, access)) setHandover(null);
+  if (handover && isRouteOpen(rootRoute, access)) setHandover(null);
   const guards = handover ?? access;
   const signedOutHref: Href = hasSeenOnboarding ? '/onboarding/welcome' : '/onboarding';
   const handoverHref = handover ? (access.app ? '/' : signedOutHref) : null;
