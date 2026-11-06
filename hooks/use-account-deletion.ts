@@ -11,7 +11,6 @@ import {
   signOutLocally,
 } from '@/lib/auth';
 import { requestGoogleCredential } from '@/lib/google-auth';
-import { resetTo } from '@/lib/navigation';
 import { supabase } from '@/lib/supabase';
 import {
   AccountMismatchError,
@@ -113,8 +112,9 @@ export type DeleteAccountResult = 'deleted' | 'cancelled';
 
 /**
  * Deletes the account: re-authenticates (`reauthenticate`), calls `DELETE /api/account` (with the
- * Apple code when there is one), then signs out on this device, clears the cache and returns to
- * Login. `onDeleted` runs after that, even though the screen that started it has gone.
+ * Apple code when there is one), then signs out on this device and clears the cache; the root
+ * Stack's guards then land on Welcome, as a sign-out does. `onDeleted` runs after that, even though
+ * the screen that started it has gone.
  */
 export function useDeleteAccount({ onDeleted }: { onDeleted?: () => void } = {}) {
   const queryClient = useQueryClient();
@@ -149,8 +149,8 @@ export function useDeleteAccount({ onDeleted }: { onDeleted?: () => void } = {})
     },
     onSuccess: (result) => {
       if (result !== 'deleted') return;
+      // Signed out, so the root Stack's guards leave the tabs for Welcome.
       queryClient.clear();
-      resetTo('/login');
       onDeleted?.();
     },
   });

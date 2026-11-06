@@ -16,8 +16,8 @@ import { getCurrencyStepRows } from '@/utils/workspace';
  * Screen hook for the onboarding currency step (#78): the device region's currency, preselected
  * under Suggested, then the other home currencies; one Continue accepts the selection.
  *
- * - Guest mode (Welcome's Get Started): starts the guest with the currency; `AuthGuard` then
- *   leaves for the tabs.
+ * - Guest mode (Welcome's Get Started): starts the guest with the currency; the root Stack's guards
+ *   (`useAuthRoutes`) then replace onboarding with the tabs.
  * - Account mode (`?for=account`, a brand-new account's first sign-in): writes the currency to
  *   the Personal workspace, even when unchanged, so the step is never asked again, then goes to
  *   the tabs. It has no way back: iOS hides Back and swipe-back (the layout), and Android's Back

@@ -13,12 +13,9 @@ export function goBackOrHome() {
 
 /**
  * Leaves `href` as the only screen in the root Stack: pops to the bottom screen, then returns to
- * `href` if that's it, or replaces it with `href`. For the auth redirects, so Login is never left
- * on top of the tabs (a signed-out cold deep link opens over them) and the tabs never on top of
- * Login.
- *
- * Expo Router's navigation calls take no animation option: the screen pushed takes its own
- * `animation`, so a redirect that mustn't animate (AuthGuard's cold-launch pass) sets it there.
+ * `href` if that's it, or replaces it with `href`. Sign-in and sign-out are the root Stack's
+ * protected routes (`useAuthRoutes`); this is for the moves they can't make: a brand-new account's
+ * currency step, and back to the tabs once it's saved.
  */
 export function resetTo(href: Href) {
   if (router.canDismiss()) router.dismissAll();
