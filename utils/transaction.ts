@@ -6,13 +6,16 @@ import { formatCompactAmount, formatForeignAmount } from '@/utils/currency';
 import { formatShortDate } from '@/utils/date';
 import { joinWithDot } from '@/utils/string';
 
-/** A signed compact amount: "+Rp50K" for income, "−Rp12K" for an expense. */
+/**
+ * A signed compact amount in the home `currency`: "+Rp50K" for income, "−Rp12K" for an expense.
+ */
 export function formatSignedTransactionAmount(
   amount: number,
   isIncome: boolean,
+  currency: string,
   locale?: string,
 ): string {
-  return `${isIncome ? '+' : '\u2212'}${formatCompactAmount(amount, locale)}`;
+  return `${isIncome ? '+' : '\u2212'}${formatCompactAmount(amount, currency, locale)}`;
 }
 /**
  * Display data for a transaction row. The subtitle names the category only when the title is the
@@ -46,7 +49,7 @@ export function toTransactionRowData(
       material: symbol.material,
       color: getCategoryColor(tx.category.color),
     },
-    amount: formatSignedTransactionAmount(tx.home_amount, isIncome, locale),
+    amount: formatSignedTransactionAmount(tx.home_amount, isIncome, tx.home_currency, locale),
     isIncome,
     originalAmount: isForeign ? formatForeignAmount(tx.amount, tx.currency) : undefined,
     hasProofs: (tx.receipt_proofs?.[0]?.count ?? 0) > 0,

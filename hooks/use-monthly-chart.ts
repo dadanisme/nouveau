@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 
 import { useLanguage } from '@/contexts/language';
+import { useWorkspace } from '@/contexts/workspace';
 import type { MonthlyPoint } from '@/utils/analytics';
 import { toMonthlyChartModel } from '@/utils/monthly-chart';
 
@@ -13,8 +14,9 @@ export interface MonthlySpendingChartProps {
 /** The monthly spending chart's bars, ticks and descriptions, in the in-app language. */
 export function useMonthlyChart({ data, highlightMonth }: MonthlySpendingChartProps) {
   const { locale } = useLanguage();
+  const { homeCurrency } = useWorkspace();
   return useMemo(
-    () => toMonthlyChartModel(data, highlightMonth, locale),
-    [data, highlightMonth, locale],
+    () => toMonthlyChartModel(data, highlightMonth, homeCurrency, locale),
+    [data, highlightMonth, homeCurrency, locale],
   );
 }

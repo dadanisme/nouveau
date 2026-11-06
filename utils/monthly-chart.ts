@@ -54,11 +54,13 @@ export function niceAxisTicks(max: number): number[] {
 
 /**
  * The monthly spending chart's bars, axis ticks and descriptions for a year of `data`. Only the
- * `highlightMonth` (the current month) is marked. `locale` pins the strings to the in-app language.
+ * `highlightMonth` (the current month) is marked. Amounts are in the home `currency`; `locale`
+ * pins the strings to the in-app language.
  */
 export function toMonthlyChartModel(
   data: MonthlyPoint[],
   highlightMonth: number | undefined,
+  currency: string,
   locale?: string,
 ): MonthlyChartModel {
   const options = locale ? { locale } : undefined;
@@ -74,7 +76,7 @@ export function toMonthlyChartModel(
       name,
       accessibilityLabel: isHighlighted ? `${name}, ${thisMonth}` : name,
       value: point.expense,
-      valueLabel: formatCurrency(point.expense),
+      valueLabel: formatCurrency(point.expense, currency, locale),
       isHighlighted,
     };
   });
@@ -82,7 +84,7 @@ export function toMonthlyChartModel(
   const max = Math.max(0, ...bars.map((bar) => bar.value));
   const ticks = niceAxisTicks(max).map((value) => ({
     value,
-    label: formatCompactAmount(value, locale),
+    label: formatCompactAmount(value, currency, locale),
   }));
 
   const total = bars.reduce((sum, bar) => sum + bar.value, 0);
@@ -91,7 +93,7 @@ export function toMonthlyChartModel(
     undefined,
   );
   const summary = [
-    i18n.t(k.insights.chartTotal, { ...options, amount: formatCurrency(total) }),
+    i18n.t(k.insights.chartTotal, { ...options, amount: formatCurrency(total, currency, locale) }),
     highest
       ? i18n.t(k.insights.chartHighest, {
           ...options,

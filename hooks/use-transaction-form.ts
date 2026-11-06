@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { Platform } from 'react-native';
 
+import { DEFAULT_HOME_CURRENCY } from '@/constants/currencies';
 import { useLanguage } from '@/contexts/language';
 import { useWorkspace } from '@/contexts/workspace';
 import { useAddTransaction } from '@/hooks/use-add-transaction';
@@ -80,7 +81,9 @@ export function useTransactionForm(transactionId?: string, initialDate?: string)
   const homeCurrency = existingTransaction?.home_currency ?? currentWorkspace?.home_currency;
   const txCurrency = existingTransaction?.currency ?? homeCurrency;
   const isForeignCurrency = !!txCurrency && !!homeCurrency && txCurrency !== homeCurrency;
-  const foreignCurrency = isForeignCurrency ? txCurrency : undefined;
+  // The currency the amount is typed in, shown with its symbol, decimals and grouping (the column
+  // default until the workspace or the transaction has loaded).
+  const amountCurrency = txCurrency ?? DEFAULT_HOME_CURRENCY;
 
   const [type, setType] = useState<TransactionType>('expense');
   const [amountString, setAmountString] = useState('');
@@ -347,11 +350,11 @@ export function useTransactionForm(transactionId?: string, initialDate?: string)
     categorySymbol,
     date,
     /** Minor units the amount accepts (0 for e.g. IDR). */
-    amountDecimals: txCurrency ? currencyDecimals(txCurrency) : 0,
-    /** Shown before the amount: the locale prefix, or a foreign currency's symbol. */
-    amountPrefix: getAmountPrefix(foreignCurrency),
+    amountDecimals: currencyDecimals(amountCurrency),
+    /** Shown before the amount: the currency's symbol ("Rp", "$"). */
+    amountPrefix: getAmountPrefix(amountCurrency, locale),
     /** How the amount is grouped as it's typed: like the app shows that currency. */
-    amountSeparators: getAmountSeparators(foreignCurrency, locale),
+    amountSeparators: getAmountSeparators(amountCurrency, !isForeignCurrency, locale),
     fieldsKey,
     isPending,
     isSubmitDisabled: isPending || isDeleting || !isValid,

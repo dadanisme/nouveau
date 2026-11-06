@@ -14,18 +14,20 @@ export interface PeriodSummaryValues {
 }
 
 /**
- * Formats a period's totals: income with `+`, expense with `-`, the balance signed by its sign.
- * `locale` pins the compact suffixes to the in-app language (pass it where the result is memoized).
+ * Formats a period's totals in the home `currency`: income with `+`, expense with `-`, the
+ * balance signed by its sign. `locale` pins the compact suffixes to the in-app language (pass it
+ * where the result is memoized).
  */
 export function formatPeriodSummary(
   totals: { income: number; expense: number },
+  currency: string,
   locale?: string,
 ): PeriodSummaryValues {
   const balance = totals.income - totals.expense;
   return {
-    income: formatSignedTransactionAmount(totals.income, true, locale),
-    expense: formatSignedTransactionAmount(totals.expense, false, locale),
-    balance: formatSignedTransactionAmount(Math.abs(balance), balance >= 0, locale),
+    income: formatSignedTransactionAmount(totals.income, true, currency, locale),
+    expense: formatSignedTransactionAmount(totals.expense, false, currency, locale),
+    balance: formatSignedTransactionAmount(Math.abs(balance), balance >= 0, currency, locale),
   };
 }
 
@@ -49,13 +51,14 @@ const OTHERS_SYMBOL = { sf: 'square.grid.2x2', material: 'category' } as const;
 
 /**
  * Turns an expense breakdown into list rows: each category's mapped symbol in its system color
- * ("Others" takes the system gray), compact amount and share. `locale` pins the amounts to the
- * in-app language and `othersTitle` names the "Others" bucket in it (both memoized by callers).
+ * ("Others" takes the system gray), compact amount in the home `currency` and share. `locale`
+ * pins the amounts to the in-app language and `othersTitle` names the "Others" bucket in it (both
+ * memoized by callers).
  */
 export function toSpendBreakdownRows(
   spends: CategorySpend[],
   categories: Pick<Tables<'categories'>, 'id' | 'icon'>[],
-  { locale, othersTitle }: { locale?: string; othersTitle?: string } = {},
+  { currency, locale, othersTitle }: { currency: string; locale?: string; othersTitle?: string },
 ): SpendBreakdownRow[] {
   const iconById = new Map(categories.map((category) => [category.id, category.icon]));
   return spends.map((spend) => {
@@ -68,7 +71,7 @@ export function toSpendBreakdownRows(
         material: symbol.material,
         color: getCategoryColor(spend.color),
       },
-      amount: formatCompactAmount(spend.amount, locale),
+      amount: formatCompactAmount(spend.amount, currency, locale),
       share: spend.percentage / 100,
       shareLabel: `${Math.round(spend.percentage)}%`,
       categoryId: spend.id,

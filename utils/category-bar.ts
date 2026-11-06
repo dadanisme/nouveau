@@ -39,12 +39,13 @@ export function formatSharePercent(percentage: number): string {
 /**
  * The category bar for an expense breakdown (`computeExpenseBreakdown`): one segment per entry,
  * the compact headline and a summary with the full total for screen readers. Null when there's
- * nothing spent, so the bar is hidden. `locale` pins the strings to the in-app language and
- * `othersTitle` names the "Others" bucket in it (both memoized by callers).
+ * nothing spent, so the bar is hidden. Amounts are in the home `currency`; `locale` pins the
+ * strings to the in-app language and `othersTitle` names the "Others" bucket in it (both memoized
+ * by callers).
  */
 export function toCategoryBarModel(
   spends: CategorySpend[],
-  { locale, othersTitle }: { locale?: string; othersTitle?: string } = {},
+  { currency, locale, othersTitle }: { currency: string; locale?: string; othersTitle?: string },
 ): CategoryBarModel | null {
   const total = spends.reduce((sum, spend) => sum + spend.amount, 0);
   if (total <= 0) return null;
@@ -73,11 +74,11 @@ export function toCategoryBarModel(
     segments,
     headline: i18n.t(k.transactions.spentTotal, {
       ...options,
-      amount: formatCompactAmount(total, locale),
+      amount: formatCompactAmount(total, currency, locale),
     }),
     accessibilityLabel: i18n.t(k.transactions.spentSummary, {
       ...options,
-      amount: formatCurrency(total),
+      amount: formatCurrency(total, currency, locale),
       breakdown,
     }),
     accessibilityHint: i18n.t(k.transactions.spentHint, options),

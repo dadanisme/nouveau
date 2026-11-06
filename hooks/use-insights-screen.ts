@@ -49,7 +49,7 @@ export interface InsightsCategoryRow {
 export function useInsightsScreen() {
   // `locale` follows the in-app language, so the memoized amounts rebuild when it changes.
   const { locale } = useLanguage();
-  const { currentWorkspaceId } = useWorkspace();
+  const { currentWorkspaceId, homeCurrency } = useWorkspace();
   const router = useRouter();
   const navigation = useNavigation<NativeStackNavigationProp<{ insights: InsightsParams }>>();
   const { mode: requestedMode } = useLocalSearchParams<InsightsParams>();
@@ -98,24 +98,28 @@ export function useInsightsScreen() {
   const { data: categories = [] } = useCategories(currentWorkspaceId);
 
   const totals = useMemo(() => computeTotals(transactions), [transactions]);
-  const summary = useMemo(() => formatPeriodSummary(totals, locale), [totals, locale]);
+  const summary = useMemo(
+    () => formatPeriodSummary(totals, homeCurrency, locale),
+    [totals, homeCurrency, locale],
+  );
 
   const headline = useMemo(
     () =>
       buildInsightsSummary(
         { mode, period: { year, month }, current: transactions, previous: previousTransactions },
+        homeCurrency,
         locale,
       ),
-    [mode, year, month, transactions, previousTransactions, locale],
+    [mode, year, month, transactions, previousTransactions, homeCurrency, locale],
   );
 
   const spendingRows = useMemo(
-    () => toCategoryRows(transactions, 'expense', categories, locale),
-    [transactions, categories, locale],
+    () => toCategoryRows(transactions, 'expense', categories, homeCurrency, locale),
+    [transactions, categories, homeCurrency, locale],
   );
   const incomeRows = useMemo(
-    () => toCategoryRows(transactions, 'income', categories, locale),
-    [transactions, categories, locale],
+    () => toCategoryRows(transactions, 'income', categories, homeCurrency, locale),
+    [transactions, categories, homeCurrency, locale],
   );
 
   const monthlyTrend = useMemo(() => computeMonthlyTrend(yearQuery.data), [yearQuery.data]);
@@ -162,9 +166,11 @@ function toCategoryRows(
   transactions: Parameters<typeof computeCategoryBreakdown>[0],
   type: TransactionType,
   categories: Parameters<typeof toSpendBreakdownRows>[1],
+  currency: string,
   locale: string,
 ): InsightsCategoryRow[] {
   return toSpendBreakdownRows(computeCategoryBreakdown(transactions, type), categories, {
+    currency,
     locale,
   }).map((row) => ({
     key: row.key,
