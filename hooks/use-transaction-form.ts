@@ -6,7 +6,6 @@ import { Platform } from 'react-native';
 import { useLanguage } from '@/contexts/language';
 import { useWorkspace } from '@/contexts/workspace';
 import { useAddTransaction } from '@/hooks/use-add-transaction';
-import { useSession } from '@/hooks/use-auth';
 import { showAlertDialog } from '@/lib/alert-dialog';
 import { confirmDestructive } from '@/lib/confirm-destructive';
 import i18n from '@/lib/i18n';
@@ -15,6 +14,7 @@ import { goBackOrHome } from '@/lib/navigation';
 import { k } from '@/locales/keys';
 import { useCategories } from '@/hooks/use-categories';
 import { useClassifyDescription } from '@/hooks/use-classify-description';
+import { useCurrentUserId, useDataSource } from '@/hooks/use-data-source';
 import { useDeleteTransaction } from '@/hooks/use-delete-transaction';
 import { useDiscardGuard } from '@/hooks/use-discard-guard';
 import { useExchangeRate } from '@/hooks/use-exchange-rate';
@@ -58,7 +58,9 @@ function showError(title: string, error: unknown) {
 
 export function useTransactionForm(transactionId?: string, initialDate?: string) {
   const router = useRouter();
-  const { session } = useSession();
+  const currentUserId = useCurrentUserId();
+  // AI classification is account only: a guest picks the category themselves.
+  const canClassify = useDataSource()?.kind === 'remote';
   const { currentWorkspaceId, currentWorkspace } = useWorkspace();
   const { locale } = useLanguage();
 
@@ -136,6 +138,7 @@ export function useTransactionForm(transactionId?: string, initialDate?: string)
   }, [existingTransaction, categories, prefilled]);
 
   useEffect(() => {
+    if (!canClassify) return;
     if (isEditMode) return;
     if (userPickedCategoryRef.current) return;
 
@@ -158,7 +161,7 @@ export function useTransactionForm(transactionId?: string, initialDate?: string)
     }, 1000);
 
     return () => clearTimeout(timer);
-  }, [description, categories, isEditMode, classifyDescription]);
+  }, [description, categories, isEditMode, classifyDescription, canClassify]);
 
   function handleTypeChange(newType: TransactionType) {
     setType(newType);
@@ -195,7 +198,7 @@ export function useTransactionForm(transactionId?: string, initialDate?: string)
       return;
     }
 
-    const userId = session?.user.id;
+    const userId = currentUserId;
     if (!currentWorkspaceId || !userId) return;
 
     // Foreign-currency edits keep the original currency and re-convert the

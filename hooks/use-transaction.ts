@@ -1,19 +1,12 @@
 import { useQuery } from '@tanstack/react-query';
 
-import { supabase } from '@/lib/supabase';
+import { useDataSource } from '@/hooks/use-data-source';
 
 export function useTransaction(id: string | undefined) {
+  const source = useDataSource();
   return useQuery({
     queryKey: ['transaction', id],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('transactions')
-        .select('*, category:categories(*)')
-        .eq('id', id!)
-        .single();
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!id,
+    queryFn: () => source!.getTransaction(id!),
+    enabled: !!source && !!id,
   });
 }

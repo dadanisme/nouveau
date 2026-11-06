@@ -54,6 +54,11 @@ export default function LoginScreen() {
           disabled={screen.isSubmitting}
           onPress={screen.openSignUp}
         />
+        <AuthSwitchRow
+          action={t(k.login.continueWithoutAccount)}
+          disabled={screen.isSubmitting}
+          onPress={screen.continueWithoutAccount}
+        />
       </AuthFormSection>
 
       <AuthFormSection title={t(k.login.orContinueWith)}>

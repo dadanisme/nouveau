@@ -1,56 +1,34 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { useSession } from '@/hooks/use-auth';
-import { supabase } from '@/lib/supabase';
+import { requireDataSource, useCurrentUserId, useDataSource } from '@/hooks/use-data-source';
 import type { TablesUpdate } from '@/types/supabase';
 
 export function useMyWorkspaces() {
-  const { session } = useSession();
-  const userId = session?.user.id;
+  const source = useDataSource();
+  const userId = useCurrentUserId();
   return useQuery({
     queryKey: ['workspaces', userId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('workspaces')
-        .select('*, workspace_members!inner(user_id)')
-        .eq('workspace_members.user_id', userId!)
-        .order('is_personal', { ascending: false })
-        .order('created_at', { ascending: true });
-      if (error) throw error;
-      return data.map(({ workspace_members: _, ...workspace }) => workspace);
-    },
-    enabled: !!userId,
+    queryFn: () => source!.getMyWorkspaces(userId!),
+    enabled: !!source && !!userId,
   });
 }
 
 export function useWorkspace(workspaceId: string | null | undefined) {
+  const source = useDataSource();
   return useQuery({
     queryKey: ['workspaces', workspaceId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('workspaces')
-        .select('*')
-        .eq('id', workspaceId!)
-        .single();
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!workspaceId,
+    queryFn: () => source!.getWorkspace(workspaceId!),
+    enabled: !!source && !!workspaceId,
   });
 }
 
 export function useCreateWorkspace() {
   const queryClient = useQueryClient();
+  const source = useDataSource();
 
   return useMutation({
-    mutationFn: async (args: { name: string; home_currency?: string }) => {
-      const { data, error } = await supabase.rpc('create_workspace', {
-        name: args.name,
-        home_currency: args.home_currency,
-      });
-      if (error) throw error;
-      return data;
-    },
+    mutationFn: (args: { name: string; home_currency?: string }) =>
+      requireDataSource(source).createWorkspace(args),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['workspaces'] });
     },
@@ -59,11 +37,11 @@ export function useCreateWorkspace() {
 
 export function useUpdateWorkspace() {
   const queryClient = useQueryClient();
+  const source = useDataSource();
 
   return useMutation({
     mutationFn: async ({ id, ...updates }: TablesUpdate<'workspaces'> & { id: string }) => {
-      const { error } = await supabase.from('workspaces').update(updates).eq('id', id);
-      if (error) throw error;
+      await requireDataSource(source).updateWorkspace(id, updates);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['workspaces'] });
@@ -73,11 +51,11 @@ export function useUpdateWorkspace() {
 
 export function useDeleteWorkspace() {
   const queryClient = useQueryClient();
+  const source = useDataSource();
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from('workspaces').delete().eq('id', id);
-      if (error) throw error;
+      await requireDataSource(source).deleteWorkspace(id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['workspaces'] });

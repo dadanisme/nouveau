@@ -50,6 +50,8 @@ export const androidOverrides: { en: Overrides<Translations>; id: Overrides<Tran
       signUp: 'Sign up',
       missingFields: 'Missing fields',
       signInFailed: 'Sign-in failed',
+      continueWithoutAccount: 'Continue without an account',
+      continueWithoutAccountFailed: "Couldn't continue",
     },
     signup: {
       signUp: 'Sign up',
@@ -127,6 +129,8 @@ export const androidOverrides: { en: Overrides<Translations>; id: Overrides<Tran
       password: 'Kata sandi',
       missingFields: 'Kolom belum lengkap',
       signInFailed: 'Gagal masuk',
+      continueWithoutAccount: 'Lanjutkan tanpa akun',
+      continueWithoutAccountFailed: 'Tidak dapat melanjutkan',
     },
     signup: {
       password: 'Kata sandi',
