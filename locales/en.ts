@@ -463,7 +463,6 @@ const en = {
     delete: 'Delete',
   },
   currency: {
-    prefix: 'Rp',
     billion: 'B',
     million: 'M',
     thousand: 'K',

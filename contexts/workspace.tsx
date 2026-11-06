@@ -1,6 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 
+import { DEFAULT_HOME_CURRENCY } from '@/constants/currencies';
 import { WORKSPACE_STORAGE_KEY } from '@/constants/storage-keys';
 import { useGuestSession, useSession } from '@/hooks/use-auth';
 import { useDataSource } from '@/hooks/use-data-source';
@@ -15,6 +16,8 @@ type Workspace = Tables<'workspaces'>;
 interface WorkspaceContextValue {
   currentWorkspaceId: string | null;
   currentWorkspace: Workspace | null;
+  /** The active workspace's `home_currency` ("IDR", "USD"), the column default until it loads. */
+  homeCurrency: string;
   switchWorkspace: (id: string) => Promise<void>;
   isLoading: boolean;
 }
@@ -186,6 +189,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       value={{
         currentWorkspaceId,
         currentWorkspace: currentWorkspaceQuery.data ?? null,
+        homeCurrency: currentWorkspaceQuery.data?.home_currency ?? DEFAULT_HOME_CURRENCY,
         switchWorkspace,
         isLoading: isResolving,
       }}

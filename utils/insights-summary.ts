@@ -2,7 +2,7 @@ import type { TransactionWithCategory } from '@/hooks/use-transactions';
 import i18n from '@/lib/i18n';
 import { k } from '@/locales/keys';
 import { computeCategoryBreakdown, type CategorySpend } from '@/utils/analytics';
-import { formatCompactAmount, formatCurrency } from '@/utils/currency';
+import { currencyDecimals, formatCompactAmount, formatCurrency } from '@/utils/currency';
 import {
   formatMonthName,
   formatPeriodLabel,
@@ -41,9 +41,12 @@ interface CategoryChange {
   delta: number;
 }
 
-/** Amounts are whole rupiah: a smaller difference (floating-point sums) is no change. */
-function isZero(amount: number): boolean {
-  return Math.round(Math.abs(amount)) === 0;
+/**
+ * Whether an amount is zero in the currency's smallest unit (a whole rupiah, a cent): a smaller
+ * difference (floating-point sums) is no change.
+ */
+function isZero(amount: number, currency: string): boolean {
+  return Math.round(Math.abs(amount) * 10 ** currencyDecimals(currency)) === 0;
 }
 
 function total(spends: CategorySpend[]): number {
@@ -57,6 +60,7 @@ function total(spends: CategorySpend[]): number {
 function findBiggestChange(
   current: CategorySpend[],
   previous: CategorySpend[],
+  currency: string,
 ): CategoryChange | undefined {
   const changes = new Map<string, CategoryChange>();
   for (const spend of previous) {
@@ -75,7 +79,7 @@ function findBiggestChange(
 
   let biggest: CategoryChange | undefined;
   for (const change of changes.values()) {
-    if (isZero(change.delta)) continue;
+    if (isZero(change.delta, currency)) continue;
     if (!biggest || Math.abs(change.delta) > Math.abs(biggest.delta)) biggest = change;
   }
   return biggest;
@@ -85,10 +89,12 @@ function findBiggestChange(
  * The Insights headline and its second line for a month (compared with the previous month) or a
  * year (compared with the previous year). The comparison and the biggest change are left out when
  * the previous period has no spending. With nothing spent, the headline says so and there's no
- * second line. `locale` pins the strings to the in-app language (pass it where memoized).
+ * second line. Amounts are in the home `currency`; `locale` pins the strings to the in-app
+ * language (pass it where memoized).
  */
 export function buildInsightsSummary(
   { mode, period, current, previous }: InsightsSummaryInput,
+  currency: string,
   locale?: string,
 ): InsightsSummary {
   const options = locale ? { locale } : undefined;
@@ -100,7 +106,7 @@ export function buildInsightsSummary(
   const spending = computeCategoryBreakdown(current, 'expense');
   const spent = total(spending);
 
-  if (isZero(spent)) {
+  if (isZero(spent, currency)) {
     const periodName =
       mode === 'year'
         ? yearLabel(period.year)
@@ -116,10 +122,12 @@ export function buildInsightsSummary(
       : formatMonthName(previousPeriod.month, locale);
   const previousSpending = computeCategoryBreakdown(previous, 'expense');
   const previousSpent = total(previousSpending);
-  const hasComparison = !isZero(previousSpent);
+  const hasComparison = !isZero(previousSpent, currency);
 
   const top = spending[0];
-  const change = hasComparison ? findBiggestChange(spending, previousSpending) : undefined;
+  const change = hasComparison
+    ? findBiggestChange(spending, previousSpending, currency)
+    : undefined;
 
   /** Both lines with amounts in `format`: compact on screen, full for screen readers. */
   function compose(format: (value: number) => string): [string, string] {
@@ -127,7 +135,7 @@ export function buildInsightsSummary(
     let headline: string;
     if (!hasComparison) {
       headline = t(k.insights.headline.spent, { amount });
-    } else if (isZero(spent - previousSpent)) {
+    } else if (isZero(spent - previousSpent, currency)) {
       headline = t(k.insights.headline.spentSame, { amount, period: previousName });
     } else {
       const ratio = ((spent - previousSpent) / previousSpent) * 100;
@@ -165,7 +173,7 @@ export function buildInsightsSummary(
     return [headline, detail];
   }
 
-  const [headline, detail] = compose((value) => formatCompactAmount(value, locale));
-  const spoken = compose(formatCurrency);
+  const [headline, detail] = compose((value) => formatCompactAmount(value, currency, locale));
+  const spoken = compose((value) => formatCurrency(value, currency, locale));
   return { headline, detail, spokenHeadline: spoken[0], spokenDetail: spoken[1] };
 }

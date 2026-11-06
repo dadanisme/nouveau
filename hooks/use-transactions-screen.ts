@@ -46,7 +46,7 @@ export function useTransactionsScreen() {
   // `t` and `locale` follow the in-app language, so the memoized labels and amounts rebuild when
   // it changes.
   const { t, locale } = useLanguage();
-  const { currentWorkspaceId } = useWorkspace();
+  const { currentWorkspaceId, homeCurrency } = useWorkspace();
   const nav = usePeriodNavigation('month');
   const { year, month } = nav.period;
 
@@ -80,10 +80,11 @@ export function useTransactionsScreen() {
   const categoryBar = useMemo(
     () =>
       toCategoryBarModel(computeExpenseBreakdown(allTransactions, BAR_TOP_CATEGORIES), {
+        currency: homeCurrency,
         locale,
         othersTitle: t(k.transactions.others),
       }),
-    [allTransactions, t, locale],
+    [allTransactions, homeCurrency, t, locale],
   );
 
   const daySections = useMemo((): TransactionDaySection[] => {
@@ -98,15 +99,19 @@ export function useTransactionsScreen() {
       title: formatDayLabel(day.dateKey, now, relative),
       footer: joinWithDot([
         day.expense > 0
-          ? t(k.transactions.daySpent, { amount: formatCompactAmount(day.expense, locale) })
+          ? t(k.transactions.daySpent, {
+              amount: formatCompactAmount(day.expense, homeCurrency, locale),
+            })
           : null,
         day.income > 0
-          ? t(k.transactions.dayReceived, { amount: formatCompactAmount(day.income, locale) })
+          ? t(k.transactions.dayReceived, {
+              amount: formatCompactAmount(day.income, homeCurrency, locale),
+            })
           : null,
       ]),
       rows: day.transactions.map((tx) => toTransactionRowData(tx, { locale })),
     }));
-  }, [filteredTransactions, categoryFilter, t, locale]);
+  }, [filteredTransactions, categoryFilter, homeCurrency, t, locale]);
 
   // Category filter options, one group per type. With Type = All both types show, so they're
   // grouped (an "Other" exists in each); with a type on, only that type's categories can match.

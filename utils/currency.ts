@@ -1,77 +1,59 @@
 import i18n, { getDateLocale } from '@/lib/i18n';
 import { k } from '@/locales/keys';
+import {
+  currencyDecimals,
+  currencySymbolIn,
+  formatCompactHomeAmountIn,
+  formatHomeAmountIn,
+  homeGroupingLocale,
+} from '@/utils/currency-format';
 
-/** Currencies without minor units (no decimal input) */
-const ZERO_DECIMAL_CURRENCIES = new Set(['IDR', 'JPY', 'KRW', 'VND']);
+export { currencyDecimals };
 
-export function currencyDecimals(currency: string): number {
-  return ZERO_DECIMAL_CURRENCIES.has(currency) ? 0 : 2;
-}
-
-export function getCurrencySymbol(currency: string): string {
-  try {
-    const parts = new Intl.NumberFormat(getDateLocale(), {
-      style: 'currency',
-      currency,
-      currencyDisplay: 'narrowSymbol',
-    }).formatToParts(0);
-    return parts.find((part) => part.type === 'currency')?.value ?? currency;
-  } catch {
-    return currency;
-  }
+/**
+ * A currency's narrow symbol ("Rp", "$", "€", "¥"), or its code. `locale` defaults to the in-app
+ * language.
+ */
+export function getCurrencySymbol(currency: string, locale?: string): string {
+  return currencySymbolIn(currency, getDateLocale(locale));
 }
 
 /**
- * "Rp1.2M" / "Rp1,2jt". `locale` pins the suffixes to that language; pass the in-app locale from
- * `useLanguage()` where the result is memoized, so it updates when the language changes.
+ * A compact home-currency amount: "Rp1.2M" / "Rp1.2Jt", "$1.5K", "$950.25". `currency` is the
+ * workspace's (or the row's) `home_currency`. `locale` pins the suffixes and grouping to that
+ * language; pass the in-app locale from `useLanguage()` where the result is memoized, so it
+ * updates when the language changes.
  */
-export function formatCompactAmount(value: number, locale?: string): string {
+export function formatCompactAmount(value: number, currency: string, locale?: string): string {
   const options = locale ? { locale } : undefined;
-  const prefix = i18n.t(k.currency.prefix, options);
-  const billion = i18n.t(k.currency.billion, options);
-  const million = i18n.t(k.currency.million, options);
-  const thousand = i18n.t(k.currency.thousand, options);
-
-  if (value >= 1_000_000_000) {
-    const compact = value / 1_000_000_000;
-    return compact % 1 === 0
-      ? `${prefix}${compact}${billion}`
-      : `${prefix}${parseFloat(compact.toFixed(1))}${billion}`;
-  }
-  if (value >= 1_000_000) {
-    const compact = value / 1_000_000;
-    return compact % 1 === 0
-      ? `${prefix}${compact}${million}`
-      : `${prefix}${parseFloat(compact.toFixed(1))}${million}`;
-  }
-  if (value >= 1_000) {
-    const compact = value / 1_000;
-    return compact % 1 === 0
-      ? `${prefix}${compact}${thousand}`
-      : `${prefix}${parseFloat(compact.toFixed(1))}${thousand}`;
-  }
-  return `${prefix}${Math.round(value)}`;
+  return formatCompactHomeAmountIn(value, currency, getDateLocale(locale), {
+    billion: i18n.t(k.currency.billion, options),
+    million: i18n.t(k.currency.million, options),
+    thousand: i18n.t(k.currency.thousand, options),
+  });
 }
 
-export function formatSignedCompactAmount(value: number): string {
+export function formatSignedCompactAmount(
+  value: number,
+  currency: string,
+  locale?: string,
+): string {
   const sign = value < 0 ? '-' : '';
-  return `${sign}${formatCompactAmount(Math.abs(value))}`;
-}
-
-/** Home-currency amounts are grouped the Indonesian way in every app language ("Rp1.500.000"). */
-const HOME_AMOUNT_LOCALE = 'id-ID';
-
-export function formatCurrency(value: number): string {
-  const prefix = i18n.t(k.currency.prefix);
-  return `${prefix}${value.toLocaleString(HOME_AMOUNT_LOCALE, { maximumFractionDigits: 0 })}`;
+  return `${sign}${formatCompactAmount(Math.abs(value), currency, locale)}`;
 }
 
 /**
- * Prefix shown before an amount being entered: the home currency uses the locale prefix (e.g.
- * "Rp"), a foreign currency its own symbol.
+ * A full home-currency amount with the currency's decimals: "Rp1.500.000" (IDR is grouped the
+ * Indonesian way in every app language), "$1,500.00", "¥1,500". `locale` as in
+ * {@link formatCompactAmount}.
  */
-export function getAmountPrefix(currency?: string): string {
-  return currency ? getCurrencySymbol(currency) : i18n.t(k.currency.prefix);
+export function formatCurrency(value: number, currency: string, locale?: string): string {
+  return formatHomeAmountIn(value, currency, getDateLocale(locale));
+}
+
+/** Prefix shown before an amount being entered: the currency's symbol (e.g. "Rp", "$"). */
+export function getAmountPrefix(currency: string, locale?: string): string {
+  return getCurrencySymbol(currency, locale);
 }
 
 /** The separators the amount field types and shows. */
@@ -82,19 +64,24 @@ export interface AmountSeparators {
 
 /**
  * The separators an amount being entered is shown with, matching how the app displays amounts:
- * the home currency like {@link formatCurrency} ("1.500.000"), a foreign currency like
- * {@link formatForeignAmount} in the in-app locale. Pass `locale` from `useLanguage()` so the
- * result follows a language change.
+ * the home currency like {@link formatCurrency} (IDR "1.500.000", USD in English "1,500.00"), a
+ * foreign currency like {@link formatForeignAmount} in the in-app locale. Pass `locale` from
+ * `useLanguage()` so the result follows a language change.
  */
-export function getAmountSeparators(currency?: string, locale?: string): AmountSeparators {
-  const tag = currency ? getDateLocale(locale) : HOME_AMOUNT_LOCALE;
+export function getAmountSeparators(
+  currency: string,
+  isHome: boolean,
+  locale?: string,
+): AmountSeparators {
+  const appTag = getDateLocale(locale);
+  const tag = isHome ? homeGroupingLocale(currency, appTag) : appTag;
   try {
     const parts = new Intl.NumberFormat(tag).formatToParts(1234567.5);
     const group = parts.find((part) => part.type === 'group')?.value;
     const decimal = parts.find((part) => part.type === 'decimal')?.value;
     if (group && decimal && group !== decimal) return { group, decimal };
   } catch {
-    // Fall through to the home-currency separators.
+    // Fall through to the Indonesian separators.
   }
   return { group: '.', decimal: ',' };
 }

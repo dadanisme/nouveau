@@ -462,7 +462,6 @@ const id: Translations = {
     delete: 'Hapus',
   },
   currency: {
-    prefix: 'Rp',
     billion: 'M',
     million: 'Jt',
     thousand: 'Rb',
