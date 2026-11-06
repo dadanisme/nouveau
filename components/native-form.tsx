@@ -30,6 +30,7 @@ import {
   autocorrectionDisabled,
   badge,
   buttonStyle,
+  controlSize,
   disabled,
   dynamicTypeSize,
   fixedSize,
@@ -788,10 +789,12 @@ export function FormEmptyRow({ title, description, symbol, action }: FormEmptyRo
       description={description}
       actions={
         action ? (
+          // ContentUnavailableView sizes its actions small (28pt); large prominent clears the
+          // 44pt minimum (HIG buttons) and reads as the screen's one primary action.
           <Button
             label={action.title}
             onPress={action.onPress}
-            modifiers={[buttonStyle('bordered')]}
+            modifiers={[buttonStyle('borderedProminent'), controlSize('large')]}
           />
         ) : undefined
       }

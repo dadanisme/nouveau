@@ -810,12 +810,10 @@ export function FormEmptyRow({ title, description, symbol, action }: FormEmptyRo
         </Text>
       ) : null}
       {action ? (
-        <FilledTonalButton
-          onClick={action.onPress}
-          modifiers={[padding(0, 8, 0, 0), height(BUTTON_HEIGHT)]}
-        >
+        // M3 filled: the screen's one primary action, on the `primary` role (the accent).
+        <Button onClick={action.onPress} modifiers={[padding(0, 8, 0, 0), height(BUTTON_HEIGHT)]}>
           <Text>{action.title}</Text>
-        </FilledTonalButton>
+        </Button>
       ) : null}
     </Column>
   );
