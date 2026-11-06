@@ -20,6 +20,7 @@ const id: Translations = {
     discardChanges: 'Buang Perubahan',
     keepEditing: 'Lanjut Mengedit',
     discardChangesPrompt: 'Buang perubahan?',
+    signInRequired: 'Masuk untuk menggunakan fitur ini.',
   },
   transactions: {
     title: 'Transaksi',

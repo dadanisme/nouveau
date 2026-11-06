@@ -4,7 +4,7 @@ import { useRef, useState } from 'react';
 import { Platform } from 'react-native';
 
 import { useWorkspace } from '@/contexts/workspace';
-import { useSession } from '@/hooks/use-auth';
+import { useCurrentUserId } from '@/hooks/use-data-source';
 import { useCategories } from '@/hooks/use-categories';
 import { useCategoryDeleteConfirmation } from '@/hooks/use-category-delete-confirmation';
 import { useAddCategory, useUpdateCategory } from '@/hooks/use-category-mutations';
@@ -53,7 +53,7 @@ function errorMessage(error: unknown): string {
 export function useCategoryForm() {
   const router = useRouter();
   const { id } = useLocalSearchParams<CategoryFormSheetParams>();
-  const { session } = useSession();
+  const currentUserId = useCurrentUserId();
   const { currentWorkspaceId } = useWorkspace();
   const { data: categories } = useCategories(currentWorkspaceId);
   const addCategory = useAddCategory();
@@ -115,7 +115,7 @@ export function useCategoryForm() {
     const trimmedName = name.trim();
     if (!canSave) return;
 
-    const userId = session?.user.id;
+    const userId = currentUserId;
     if (!currentWorkspaceId || !userId) return;
 
     const iconValue = toCategoryIconValue(icon);

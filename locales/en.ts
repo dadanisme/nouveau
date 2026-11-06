@@ -18,6 +18,7 @@ const en = {
     discardChanges: 'Discard Changes',
     keepEditing: 'Keep Editing',
     discardChangesPrompt: 'Discard changes?',
+    signInRequired: 'Sign in to use this feature.',
   },
   transactions: {
     title: 'Transactions',

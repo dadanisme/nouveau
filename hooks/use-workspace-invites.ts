@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { useSession } from '@/hooks/use-auth';
+import { useDataSource } from '@/hooks/use-data-source';
 import { supabase } from '@/lib/supabase';
 
 export type WorkspaceInviteWithWorkspace = {
@@ -43,7 +44,9 @@ export function useMyPendingInvites() {
   });
 }
 
+/** A workspace's pending invites. Account only. */
 export function useWorkspaceInvites(workspaceId: string | null | undefined) {
+  const source = useDataSource();
   return useQuery({
     queryKey: ['workspace-invites', workspaceId],
     queryFn: async () => {
@@ -56,7 +59,7 @@ export function useWorkspaceInvites(workspaceId: string | null | undefined) {
       if (error) throw error;
       return data;
     },
-    enabled: !!workspaceId,
+    enabled: source?.kind === 'remote' && !!workspaceId,
   });
 }
 

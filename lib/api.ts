@@ -1,4 +1,4 @@
-import { WORKSPACE_STORAGE_KEY } from '@/contexts/workspace';
+import { WORKSPACE_STORAGE_KEY } from '@/constants/storage-keys';
 import { supabase } from '@/lib/supabase';
 
 /**

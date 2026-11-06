@@ -4,7 +4,7 @@ import { useState } from 'react';
 
 import { useLanguage } from '@/contexts/language';
 import { useWorkspace } from '@/contexts/workspace';
-import { useSession } from '@/hooks/use-auth';
+import { useCurrentUserId } from '@/hooks/use-data-source';
 import { useDiscardGuard } from '@/hooks/use-discard-guard';
 import { useRevokeInvite, useWorkspaceInvites } from '@/hooks/use-workspace-invites';
 import {
@@ -38,9 +38,8 @@ export function useWorkspaceSettingsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { t } = useLanguage();
-  const { session } = useSession();
   const { currentWorkspaceId, switchWorkspace } = useWorkspace();
-  const userId = session?.user.id;
+  const userId = useCurrentUserId();
 
   const { data: workspace, isLoading: isWorkspaceLoading } = useWorkspaceQuery(id);
   const { data: members = [], isLoading: isMembersLoading } = useWorkspaceMembers(id);

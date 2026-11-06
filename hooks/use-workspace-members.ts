@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { useSession } from '@/hooks/use-auth';
+import { useDataSource } from '@/hooks/use-data-source';
 import { supabase } from '@/lib/supabase';
 
 export type WorkspaceMemberRow = {
@@ -16,7 +17,9 @@ export type WorkspaceMemberRow = {
   } | null;
 };
 
+/** A workspace's members. Account only: a guest's workspace has no members table. */
 export function useWorkspaceMembers(workspaceId: string | null | undefined) {
+  const source = useDataSource();
   return useQuery({
     queryKey: ['workspace-members', workspaceId],
     queryFn: async () => {
@@ -29,7 +32,7 @@ export function useWorkspaceMembers(workspaceId: string | null | undefined) {
       if (error) throw error;
       return data ?? [];
     },
-    enabled: !!workspaceId,
+    enabled: source?.kind === 'remote' && !!workspaceId,
   });
 }
 

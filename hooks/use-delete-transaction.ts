@@ -1,14 +1,14 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-import { supabase } from '@/lib/supabase';
+import { requireDataSource, useDataSource } from '@/hooks/use-data-source';
 
 export function useDeleteTransaction() {
   const queryClient = useQueryClient();
+  const source = useDataSource();
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from('transactions').delete().eq('id', id);
-      if (error) throw error;
+      await requireDataSource(source).deleteTransaction(id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] });

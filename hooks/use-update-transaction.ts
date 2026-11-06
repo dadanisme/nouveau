@@ -1,15 +1,15 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-import { supabase } from '@/lib/supabase';
+import { requireDataSource, useDataSource } from '@/hooks/use-data-source';
 import type { TablesUpdate } from '@/types/supabase';
 
 export function useUpdateTransaction() {
   const queryClient = useQueryClient();
+  const source = useDataSource();
 
   return useMutation({
     mutationFn: async ({ id, ...updates }: TablesUpdate<'transactions'> & { id: string }) => {
-      const { error } = await supabase.from('transactions').update(updates).eq('id', id);
-      if (error) throw error;
+      await requireDataSource(source).updateTransaction(id, updates);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] });

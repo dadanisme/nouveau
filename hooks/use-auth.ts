@@ -8,6 +8,7 @@ import {
   signInWithGoogleCredential,
   signOutLocally,
 } from '@/lib/auth';
+import { endGuest, readGuestId, startGuest } from '@/lib/guest';
 import { requestGoogleCredential } from '@/lib/google-auth';
 import { supabase } from '@/lib/supabase';
 import { isPlaceholderDisplayName } from '@/utils/string';
@@ -25,6 +26,35 @@ export function useSession() {
   });
 
   return { session: session ?? null, isLoading };
+}
+
+const GUEST_SESSION_KEY = ['guest-session'];
+
+/**
+ * The guest using the app without an account (#100), or null. Read from storage synchronously, so
+ * a guest is known on the first render (no loading state), before any data query runs.
+ */
+export function useGuestSession() {
+  const { data: guestId } = useQuery({
+    queryKey: GUEST_SESSION_KEY,
+    queryFn: readGuestId,
+    initialData: readGuestId,
+    staleTime: Infinity,
+  });
+
+  return { guestId: guestId ?? null };
+}
+
+/** Starts guest mode: seeds the on-device workspace and categories, then becomes the guest. */
+export function useStartGuest() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: startGuest,
+    onSuccess: (guestId) => {
+      queryClient.setQueryData(GUEST_SESSION_KEY, guestId);
+    },
+  });
 }
 
 export function useUserProfile(userId: string | undefined) {
@@ -182,11 +212,26 @@ export function useSignInWithApple() {
   });
 }
 
+/**
+ * Signs out. A guest's sign-out erases their on-device data (there is no account to come back to),
+ * with no confirmation of its own.
+ */
 export function useSignOut() {
   const queryClient = useQueryClient();
+  const { session } = useSession();
+  const { guestId } = useGuestSession();
+  const isGuest = !session && !!guestId;
 
   return useMutation({
-    mutationFn: signOutLocally,
+    mutationFn: async () => {
+      if (!isGuest) {
+        await signOutLocally();
+        return;
+      }
+      await endGuest();
+      // Signed out before the cache goes, as the auth listener does for an account.
+      queryClient.setQueryData(GUEST_SESSION_KEY, null);
+    },
     onSuccess: () => {
       queryClient.clear();
     },

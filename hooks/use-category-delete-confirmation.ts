@@ -3,6 +3,7 @@ import * as Haptics from 'expo-haptics';
 
 import { categoryTransactionCountQuery } from '@/hooks/use-categories';
 import { useDeleteCategory } from '@/hooks/use-category-mutations';
+import { useDataSource } from '@/hooks/use-data-source';
 import { showAlertDialog } from '@/lib/alert-dialog';
 import { confirmDestructive } from '@/lib/confirm-destructive';
 import i18n from '@/lib/i18n';
@@ -26,6 +27,7 @@ function showDeleteError(error: unknown) {
  */
 export function useCategoryDeleteConfirmation() {
   const queryClient = useQueryClient();
+  const source = useDataSource();
   const deleteCategory = useDeleteCategory();
 
   function deleteNow(id: string, onDeleted?: () => void) {
@@ -48,7 +50,7 @@ export function useCategoryDeleteConfirmation() {
     await dismissKeyboard();
     let count: number;
     try {
-      count = await queryClient.fetchQuery(categoryTransactionCountQuery(category.id));
+      count = await queryClient.fetchQuery(categoryTransactionCountQuery(source, category.id));
     } catch (error) {
       showDeleteError(error);
       return;

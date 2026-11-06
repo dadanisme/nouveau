@@ -1,15 +1,15 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-import { supabase } from '@/lib/supabase';
+import { requireDataSource, useDataSource } from '@/hooks/use-data-source';
 import type { TablesInsert, TablesUpdate } from '@/types/supabase';
 
 export function useAddCategory() {
   const queryClient = useQueryClient();
+  const source = useDataSource();
 
   return useMutation({
     mutationFn: async (category: TablesInsert<'categories'>) => {
-      const { error } = await supabase.from('categories').insert(category);
-      if (error) throw error;
+      await requireDataSource(source).addCategory(category);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['categories'] });
@@ -19,11 +19,11 @@ export function useAddCategory() {
 
 export function useUpdateCategory() {
   const queryClient = useQueryClient();
+  const source = useDataSource();
 
   return useMutation({
     mutationFn: async ({ id, ...updates }: TablesUpdate<'categories'> & { id: string }) => {
-      const { error } = await supabase.from('categories').update(updates).eq('id', id);
-      if (error) throw error;
+      await requireDataSource(source).updateCategory(id, updates);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['categories'] });
@@ -33,11 +33,11 @@ export function useUpdateCategory() {
 
 export function useDeleteCategory() {
   const queryClient = useQueryClient();
+  const source = useDataSource();
 
   return useMutation({
     mutationFn: async ({ id }: { id: string }) => {
-      const { error } = await supabase.from('categories').delete().eq('id', id);
-      if (error) throw error;
+      await requireDataSource(source).deleteCategory(id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['categories'] });

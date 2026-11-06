@@ -1,12 +1,14 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 
-import { useSession } from '@/hooks/use-auth';
+import { WORKSPACE_STORAGE_KEY } from '@/constants/storage-keys';
+import { useGuestSession, useSession } from '@/hooks/use-auth';
+import { useDataSource } from '@/hooks/use-data-source';
 import { useWorkspace as useWorkspaceQuery } from '@/hooks/use-workspaces';
 import { supabase } from '@/lib/supabase';
 import type { Tables } from '@/types/supabase';
 
-export const WORKSPACE_STORAGE_KEY = 'active_workspace_id';
+export { WORKSPACE_STORAGE_KEY };
 
 type Workspace = Tables<'workspaces'>;
 
@@ -26,8 +28,12 @@ function readStoredWorkspaceId(): string | null {
 
 export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
   const { session } = useSession();
+  const { guestId } = useGuestSession();
+  const source = useDataSource();
   const queryClient = useQueryClient();
   const userId = session?.user.id;
+  // A guest (#100) has one on-device workspace, resolved from the local store.
+  const isLocal = source?.kind === 'local';
 
   const [currentWorkspaceId, setCurrentWorkspaceIdState] = useState<string | null>(
     readStoredWorkspaceId,
@@ -39,12 +45,38 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let cancelled = false;
 
+    async function resolveLocal(ownerId: string) {
+      setIsResolving(true);
+      let resolved = readStoredWorkspaceId();
+      if (!resolved || recoveredStaleIdsRef.current.has(resolved)) {
+        try {
+          const workspaces = await source!.getMyWorkspaces(ownerId);
+          resolved = workspaces.find((w) => !recoveredStaleIdsRef.current.has(w.id))?.id ?? null;
+        } catch (error) {
+          console.warn('Could not read the local workspace', error);
+          resolved = null;
+        }
+      }
+
+      if (cancelled) return;
+
+      if (resolved) {
+        localStorage.setItem(WORKSPACE_STORAGE_KEY, resolved);
+        setCurrentWorkspaceIdState(resolved);
+      }
+      setIsResolving(false);
+    }
+
     async function resolve() {
-      if (!userId) {
+      if (currentWorkspaceId) {
         setIsResolving(false);
         return;
       }
-      if (currentWorkspaceId) {
+      if (isLocal && guestId) {
+        await resolveLocal(guestId);
+        return;
+      }
+      if (!userId) {
         setIsResolving(false);
         return;
       }
@@ -86,22 +118,23 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [userId, currentWorkspaceId]);
+  }, [userId, currentWorkspaceId, isLocal, guestId, source]);
 
-  // Clear local workspace on sign-out
+  // Clear local workspace on sign-out (a guest has no session but keeps theirs)
   useEffect(() => {
-    if (!session && currentWorkspaceId !== null) {
+    if (!session && !guestId && currentWorkspaceId !== null) {
       localStorage.removeItem(WORKSPACE_STORAGE_KEY);
       setCurrentWorkspaceIdState(null);
       recoveredStaleIdsRef.current.clear();
     }
-  }, [session, currentWorkspaceId]);
+  }, [session, guestId, currentWorkspaceId]);
 
   const currentWorkspaceQuery = useWorkspaceQuery(currentWorkspaceId);
 
   // Recover from stale workspace id (deleted workspace or removed membership)
   useEffect(() => {
-    if (!currentWorkspaceQuery.isError || !currentWorkspaceId || !userId) return;
+    // A guest's stale id (erased data) is dropped too, and the local workspace resolved again.
+    if (!currentWorkspaceQuery.isError || !currentWorkspaceId || (!userId && !isLocal)) return;
     if (recoveredStaleIdsRef.current.has(currentWorkspaceId)) return;
 
     const staleId = currentWorkspaceId;
@@ -110,12 +143,14 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
     let cancelled = false;
     async function recover() {
       localStorage.removeItem(WORKSPACE_STORAGE_KEY);
-      // Clear the server-side pointer too so re-resolve doesn't pick it again
-      await supabase
-        .from('users')
-        .update({ active_workspace_id: null })
-        .eq('id', userId!)
-        .eq('active_workspace_id', staleId);
+      // Clear the server-side pointer too so re-resolve doesn't pick it again (accounts only)
+      if (!isLocal) {
+        await supabase
+          .from('users')
+          .update({ active_workspace_id: null })
+          .eq('id', userId!)
+          .eq('active_workspace_id', staleId);
+      }
       if (cancelled) return;
       setCurrentWorkspaceIdState(null);
     }
@@ -123,7 +158,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [currentWorkspaceQuery.isError, currentWorkspaceId, userId]);
+  }, [currentWorkspaceQuery.isError, currentWorkspaceId, userId, isLocal]);
 
   const switchWorkspace = useCallback(
     async (id: string) => {
