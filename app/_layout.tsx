@@ -181,11 +181,10 @@ function RootStack() {
         />
         <Stack.Screen
           name="login"
-          // A native push from Welcome: the system back button and swipe-back return there. iOS:
-          // a native bar with only Back, as on Signup, so scrolled content doesn't run under the
-          // status bar (it blurs behind the bar on iOS 26+). Android pads the form itself.
+          // A native push from Welcome: the system back button (Android's Up arrow) and
+          // swipe-back return there. A bar with only Back and no title, as on Signup, so scrolled
+          // content doesn't run under the status bar (it blurs behind the bar on iOS 26+).
           options={{
-            headerShown: Platform.OS === 'ios',
             title: '',
             headerShadowVisible: false,
             headerStyle: {

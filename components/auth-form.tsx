@@ -35,11 +35,6 @@ export type AuthFormProps = {
   /** The headline above the form. */
   title: string;
   subtitle: string;
-  /**
-   * Android only: pad the form below the status bar, for a screen without a header. iOS
-   * respects the safe area natively.
-   */
-  insetTop?: boolean;
   children: React.ReactNode;
 };
 
