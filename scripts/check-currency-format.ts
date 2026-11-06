@@ -14,6 +14,7 @@ import {
   formatCompactHomeAmountIn,
   formatHomeAmountIn,
   type CompactSuffixes,
+  separatorsIn,
 } from '../utils/currency-format';
 
 const LOCALES = { en: { tag: 'en-US', strings: en }, id: { tag: 'id-ID', strings: id } } as const;
@@ -112,8 +113,10 @@ const SYMBOLS: [string, string][] = [
   ['USD', '$'],
   ['EUR', '€'],
   ['JPY', '¥'],
-  ['SGD', '$'],
+  ['SGD', 'S$'],
   ['GBP', '£'],
+  ['AUD', 'A$'],
+  ['MYR', 'RM'],
 ];
 for (const [currency, symbol] of SYMBOLS) {
   for (const locale of ['en', 'id'] as const) {
@@ -134,12 +137,43 @@ const OTHERS: [number, string, AppLocale, string, string][] = [
   [1500, 'JPY', 'en', '¥1,500', '¥1.5K'],
   [950.6, 'JPY', 'en', '¥951', '¥951'],
   [1_500_000, 'JPY', 'id', '¥1.500.000', '¥1.5Jt'],
-  [1500, 'SGD', 'en', '$1,500.00', '$1.5K'],
-  [0.5, 'SGD', 'en', '$0.50', '$0.50'],
+  [1500, 'SGD', 'en', 'S$1,500.00', 'S$1.5K'],
+  [0.5, 'SGD', 'en', 'S$0.50', 'S$0.50'],
 ];
 for (const [value, currency, locale, wantFull, wantCompact] of OTHERS) {
   expect(`${currency} full ${value} ${locale}`, full(value, currency, locale), wantFull);
   expect(`${currency} compact ${value} ${locale}`, compact(value, currency, locale), wantCompact);
+}
+
+// Separators are fixed per app language, never read from Intl.formatToParts (unsupported by
+// Hermes on iOS), and the home-currency core must not depend on it for symbols either.
+expect(
+  'separators en',
+  JSON.stringify(separatorsIn('en-US')),
+  JSON.stringify({ group: ',', decimal: '.' }),
+);
+expect(
+  'separators id',
+  JSON.stringify(separatorsIn('id-ID')),
+  JSON.stringify({ group: '.', decimal: ',' }),
+);
+{
+  const realFormat = Intl.NumberFormat.prototype.formatToParts;
+  Intl.NumberFormat.prototype.formatToParts = () => {
+    throw new Error('formatToParts unavailable (simulating Hermes on iOS)');
+  };
+  try {
+    for (const [currency, symbol] of SYMBOLS) {
+      expect(
+        `symbol ${currency} without formatToParts`,
+        currencySymbolIn(currency, 'en-US'),
+        symbol,
+      );
+    }
+    expect('USD full without formatToParts', full(1500.5, 'USD', 'en'), '$1,500.50');
+  } finally {
+    Intl.NumberFormat.prototype.formatToParts = realFormat;
+  }
 }
 
 console.log(`${passes} passed, ${failures} failed`);

@@ -6,6 +6,7 @@ import {
   formatCompactHomeAmountIn,
   formatHomeAmountIn,
   homeGroupingLocale,
+  separatorsIn,
 } from '@/utils/currency-format';
 
 export { currencyDecimals };
@@ -75,15 +76,7 @@ export function getAmountSeparators(
 ): AmountSeparators {
   const appTag = getDateLocale(locale);
   const tag = isHome ? homeGroupingLocale(currency, appTag) : appTag;
-  try {
-    const parts = new Intl.NumberFormat(tag).formatToParts(1234567.5);
-    const group = parts.find((part) => part.type === 'group')?.value;
-    const decimal = parts.find((part) => part.type === 'decimal')?.value;
-    if (group && decimal && group !== decimal) return { group, decimal };
-  } catch {
-    // Fall through to the Indonesian separators.
-  }
-  return { group: '.', decimal: ',' };
+  return separatorsIn(tag);
 }
 
 /** Longest integer part the amount field accepts. */

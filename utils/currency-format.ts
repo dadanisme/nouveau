@@ -12,10 +12,21 @@ export function currencyDecimals(currency: string): number {
 }
 
 /**
- * Symbols pinned regardless of the JS engine's locale data, so IDR always reads "Rp" (some locale
- * data gives "IDR" for it).
+ * Symbols for the home currencies (`COMMON_CURRENCIES`), fixed in code rather than read from the
+ * engine's `Intl` data: Hermes on iOS can't give a currency symbol (`formatToParts` fails there, so
+ * USD read "USD"), and engines disagree ("$" vs "US$"). The dollars other than USD carry a prefix
+ * so they can't be mistaken for it. Other codes fall back to `Intl`, then to the code itself.
  */
-const PINNED_SYMBOLS: Record<string, string> = { IDR: 'Rp' };
+const HOME_SYMBOLS: Record<string, string> = {
+  IDR: 'Rp',
+  USD: '$',
+  EUR: '€',
+  GBP: '£',
+  JPY: '¥',
+  SGD: 'S$',
+  AUD: 'A$',
+  MYR: 'RM',
+};
 
 /**
  * Locales a currency is always grouped in, whatever the app language: IDR the Indonesian way
@@ -23,10 +34,10 @@ const PINNED_SYMBOLS: Record<string, string> = { IDR: 'Rp' };
  */
 const PINNED_GROUPING_LOCALES: Record<string, string> = { IDR: 'id-ID' };
 
-/** A currency's narrow symbol in a BCP 47 locale ("Rp", "$", "€", "¥"), or its code. */
+/** A currency's symbol ("Rp", "$", "€", "S$"); `tag` (BCP 47) only matters for other codes. */
 export function currencySymbolIn(currency: string, tag: string): string {
-  const pinned = PINNED_SYMBOLS[currency];
-  if (pinned) return pinned;
+  const fixed = HOME_SYMBOLS[currency];
+  if (fixed) return fixed;
   try {
     const parts = new Intl.NumberFormat(tag, {
       style: 'currency',
@@ -37,6 +48,17 @@ export function currencySymbolIn(currency: string, tag: string): string {
   } catch {
     return currency;
   }
+}
+
+/**
+ * The digit-group and decimal marks of a BCP 47 locale, fixed per language for the app's two
+ * (Indonesian "1.234,5", English "1,234.5") rather than read from `Intl.formatToParts`, which Hermes
+ * on iOS can't do (it fell back to Indonesian marks, so "." typed in English became a group mark).
+ */
+export function separatorsIn(tag: string): { group: string; decimal: string } {
+  return tag.toLowerCase().startsWith('id')
+    ? { group: '.', decimal: ',' }
+    : { group: ',', decimal: '.' };
 }
 
 /** The locale a home-currency amount is grouped in: the currency's own, else the app's `tag`. */
