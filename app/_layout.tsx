@@ -15,7 +15,7 @@ import { sheetOptions } from '@/constants/sheet-options';
 import { LanguageProvider, useLanguage } from '@/contexts/language';
 import { PeriodProvider } from '@/contexts/period';
 import { WorkspaceProvider } from '@/contexts/workspace';
-import { useSession } from '@/hooks/use-auth';
+import { useGuestSession, useSession } from '@/hooks/use-auth';
 import { goBackOrHome, resetTo } from '@/lib/navigation';
 import { k } from '@/locales/keys';
 
@@ -54,6 +54,9 @@ function ShareIntentNavigator() {
 
 function AuthGuard({ children }: { children: React.ReactNode }) {
   const { session, isLoading } = useSession();
+  // A guest (#100) uses the app like a signed-in user, with on-device data.
+  const { guestId } = useGuestSession();
+  const isSignedIn = !!session || !!guestId;
   const segments = useSegments();
   const [isNavigationReady, setIsNavigationReady] = useState(false);
 
@@ -63,15 +66,15 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
     const inAuthGroup = segments[0] === 'login' || segments[0] === 'signup';
     const inShareIntent = segments[0] === 'shareintent';
 
-    if (!session && !inAuthGroup && !inShareIntent) {
+    if (!isSignedIn && !inAuthGroup && !inShareIntent) {
       resetTo('/login');
-    } else if (session && inAuthGroup) {
+    } else if (isSignedIn && inAuthGroup) {
       resetTo('/');
     }
 
     const timeout = setTimeout(() => setIsNavigationReady(true), 50);
     return () => clearTimeout(timeout);
-  }, [session, isLoading, segments]);
+  }, [isSignedIn, isLoading, segments]);
 
   useEffect(() => {
     if (!isLoading && isNavigationReady) SplashScreen.hideAsync();

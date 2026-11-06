@@ -180,6 +180,8 @@ const en = {
     signIn: 'Sign In',
     noAccount: "Don't have an account?",
     signUp: 'Sign Up',
+    continueWithoutAccount: 'Continue Without an Account',
+    continueWithoutAccountFailed: "Couldn't Continue",
     orContinueWith: 'or continue with',
     signInWithGoogle: 'Sign in with Google',
     signInWithApple: 'Sign in with Apple',

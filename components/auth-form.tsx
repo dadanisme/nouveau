@@ -86,8 +86,8 @@ export function AuthFormSection({ title, children }: AuthFormSectionProps) {
 }
 
 export type AuthSwitchRowProps = {
-  /** e.g. "Don't have an account?" */
-  prompt: string;
+  /** e.g. "Don't have an account?"; without one, the row is the action alone. */
+  prompt?: string;
   /** e.g. "Sign Up", in the accent color. */
   action: string;
   disabled?: boolean;
@@ -105,7 +105,7 @@ export function AuthSwitchRow({
   onPress,
 }: AuthSwitchRowProps) {
   const isStacked = useIsAccessibilityTextSize();
-  const promptText = (
+  const promptText = prompt ? (
     <Text
       modifiers={[
         foregroundStyle(PlatformColor('secondaryLabel')),
@@ -114,7 +114,7 @@ export function AuthSwitchRow({
     >
       {prompt}
     </Text>
-  );
+  ) : null;
   const actionText = (
     <Text
       modifiers={[

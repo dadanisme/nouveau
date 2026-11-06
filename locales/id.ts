@@ -178,6 +178,8 @@ const id: Translations = {
     signIn: 'Masuk',
     noAccount: 'Belum punya akun?',
     signUp: 'Daftar',
+    continueWithoutAccount: 'Lanjutkan Tanpa Akun',
+    continueWithoutAccountFailed: 'Tidak Dapat Melanjutkan',
     orContinueWith: 'atau lanjutkan dengan',
     signInWithGoogle: 'Masuk dengan Google',
     signInWithApple: 'Masuk dengan Apple',

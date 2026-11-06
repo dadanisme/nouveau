@@ -121,9 +121,11 @@ export function AuthSwitchRow({ prompt, action, disabled, onPress }: AuthSwitchR
       verticalAlignment="center"
       modifiers={[fillMaxWidth(), padding(SIDE, 0, SIDE, 0)]}
     >
-      <Text color={colors.onSurfaceVariant} style={{ typography: 'bodyMedium' }}>
-        {prompt}
-      </Text>
+      {prompt ? (
+        <Text color={colors.onSurfaceVariant} style={{ typography: 'bodyMedium' }}>
+          {prompt}
+        </Text>
+      ) : null}
       <TextButton onClick={onPress} enabled={!disabled}>
         <Text>{action}</Text>
       </TextButton>
