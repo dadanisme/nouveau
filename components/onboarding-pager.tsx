@@ -1,6 +1,8 @@
-import { Host, Image, ScrollView, TabView, Text, VStack } from '@expo/ui/swift-ui';
+import { Circle, HStack, Host, Image, ScrollView, TabView, Text, VStack } from '@expo/ui/swift-ui';
 import {
+  accessibilityElement,
   accessibilityHidden,
+  accessibilityLabel,
   animation,
   Animation,
   background,
@@ -8,7 +10,6 @@ import {
   foregroundStyle,
   frame,
   imageScale,
-  indexViewStyle,
   multilineTextAlignment,
   padding,
   shapes,
@@ -27,20 +28,24 @@ const CIRCLE_SIZE = 112;
 // a readable length.
 const SIDE = 20;
 const BODY_SIDE = 32;
-// Room under a page's text for the page dots, which SwiftUI draws over the page's bottom edge.
-const DOTS_CLEARANCE = 56;
+// The system page control's dots (UIPageControl): 7pt, 9pt apart, on a 26pt-tall control.
+const DOT_SIZE = 7;
+const DOT_SPACING = 9;
+const DOTS_HEIGHT = 26;
 
 /**
- * The value pages (iOS): a SwiftUI `TabView` in the page style, its dots always shown on their
- * translucent capsule (the default dots are white, lost on the light grouped background), then a
- * large prominent Continue. A Continue tap changes `page`, and the `animation` modifier keyed on it
- * slides the TabView to the new page, as a swipe does.
+ * The value pages (iOS): a SwiftUI `TabView` in the page style, our own page dots under it, then a
+ * large prominent Continue. The TabView's own dots are white, lost on the light grouped
+ * background, and its capsule backdrop reads as a control, so they're hidden. A Continue tap
+ * changes `page`, and the `animation` modifier keyed on it slides the TabView to the new page, as
+ * a swipe does.
  */
 export function OnboardingPager({
   pages,
   page,
   onPageChange,
   continueLabel,
+  pageIndicatorLabel,
   onContinue,
 }: OnboardingPagerProps) {
   return (
@@ -50,8 +55,7 @@ export function OnboardingPager({
           selection={String(page)}
           onSelectionChange={(selection) => onPageChange(Number(selection))}
           modifiers={[
-            tabViewStyle({ type: 'page', indexDisplayMode: 'always' }),
-            indexViewStyle({ backgroundDisplayMode: 'always' }),
+            tabViewStyle({ type: 'page', indexDisplayMode: 'never' }),
             frame({ maxWidth: Infinity, maxHeight: Infinity }),
             animation(Animation.default, page),
           ]}
@@ -62,6 +66,7 @@ export function OnboardingPager({
             </TabView.Tab>
           ))}
         </TabView>
+        <PageDots count={pages.length} page={page} label={pageIndicatorLabel} />
         <VStack modifiers={[padding({ horizontal: SIDE })]}>
           <FormPrimaryButtonRow title={continueLabel} onPress={onContinue} />
         </VStack>
@@ -71,8 +76,43 @@ export function OnboardingPager({
 }
 
 /**
+ * The page dots, as the system page control draws them: the current page in `label`, the others in
+ * `tertiaryLabel`, readable on the grouped background in both appearances. VoiceOver reads the
+ * row as one element, "Page 1 of 3". @expo/ui has no adjustable action, so it's a label only; a
+ * swipe or Continue turns the page.
+ */
+function PageDots({ count, page, label }: { count: number; page: number; label: string }) {
+  return (
+    <HStack
+      spacing={DOT_SPACING}
+      modifiers={[
+        frame({ height: DOTS_HEIGHT }),
+        animation(Animation.default, page),
+        accessibilityElement('ignore'),
+        accessibilityLabel(label),
+      ]}
+    >
+      {Array.from({ length: count }, (_, index) => (
+        <Circle
+          key={index}
+          modifiers={[
+            foregroundStyle(PlatformColor(index === page ? 'label' : 'tertiaryLabel')),
+            frame({ width: DOT_SIZE, height: DOT_SIZE }),
+          ]}
+        />
+      ))}
+    </HStack>
+  );
+}
+
+/**
  * A page's symbol, title and body, centered. At accessibility text sizes they can outgrow the page,
  * so they scroll from the top instead of truncating.
+ *
+ * The tab's own child stays the same `VStack` whatever the text size: on iOS 18+ the TabView reads
+ * a tab's children once and doesn't observe them, so swapping that child (VStack for ScrollView)
+ * on a live Dynamic Type change left the page blank. The swap happens inside this VStack, which
+ * does observe its children.
  */
 function PageContent({ page }: { page: OnboardingPage }) {
   const isLargeText = useIsAccessibilityTextSize();
@@ -81,7 +121,7 @@ function PageContent({ page }: { page: OnboardingPage }) {
   const content = (
     <VStack
       spacing={24}
-      modifiers={[padding({ horizontal: SIDE, top: isLargeText ? 24 : 0, bottom: DOTS_CLEARANCE })]}
+      modifiers={[padding({ horizontal: SIDE, top: isLargeText ? 24 : 0, bottom: 16 })]}
     >
       {/* Decorative: the title says what the page is about. */}
       <Image
@@ -117,7 +157,11 @@ function PageContent({ page }: { page: OnboardingPage }) {
     </VStack>
   );
 
-  return isLargeText ? <ScrollView>{content}</ScrollView> : content;
+  return (
+    <VStack modifiers={[frame({ maxWidth: Infinity, maxHeight: Infinity })]}>
+      {isLargeText ? <ScrollView>{content}</ScrollView> : content}
+    </VStack>
+  );
 }
 
 const styles = StyleSheet.create({

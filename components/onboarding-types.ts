@@ -18,7 +18,7 @@ export type OnboardingPagerProps = {
   page: number;
   onPageChange: (page: number) => void;
   continueLabel: string;
-  /** Spoken for the Android page dots, e.g. "Page 1 of 3" (iOS's page control has its own). */
+  /** The page dots' spoken label, e.g. "Page 1 of 3". */
   pageIndicatorLabel: string;
   onContinue: () => void;
 };
