@@ -14,8 +14,9 @@ export function goBackOrHome() {
 /**
  * Leaves `href` as the only screen in the root Stack: pops to the bottom screen, then returns to
  * `href` if that's it, or replaces it with `href`. For the root Stack's protected routes
- * (`useAuthRoutes`): the handover after sign-in or sign-out, a brand-new account's currency step,
- * and back to the tabs once it's saved.
+ * (`useAuthRoutes`): the handover after sign-in or sign-out, and back to the tabs once a brand-new
+ * account's currency step is saved. Not for a route nested under one already in the Stack (the
+ * currency step, under onboarding): the pop lands on that route and the nested change slides in.
  */
 export function resetTo(href: Href) {
   if (router.canDismiss()) router.dismissAll();

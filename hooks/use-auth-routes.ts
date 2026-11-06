@@ -1,4 +1,4 @@
-import { type Href, useGlobalSearchParams, useSegments } from 'expo-router';
+import { type Href, router, useGlobalSearchParams, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 
@@ -131,7 +131,13 @@ export function useAuthRoutes(): AuthRoutes {
     markOnboardingSeen();
     if (!currencyStep.isNeeded || !userId || currencyStepShownTo.current === userId) return;
     currencyStepShownTo.current = userId;
-    if (!onAccountCurrencyStep) resetTo(ACCOUNT_CURRENCY_STEP);
+    // A replace of the focused root route (Login, Signup, or the tabs on a relaunch), not
+    // `resetTo`: that pops back to the onboarding route under Login (Login slides off) and then
+    // swaps Welcome for the step inside onboarding's own Stack (a blank frame, then a slide in).
+    // Replacing it puts a new onboarding route on top in one change, which fades in like the
+    // other flips. The screens left under it are never reached: the step has no Back (iOS) and
+    // holds Android's, and saving it resets the Stack to the tabs.
+    if (!onAccountCurrencyStep) router.replace(ACCOUNT_CURRENCY_STEP);
   }, [isSignedIn, userId, currencyStep.isNeeded, onAccountCurrencyStep]);
 
   const [isLaunched, setIsLaunched] = useState(false);
