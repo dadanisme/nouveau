@@ -341,6 +341,14 @@ export function createLocalQueries(db: SqlAdapter, newId: () => string) {
       return rows.map((raw) => mapCategory(raw));
     },
 
+    async hasTransactions(workspaceId: string): Promise<boolean> {
+      const row = await db.getFirst<{ found: number }>(
+        'SELECT EXISTS (SELECT 1 FROM transactions WHERE workspace_id = ?) AS found',
+        [workspaceId],
+      );
+      return row?.found === 1;
+    },
+
     async countCategoryTransactions(categoryId: string): Promise<number> {
       const row = await db.getFirst<{ count: number }>(
         'SELECT COUNT(*) AS count FROM transactions WHERE category_id = ?',

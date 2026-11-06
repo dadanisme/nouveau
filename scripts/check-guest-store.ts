@@ -214,6 +214,11 @@ async function main() {
   const food = categories.find((c) => c.name === 'Food & Drinks')!;
   const salary = categories.find((c) => c.name === 'Salary')!;
   const base = { user_id: 'guest-1', workspace_id: workspace.id };
+  checkEqual(
+    'hasTransactions is false for a fresh workspace',
+    await q.hasTransactions(workspace.id),
+    false,
+  );
   const nov30 = await q.insertTransaction({
     ...base,
     category_id: food.id,
@@ -296,6 +301,13 @@ async function main() {
     'the year 2026 holds 5 (not Jan 1 2027), newest first',
     year.map((t) => t.id),
     [dec31, dec1, nov30Later, nov30, nov1],
+  );
+
+  checkEqual('hasTransactions is true once one is added', await q.hasTransactions(workspace.id), true);
+  checkEqual(
+    'hasTransactions is false for another workspace',
+    await q.hasTransactions('other-workspace'),
+    false,
   );
 
   const listed = november[1];
@@ -389,6 +401,11 @@ async function main() {
     'deleteTransaction removes it',
     (await q.getTransactionsForYear(workspace.id, 2026)).length,
     0,
+  );
+  checkEqual(
+    'hasTransactions is false again once all are deleted',
+    await q.hasTransactions(workspace.id),
+    false,
   );
 
   await q.eraseAll();

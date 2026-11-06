@@ -59,6 +59,17 @@ export const remoteDataSource: DataSource = {
     return data as TransactionWithFullCategory;
   },
 
+  async hasTransactions(workspaceId) {
+    // One id at most, and no row data: only whether one exists.
+    const { data, error } = await supabase
+      .from('transactions')
+      .select('id')
+      .eq('workspace_id', workspaceId)
+      .limit(1);
+    if (error) throw error;
+    return data.length > 0;
+  },
+
   async addTransaction(transaction) {
     const { error } = await supabase.from('transactions').insert(transaction);
     if (error) throw error;
