@@ -20,7 +20,7 @@ import { goBackOrHome } from '@/lib/navigation';
 import { k } from '@/locales/keys';
 
 // The system launch screen (expo-splash-screen, app.json) stays up until the first screen the
-// guards allow has focused (useAuthRoutes), so the first screen people see is the right one. No
+// guards allow has appeared (useAuthRoutes), so the first screen people see is the right one. No
 // branded overlay or zoom (HIG launching).
 SplashScreen.preventAutoHideAsync();
 
@@ -85,17 +85,25 @@ function RootStack({ routes }: { routes: AuthRoutes }) {
           headerBackButtonDisplayMode: 'minimal',
           headerBackTitle: t(k.common.back),
         }}
-        // The first allowed screen to focus takes the splash down (useAuthRoutes).
-        screenListeners={({ route }) => ({ focus: () => routes.onRouteFocus(route.name) })}
+        // The first allowed screen to finish appearing takes the splash down (useAuthRoutes).
+        // `focus` comes too early: the route is in the state, but its screen isn't drawn yet.
+        screenListeners={({ route }) => ({
+          transitionEnd: (event) => {
+            if (!event.data.closing) routes.onRouteShown(route.name);
+          },
+        })}
       >
         {/* Signed in or a guest (useAuthRoutes): the tab shell and everything opened from it.
-            Signed out, the focused one redirects to onboarding (on a cold launch, the tabs). */}
+            Signed out, the focused one redirects to onboarding (on a cold launch, the tabs).
+            Moving between these and the entry routes mid-session (sign in or out, Get Started)
+            fades: it's a change of context, not a step deeper. A cold launch shows the first
+            screen with no animation, straight from the splash. */}
         <Stack.Protected guard={routes.canUseApp} redirectTo={routes.signedOutHref}>
           <Stack.Screen
             name="(tabs)"
             options={{
               headerShown: false,
-              animation: routes.isLaunched ? 'flip' : 'none',
+              animation: routes.isLaunched ? 'fade' : 'none',
               animationDuration: 300,
               gestureEnabled: false,
             }}
@@ -177,7 +185,8 @@ function RootStack({ routes }: { routes: AuthRoutes }) {
             options={{
               headerShown: false,
               gestureEnabled: false,
-              animation: routes.isLaunched ? 'default' : 'none',
+              animation: routes.isLaunched ? 'fade' : 'none',
+              animationDuration: 300,
             }}
           />
           <Stack.Screen

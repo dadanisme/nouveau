@@ -15,7 +15,7 @@ const ENTRY_ROUTES = new Set(['onboarding', 'login', 'signup']);
 /** Root routes open to everyone: an incoming share intent, and Settings' View Introduction. */
 const SHARED_ROUTES = new Set(['shareintent', 'introduction']);
 
-/** If the first screen never reports focus, the splash still goes after this long. */
+/** If the first screen never finishes appearing, the splash still goes after this long. */
 const SPLASH_FALLBACK_MS = 3000;
 
 export interface AuthRoutes {
@@ -32,8 +32,27 @@ export interface AuthRoutes {
   signedOutHref: Href;
   /** The splash is down; until then the screens the guards redirect to don't animate in. */
   isLaunched: boolean;
-  /** For the root Stack's `focus` listener: the first open route to focus hides the splash. */
-  onRouteFocus: (routeName: string) => void;
+  /**
+   * For the root Stack's `transitionEnd` listener: a route has finished appearing. The first open
+   * one hides the splash.
+   */
+  onRouteShown: (routeName: string) => void;
+}
+
+/** Which of the root Stack's `Stack.Protected` groups are open. */
+interface Guards {
+  app: boolean;
+  entry: boolean;
+}
+
+/** Whether the root route (a route name, or the first URL segment) is open under `guards`. */
+function isRouteOpen(routeName: string | undefined, guards: Guards): boolean {
+  if (!routeName || SHARED_ROUTES.has(routeName)) return true;
+  return ENTRY_ROUTES.has(routeName) ? guards.entry : guards.app;
+}
+
+function sameGuards(a: Guards, b: Guards): boolean {
+  return a.app === b.app && a.entry === b.entry;
 }
 
 /**
@@ -44,13 +63,18 @@ export interface AuthRoutes {
  * - Signed out: onboarding, Login and Signup. The tabs (the route a cold launch starts on) are
  *   guarded, so they render a redirect to `signedOutHref` instead of their screens.
  * - Both: a share intent and the introduction replay.
- * When a guard flips mid-session (sign in, Get Started, sign out), the focused screen that lost
- * access redirects (expo-router replaces it, with the incoming screen's animation) and the others
- * are dropped. Entry routes stay open while a new sign-in's currency check runs, so Login waits for
- * it, and while a brand-new account needs the currency step, which it's sent to once.
+ * When the access changes mid-session (sign in, Get Started, sign out) and the focused screen loses
+ * it, a guarded screen would swap its content for expo-router's redirect, a blank screen until the
+ * next one slides in. So both groups stay open for a moment (the handover): the focused screen keeps
+ * its content, `resetTo` replaces it with where the person now belongs (the incoming screen's
+ * `fade`), and once that's focused the guards close and drop the rest. Entry routes stay open while a
+ * new sign-in's currency check runs, so Login waits for it, and while a brand-new account needs the
+ * currency step, which it's sent to once.
  *
- * The native splash stays up until the first open route has focused (its screen is mounted), with
- * a timed fallback so it can never stay up for good.
+ * The native splash stays up until the first open route has finished appearing (`transitionEnd`,
+ * not `focus`, which comes as soon as the route is in the state, well before its native screen is
+ * on screen), with a timed fallback so it can never stay up for good. `isLaunched` turns on only
+ * then, so a cold launch's redirect stays unanimated.
  */
 export function useAuthRoutes(): AuthRoutes {
   const { session, isLoading } = useSession();
@@ -67,12 +91,34 @@ export function useAuthRoutes(): AuthRoutes {
   const [isReady, setIsReady] = useState(false);
   if (!isReady && (!!guestId || !isLoading)) setIsReady(true);
 
-  const canUseApp = isSignedIn;
-  const canUseEntry = !isSignedIn || currencyStep.isChecking || currencyStep.isNeeded;
+  const access: Guards = {
+    app: isSignedIn,
+    entry: !isSignedIn || currencyStep.isChecking || currencyStep.isNeeded,
+  };
+  const [root, child] = segments as string[];
+
+  // The handover: the access before and after the change, both open, while the focused screen that
+  // lost access is replaced. Derived during render, so the guard never closes on that screen.
+  const [handover, setHandover] = useState<Guards | null>(null);
+  const [lastAccess, setLastAccess] = useState(access);
+  if (!sameGuards(lastAccess, access)) {
+    setLastAccess(access);
+    if (isReady && !isRouteOpen(root, access)) {
+      const open = handover ?? lastAccess;
+      setHandover({ app: open.app || access.app, entry: open.entry || access.entry });
+    }
+  }
+  if (handover && isRouteOpen(root, access)) setHandover(null);
+  const guards = handover ?? access;
+  const signedOutHref: Href = hasSeenOnboarding ? '/onboarding/welcome' : '/onboarding';
+  const handoverHref = handover ? (access.app ? '/' : signedOutHref) : null;
+
+  useEffect(() => {
+    if (handoverHref) resetTo(handoverHref);
+  }, [handoverHref]);
 
   // The account the currency step was shown to, so it's offered once per sign-in.
   const currencyStepShownTo = useRef<string | null>(null);
-  const [root, child] = segments as string[];
   const onAccountCurrencyStep =
     root === 'onboarding' && child === 'currency' && params.for === 'account';
 
@@ -108,21 +154,16 @@ export function useAuthRoutes(): AuthRoutes {
     return () => clearTimeout(timeout);
   }, [isReady, hideSplash]);
 
-  function onRouteFocus(routeName: string) {
-    const isOpen = SHARED_ROUTES.has(routeName)
-      ? true
-      : ENTRY_ROUTES.has(routeName)
-        ? canUseEntry
-        : canUseApp;
-    if (isOpen) hideSplash();
+  function onRouteShown(routeName: string) {
+    if (isRouteOpen(routeName, guards)) hideSplash();
   }
 
   return {
     isReady,
-    canUseApp,
-    canUseEntry,
-    signedOutHref: hasSeenOnboarding ? '/onboarding/welcome' : '/onboarding',
+    canUseApp: guards.app,
+    canUseEntry: guards.entry,
+    signedOutHref,
     isLaunched,
-    onRouteFocus,
+    onRouteShown,
   };
 }

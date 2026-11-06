@@ -27,8 +27,17 @@ export function useLoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
+  // Signed in: Login stays up until the root Stack moves on (after a new sign-in's currency check),
+  // so the form stays busy until then rather than coming back enabled.
+  const hasSignedIn =
+    signInWithEmail.isSuccess ||
+    signInWithGoogle.data === 'signedIn' ||
+    signInWithApple.data === 'signedIn';
   const isSubmitting =
-    signInWithEmail.isPending || signInWithGoogle.isPending || signInWithApple.isPending;
+    signInWithEmail.isPending ||
+    signInWithGoogle.isPending ||
+    signInWithApple.isPending ||
+    hasSignedIn;
 
   function showSignInError(error: unknown) {
     // Supabase's wrong-password message is English only; the rest pass through as sent.
@@ -62,7 +71,7 @@ export function useLoginScreen() {
     setEmail,
     setPassword,
     isSubmitting,
-    isSigningIn: signInWithEmail.isPending,
+    isSigningIn: signInWithEmail.isPending || signInWithEmail.isSuccess,
     signIn,
     signInWithGoogle: signInWithGoogleAccount,
     isAppleAvailable,
