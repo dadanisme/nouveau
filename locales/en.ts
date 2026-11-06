@@ -127,6 +127,8 @@ const en = {
     workspaceSection: 'Workspace',
     manageSection: 'Manage',
     preferencesSection: 'Preferences',
+    // Replays the first-run value pages (#78).
+    viewIntroduction: 'View Introduction',
     signOutFailed: 'Sign Out Failed',
     profileError: 'Failed to load profile data. Some information may be incomplete.',
     unknown: 'Unknown',

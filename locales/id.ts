@@ -126,6 +126,7 @@ const id: Translations = {
     workspaceSection: 'Workspace',
     manageSection: 'Kelola',
     preferencesSection: 'Preferensi',
+    viewIntroduction: 'Lihat Pengenalan',
     signOutFailed: 'Gagal Keluar',
     profileError: 'Gagal memuat data profil. Beberapa informasi mungkin tidak lengkap.',
     unknown: 'Tidak diketahui',

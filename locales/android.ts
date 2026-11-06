@@ -32,6 +32,7 @@ export const androidOverrides: { en: Overrides<Translations>; id: Overrides<Tran
       // An M3 dialog headline states the action as a question.
       signOutConfirmTitle: 'Sign out?',
       signOutFailed: 'Sign-out failed',
+      viewIntroduction: 'View introduction',
     },
     profile: { signInSection: 'Sign-in method', saveFailed: "Couldn't save name" },
     deleteAccount: {
@@ -118,7 +119,11 @@ export const androidOverrides: { en: Overrides<Translations>; id: Overrides<Tran
       rateUnavailable: 'Kurs tidak tersedia',
       deleteTransaction: 'Hapus transaksi',
     },
-    settings: { signOutConfirmTitle: 'Keluar?', signOutFailed: 'Gagal keluar' },
+    settings: {
+      signOutConfirmTitle: 'Keluar?',
+      signOutFailed: 'Gagal keluar',
+      viewIntroduction: 'Lihat pengenalan',
+    },
     profile: { saveFailed: 'Gagal menyimpan nama' },
     deleteAccount: {
       title: 'Hapus akun',

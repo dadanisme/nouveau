@@ -13,7 +13,7 @@ import { ShareIntentProvider, useShareIntentContext } from 'expo-share-intent';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { createContext, use, useEffect, useRef, useState } from 'react';
-import { Platform, StyleSheet, useColorScheme } from 'react-native';
+import { Platform, PlatformColor, StyleSheet, useColorScheme } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { AlertDialogHost } from '@/components/alert-dialog-host';
@@ -248,6 +248,25 @@ function RootStack() {
                 onPress: goBackOrHome,
               },
             ],
+          }}
+        />
+        <Stack.Screen
+          name="introduction"
+          // Settings' View Introduction: the value pages in a modal (iOS page sheet, Android
+          // full-screen). An empty bar for iOS's leading Close (the screen's toolbar) and
+          // Android's Up arrow; the page titles name the content.
+          options={{
+            title: '',
+            presentation: 'modal',
+            headerShadowVisible: false,
+            headerStyle: {
+              backgroundColor: formHeaderBackground(colorScheme === 'dark' ? 'dark' : 'light'),
+            },
+            // iOS: the grouped background the pager is drawn on, as in the first-run flow.
+            contentStyle:
+              Platform.OS === 'ios'
+                ? { backgroundColor: PlatformColor('systemGroupedBackground') }
+                : undefined,
           }}
         />
         {/* Sheet routes (app/(sheets)/*): results come back through lib/sheet-result.ts. iOS
