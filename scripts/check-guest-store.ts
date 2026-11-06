@@ -16,9 +16,10 @@ import path from 'node:path';
 import { isDeepStrictEqual } from 'node:util';
 
 import { DEFAULT_CATEGORIES } from '../constants/default-categories';
-import type { SqlAdapter, SqlValue } from '../lib/local-db/adapter';
 import { createLocalQueries } from '../lib/local-db/queries';
 import { migrate, prepareConnection, SCHEMA_VERSION } from '../lib/local-db/schema';
+
+import { adaptBunSqlite } from './bun-sqlite-adapter';
 
 const ROOT = path.resolve(__dirname, '..');
 const SIGNUP_MIGRATION = 'supabase/migrations/20260514000001_workspace_aggregates_and_signup.sql';
@@ -85,34 +86,6 @@ function serverRowKeys(table: string): string[] {
   return [...match[1].matchAll(/^\s*(\w+)\??:/gm)].map((key) => key[1]).sort();
 }
 
-// --- bun:sqlite adapter -----------------------------------------------------------------------
-
-function adapt(db: Database): SqlAdapter {
-  const adapter: SqlAdapter = {
-    async run(sql: string, params: SqlValue[] = []) {
-      db.query(sql).run(...params);
-    },
-    async getAll<T>(sql: string, params: SqlValue[] = []) {
-      return db.query(sql).all(...params) as T[];
-    },
-    async getFirst<T>(sql: string, params: SqlValue[] = []) {
-      return (db.query(sql).get(...params) ?? null) as T | null;
-    },
-    async exclusiveTransaction<T>(task: (tx: SqlAdapter) => Promise<T>) {
-      db.run('BEGIN EXCLUSIVE');
-      try {
-        const result = await task(adapter);
-        db.run('COMMIT');
-        return result;
-      } catch (error) {
-        db.run('ROLLBACK');
-        throw error;
-      }
-    },
-  };
-  return adapter;
-}
-
 const sortedKeys = (row: object) => Object.keys(row).sort();
 
 // --- Checks -----------------------------------------------------------------------------------
@@ -136,7 +109,7 @@ async function main() {
   }
 
   const sqlite = new Database(':memory:');
-  const db = adapt(sqlite);
+  const db = adaptBunSqlite(sqlite);
   await prepareConnection(db);
   await migrate(db);
   await migrate(db);

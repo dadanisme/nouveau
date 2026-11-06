@@ -442,6 +442,36 @@ export function createLocalQueries(db: SqlAdapter, newId: () => string) {
       });
     },
 
+    /**
+     * Everything the guest stored, for the upload at sign-in (#100): their Personal workspace, all
+     * categories and all transactions, in the server's row shapes. Null when there's no workspace
+     * (nothing to upload). Read in one transaction, so the three agree.
+     */
+    exportGuestData(): Promise<{
+      workspace: WorkspaceRow;
+      categories: CategoryRow[];
+      transactions: TransactionRow[];
+    } | null> {
+      return db.exclusiveTransaction(async (tx) => {
+        const workspace = await tx.getFirst<Raw>(
+          `SELECT ${WORKSPACE_COLUMNS.join(', ')} FROM workspaces
+           ORDER BY is_personal DESC, created_at ASC LIMIT 1`,
+        );
+        if (!workspace) return null;
+        const categories = await tx.getAll<Raw>(
+          `SELECT ${CATEGORY_COLUMNS.join(', ')} FROM categories ORDER BY created_at, id`,
+        );
+        const transactions = await tx.getAll<Raw>(
+          `SELECT ${TRANSACTION_COLUMNS.join(', ')} FROM transactions ORDER BY created_at, id`,
+        );
+        return {
+          workspace: mapWorkspace(workspace),
+          categories: categories.map((raw) => mapCategory(raw)),
+          transactions: transactions.map(mapTransaction),
+        };
+      });
+    },
+
     /** Deletes every local row. */
     eraseAll(): Promise<void> {
       return db.exclusiveTransaction(async (tx) => {

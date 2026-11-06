@@ -3,21 +3,23 @@ import { useRouter } from 'expo-router';
 import { LANGUAGE_OPTIONS } from '@/constants/languages';
 import { useLanguage } from '@/contexts/language';
 import { useWorkspace } from '@/contexts/workspace';
-import { useSignOut } from '@/hooks/use-auth';
+import { useGuestSession, useSession, useSignOut } from '@/hooks/use-auth';
 import { useProfileSummary } from '@/hooks/use-profile-summary';
 import { useMyPendingInvites } from '@/hooks/use-workspace-invites';
 import { showAlertDialog } from '@/lib/alert-dialog';
 import { k } from '@/locales/keys';
 
 /**
- * Screen hook for Settings: the profile row (opens Profile), active workspace, language, View
- * Introduction (the value pages again), sign-out.
+ * Screen hook for Settings: Sign In for a guest (#100, pushes Login), the profile row (opens
+ * Profile), active workspace, language, View Introduction (the value pages again), sign-out.
  */
 export function useSettingsScreen() {
   const router = useRouter();
   const { t, locale, setLocale } = useLanguage();
   const profile = useProfileSummary();
   const signOut = useSignOut();
+  const { session } = useSession();
+  const { guestId } = useGuestSession();
   const { currentWorkspace } = useWorkspace();
   const { data: pendingInvites = [] } = useMyPendingInvites();
 
@@ -46,6 +48,8 @@ export function useSettingsScreen() {
   }
 
   return {
+    isGuest: !session && !!guestId,
+    openSignIn: () => router.push('/login'),
     profile: profile.header,
     hasProfileError: profile.hasError,
     openProfile: () => router.push('/profile'),

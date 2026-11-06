@@ -33,7 +33,9 @@ export const androidOverrides: { en: Overrides<Translations>; id: Overrides<Tran
       signOutConfirmTitle: 'Sign out?',
       signOutFailed: 'Sign-out failed',
       viewIntroduction: 'View introduction',
+      signIn: 'Sign in',
     },
+    guestUpload: { title: 'Added from this device' },
     profile: { signInSection: 'Sign-in method', saveFailed: "Couldn't save name" },
     deleteAccount: {
       title: 'Delete account',
@@ -124,6 +126,7 @@ export const androidOverrides: { en: Overrides<Translations>; id: Overrides<Tran
       signOutFailed: 'Gagal keluar',
       viewIntroduction: 'Lihat pengenalan',
     },
+    guestUpload: { title: 'Ditambahkan dari perangkat ini' },
     profile: { saveFailed: 'Gagal menyimpan nama' },
     deleteAccount: {
       title: 'Hapus akun',

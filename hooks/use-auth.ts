@@ -28,7 +28,7 @@ export function useSession() {
   return { session: session ?? null, isLoading };
 }
 
-const GUEST_SESSION_KEY = ['guest-session'];
+export const GUEST_SESSION_KEY = ['guest-session'];
 
 /**
  * The guest using the app without an account (#100), or null. Read from storage synchronously, so

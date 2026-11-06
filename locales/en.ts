@@ -129,6 +129,8 @@ const en = {
     preferencesSection: 'Preferences',
     // Replays the first-run value pages (#78).
     viewIntroduction: 'View Introduction',
+    // A guest's row at the top (#100): opens Sign In.
+    signIn: 'Sign In',
     signOutFailed: 'Sign Out Failed',
     profileError: 'Failed to load profile data. Some information may be incomplete.',
     unknown: 'Unknown',
@@ -213,6 +215,14 @@ const en = {
     suggestedFooter: 'From your device region.',
     allCurrencies: 'All Currencies',
     continueFailed: "Couldn't Continue",
+  },
+  // The note once a guest's on-device data is in their account (#100).
+  guestUpload: {
+    title: 'Added from This Device',
+    message: {
+      one: '%{count} transaction from this device is now in your account.',
+      other: '%{count} transactions from this device are now in your account.',
+    },
   },
   currencyNames: {
     IDR: 'Indonesian Rupiah',
