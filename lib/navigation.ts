@@ -16,6 +16,9 @@ export function goBackOrHome() {
  * `href` if that's it, or replaces it with `href`. For the auth redirects, so Login is never left
  * on top of the tabs (a signed-out cold deep link opens over them) and the tabs never on top of
  * Login.
+ *
+ * Expo Router's navigation calls take no animation option: the screen pushed takes its own
+ * `animation`, so a redirect that mustn't animate (AuthGuard's cold-launch pass) sets it there.
  */
 export function resetTo(href: Href) {
   if (router.canDismiss()) router.dismissAll();

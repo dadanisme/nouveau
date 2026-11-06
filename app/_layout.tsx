@@ -4,6 +4,7 @@ import {
   DefaultTheme,
   Stack,
   ThemeProvider,
+  type Href,
   useGlobalSearchParams,
   useRouter,
   useSegments,
@@ -11,7 +12,7 @@ import {
 import { ShareIntentProvider, useShareIntentContext } from 'expo-share-intent';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useRef, useState } from 'react';
+import { createContext, use, useEffect, useRef, useState } from 'react';
 import { Platform, StyleSheet, useColorScheme } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
@@ -63,12 +64,22 @@ function ShareIntentNavigator() {
 }
 
 /**
+ * Whether the first routing pass has settled (the router is on the route AuthGuard wants), so the
+ * splash is down. Until then the redirect targets push with no animation: the splash covers them,
+ * and a push animating under it would show the screen it leaves when the splash hides.
+ */
+const LaunchRoutedContext = createContext(false);
+
+/**
  * Routes between the signed-out entry screens and the app (#78):
  * - Signed out: the value pages on a fresh install, Welcome once they've been seen (or after any
  *   sign-in, so signing out lands on Welcome). Login, Signup, onboarding and a share intent stay.
  * - Signed in or a guest: entry screens reset to the tabs, except a brand-new account's currency
- *   step (`/onboarding/currency?for=account`), which it's sent to once, from anywhere.
- * The system splash stays up until the first routing pass, so no wrong screen flashes.
+ *   step (`/onboarding/currency?for=account`), which it's sent to once, from anywhere. Everything
+ *   else stays, the Settings introduction replay (`/introduction`) included.
+ * The system splash stays up until a pass finds the router already where it should be (`segments`
+ * match the target), so no wrong screen shows on a cold launch. The currency check is a network
+ * read, so the splash doesn't wait on it (offline it would never hide).
  */
 function AuthGuard({ children }: { children: React.ReactNode }) {
   const { session, isLoading } = useSession();
@@ -80,7 +91,7 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
   const params = useGlobalSearchParams<{ for?: string }>();
   // The account the currency step was shown to, so it's offered once per sign-in.
   const currencyStepShownTo = useRef<string | null>(null);
-  const [isNavigationReady, setIsNavigationReady] = useState(false);
+  const [isRouted, setIsRouted] = useState(false);
 
   useEffect(() => {
     if (isLoading) return;
@@ -91,26 +102,28 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
     const onAccountCurrencyStep =
       root === 'onboarding' && child === 'currency' && params.for === 'account';
     const userId = session?.user.id ?? null;
+    let target: Href | null = null;
 
     if (!isSignedIn) {
       currencyStepShownTo.current = null;
       if (!inEntry && !inShareIntent) {
-        resetTo(readOnboardingSeen() ? '/onboarding/welcome' : '/onboarding');
+        target = readOnboardingSeen() ? '/onboarding/welcome' : '/onboarding';
       }
     } else {
       // Someone who has used the app returns to Welcome after signing out, not the value pages.
       markOnboardingSeen();
       if (currencyStep.isNeeded && userId && currencyStepShownTo.current !== userId) {
         currencyStepShownTo.current = userId;
-        if (!onAccountCurrencyStep) resetTo('/onboarding/currency?for=account');
+        if (!onAccountCurrencyStep) target = '/onboarding/currency?for=account';
       } else if (inEntry && !currencyStep.isChecking) {
         const staysOnCurrencyStep = onAccountCurrencyStep && currencyStep.isNeeded;
-        if (!staysOnCurrencyStep) resetTo('/');
+        if (!staysOnCurrencyStep) target = '/';
       }
     }
 
-    const timeout = setTimeout(() => setIsNavigationReady(true), 50);
-    return () => clearTimeout(timeout);
+    // A redirect changes `segments`, which runs this again; the splash waits for that pass.
+    if (target) resetTo(target);
+    else setIsRouted(true);
   }, [
     isSignedIn,
     isLoading,
@@ -122,15 +135,17 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
   ]);
 
   useEffect(() => {
-    if (!isLoading && isNavigationReady) SplashScreen.hideAsync();
-  }, [isLoading, isNavigationReady]);
+    if (isRouted) SplashScreen.hideAsync();
+  }, [isRouted]);
 
-  return children;
+  return <LaunchRoutedContext value={isRouted}>{children}</LaunchRoutedContext>;
 }
 
 function RootStack() {
   const { t } = useLanguage();
   const colorScheme = useColorScheme();
+  // The cold-launch redirect lands with no animation, under the splash (see AuthGuard).
+  const isLaunchRouted = use(LaunchRoutedContext);
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DARK_THEME : LIGHT_THEME}>
@@ -149,14 +164,21 @@ function RootStack() {
           name="(tabs)"
           options={{
             headerShown: false,
-            animation: 'flip',
+            animation: isLaunchRouted ? 'flip' : 'none',
             animationDuration: 300,
             gestureEnabled: false,
           }}
         />
         {/* The first-run flow (#78): value pages, Welcome, the currency step. Its own Stack
             draws the bars; swipe-back would leave the flow for whatever is under it. */}
-        <Stack.Screen name="onboarding" options={{ headerShown: false, gestureEnabled: false }} />
+        <Stack.Screen
+          name="onboarding"
+          options={{
+            headerShown: false,
+            gestureEnabled: false,
+            animation: isLaunchRouted ? 'default' : 'none',
+          }}
+        />
         <Stack.Screen
           name="login"
           // A native push from Welcome: the system back button and swipe-back return there. iOS:
