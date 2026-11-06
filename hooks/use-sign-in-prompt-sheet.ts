@@ -1,11 +1,16 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useRef } from 'react';
 
+import { useGuestSession } from '@/hooks/use-auth';
 import i18n from '@/lib/i18n';
 import { goBackOrHome } from '@/lib/navigation';
 import { emitSheetResult } from '@/lib/sheet-result';
 import { k } from '@/locales/keys';
-import { getSignInPromptContent, parseSignInFeature } from '@/utils/sign-in-prompt';
+import {
+  getSignInPromptBodyKey,
+  getSignInPromptContent,
+  parseSignInFeature,
+} from '@/utils/sign-in-prompt';
 
 export interface SignInPromptSheetParams {
   /** A `SignInFeature`; anything else shows the generic wording. */
@@ -23,6 +28,7 @@ export interface SignInPromptSheetParams {
 export function useSignInPromptSheet() {
   const params = useLocalSearchParams<Partial<SignInPromptSheetParams>>();
   const { titleKey, symbol } = getSignInPromptContent(parseSignInFeature(params.feature));
+  const { guestId } = useGuestSession();
   const respondedRef = useRef(false);
 
   function respond(choice: 'signIn' | 'notNow') {
@@ -38,7 +44,7 @@ export function useSignInPromptSheet() {
 
   return {
     title: i18n.t(titleKey),
-    body: i18n.t(k.signInPrompt.body),
+    body: i18n.t(getSignInPromptBodyKey(!!guestId)),
     symbol,
     signInLabel: i18n.t(k.signInPrompt.signIn),
     notNowLabel: i18n.t(k.signInPrompt.notNow),

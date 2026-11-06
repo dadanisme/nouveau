@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from '
 
 import { useGuestSession, useSession } from '@/hooks/use-auth';
 import { useCurrencyStepNeeded } from '@/hooks/use-currency-step-needed';
-import { resetTo } from '@/lib/navigation';
+import { resetTo, setHomeHref } from '@/lib/navigation';
 import { markOnboardingSeen, readOnboardingSeen, subscribeOnboardingSeen } from '@/lib/onboarding';
 
 /** A brand-new account's currency step, shown once per sign-in. */
@@ -157,6 +157,10 @@ export function useAuthRoutes({ isUploading }: { isUploading: boolean }): AuthRo
   useEffect(() => {
     if (handoverHref) resetTo(handoverHref);
   }, [handoverHref]);
+
+  // Where the share screen leaves for (`leaveToHome`).
+  const homeHref: Href = access.app ? '/' : signedOutHref;
+  useEffect(() => setHomeHref(homeHref), [homeHref]);
 
   // The account the currency step was shown to, so it's offered once per sign-in.
   const currencyStepShownTo = useRef<string | null>(null);

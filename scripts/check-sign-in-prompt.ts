@@ -1,7 +1,8 @@
 /**
  * Checks the guest sign-in prompt's wording (#100, `utils/sign-in-prompt.ts`):
  * - every feature has its own title, in en and id, and in Android sentence case for both;
- * - the shared strings (body, Sign In, Not Now) and Settings' Erase Data strings exist in both
+ * - the body: the guest's line for a guest, a signed-out line with no device-data promise otherwise;
+ * - the shared strings (bodies, Sign In, Not Now) and Settings' Erase Data strings exist in both
  *   locales, with the Android sentence-case lines a Title Case label needs;
  * - the `feature` route param parses, falling back to `generic`.
  *
@@ -11,6 +12,7 @@ import { androidOverrides } from '../locales/android';
 import en from '../locales/en';
 import id from '../locales/id';
 import {
+  getSignInPromptBodyKey,
   getSignInPromptContent,
   parseSignInFeature,
   SIGN_IN_FEATURES,
@@ -74,7 +76,12 @@ for (const feature of SIGN_IN_FEATURES) {
 }
 
 // Shared strings, and the Title Case ones' Android lines.
-const SHARED_KEYS = ['signInPrompt.body', 'signInPrompt.signIn', 'signInPrompt.notNow'];
+const SHARED_KEYS = [
+  'signInPrompt.body',
+  'signInPrompt.bodySignedOut',
+  'signInPrompt.signIn',
+  'signInPrompt.notNow',
+];
 const ERASE_KEYS = [
   'settings.eraseData',
   'settings.erasingData',
@@ -118,6 +125,26 @@ check(
   (lookup(en, 'settings.eraseDataPrompt') ?? '').endsWith('?') &&
     (lookup(id, 'settings.eraseDataPrompt') ?? '').endsWith('?'),
 );
+
+// The body: a guest's promise only for a guest; the signed-out line makes none.
+check('guest body', getSignInPromptBodyKey(true) === 'signInPrompt.body');
+check('signed-out body', getSignInPromptBodyKey(false) === 'signInPrompt.bodySignedOut');
+for (const [locale, strings] of Object.entries(LOCALES) as [keyof typeof LOCALES, unknown][]) {
+  const guestBody = lookup(strings, 'signInPrompt.body') ?? '';
+  const signedOutBody = lookup(strings, 'signInPrompt.bodySignedOut') ?? '';
+  check(`signed-out body differs from the guest's in ${locale}`, signedOutBody !== guestBody);
+  check(
+    `signed-out body in ${locale} doesn't promise device data`,
+    !/device|perangkat/i.test(signedOutBody),
+    signedOutBody,
+  );
+  // Already sentence case, so Android needs no line of its own.
+  check(
+    `signed-out body in ${locale} is sentence case`,
+    isSentenceCase(signedOutBody, PROPER_NOUNS[locale]),
+    signedOutBody,
+  );
+}
 
 // The `feature` param.
 for (const feature of SIGN_IN_FEATURES) {

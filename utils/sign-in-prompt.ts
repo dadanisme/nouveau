@@ -64,3 +64,11 @@ export function parseSignInFeature(value: string | string[] | undefined): SignIn
 export function getSignInPromptContent(feature: SignInFeature): SignInPromptContent {
   return CONTENT[feature];
 }
+
+/**
+ * The prompt's body line. A guest's device data comes with them when they sign in, so they're told
+ * so; with no guest (signed out, a share intent before onboarding) there's nothing to bring.
+ */
+export function getSignInPromptBodyKey(isGuest: boolean): string {
+  return isGuest ? k.signInPrompt.body : k.signInPrompt.bodySignedOut;
+}

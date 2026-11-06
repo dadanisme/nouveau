@@ -235,6 +235,7 @@ const en = {
     inviteTitle: 'Sign In to Invite People',
     genericTitle: 'Sign In to Continue',
     body: 'The transactions and categories on this device come with you.',
+    bodySignedOut: 'Sign in or create an account to continue.',
     signIn: 'Sign In',
     notNow: 'Not Now',
   },

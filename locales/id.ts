@@ -228,6 +228,7 @@ const id: Translations = {
     inviteTitle: 'Masuk untuk Mengundang Orang',
     genericTitle: 'Masuk untuk Melanjutkan',
     body: 'Transaksi dan kategori di perangkat ini ikut bersama Anda.',
+    bodySignedOut: 'Masuk atau buat akun untuk melanjutkan.',
     signIn: 'Masuk',
     notNow: 'Nanti Saja',
   },
