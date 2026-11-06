@@ -8,6 +8,7 @@ import { useTransactions, useTransactionsByYear } from '@/hooks/use-transactions
 import { goBackOrHome } from '@/lib/navigation';
 import { formatPeriodLabel, type PeriodMode } from '@/utils/date';
 import { parseIntParam } from '@/utils/params';
+import { isAwaitingData } from '@/utils/query';
 import { toTransactionRowData } from '@/utils/transaction';
 
 export interface CategoryTransactionsSheetParams {
@@ -35,7 +36,7 @@ export function useCategoryTransactionsSheet() {
   const month = parseIntParam(params.month) ?? now.getMonth();
   const categoryId = params.categoryId ?? null;
 
-  const { currentWorkspaceId } = useWorkspace();
+  const { currentWorkspaceId, isLoading: isWorkspaceResolving } = useWorkspace();
   const monthQuery = useTransactions(mode === 'month' ? currentWorkspaceId : null, year, month);
   const yearQuery = useTransactionsByYear(currentWorkspaceId, year, mode === 'year');
   const periodTransactions = mode === 'month' ? monthQuery.data : yearQuery.data;
@@ -85,7 +86,10 @@ export function useCategoryTransactionsSheet() {
     rows: transactions.map((tx) =>
       toTransactionRowData(tx, { showDate: true, showCategory: false }),
     ),
-    isLoading: mode === 'month' ? monthQuery.isLoading : yearQuery.isLoading,
+    isLoading: isAwaitingData([mode === 'month' ? monthQuery : yearQuery], {
+      id: currentWorkspaceId,
+      isResolving: isWorkspaceResolving,
+    }),
     editTransaction,
     viewProofs,
     close: () => goBackOrHome(),

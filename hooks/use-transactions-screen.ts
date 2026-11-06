@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import type { TransactionRowData } from '@/components/transaction-row-types';
 import { useLanguage } from '@/contexts/language';
@@ -14,6 +14,7 @@ import { computeExpenseBreakdown } from '@/utils/analytics';
 import { toCategoryBarModel } from '@/utils/category-bar';
 import { formatCompactAmount } from '@/utils/currency';
 import { formatDayLabel } from '@/utils/date';
+import { isAwaitingData } from '@/utils/query';
 import { joinWithDot } from '@/utils/string';
 import { groupTransactionsByDay, toTransactionRowData } from '@/utils/transaction';
 
@@ -46,17 +47,20 @@ export function useTransactionsScreen() {
   // `t` and `locale` follow the in-app language, so the memoized labels and amounts rebuild when
   // it changes.
   const { t, locale } = useLanguage();
-  const { currentWorkspaceId, homeCurrency } = useWorkspace();
+  const { currentWorkspaceId, homeCurrency, isLoading: isWorkspaceResolving } = useWorkspace();
   const nav = usePeriodNavigation('month');
   const { year, month } = nav.period;
 
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
   const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
 
-  // Category IDs are workspace-scoped — drop the filter when switching workspaces
-  useEffect(() => {
+  // Category IDs are workspace-scoped: drop the filter when switching workspaces (state adjusted
+  // during render, not in an effect).
+  const [filterWorkspaceId, setFilterWorkspaceId] = useState(currentWorkspaceId);
+  if (filterWorkspaceId !== currentWorkspaceId) {
+    setFilterWorkspaceId(currentWorkspaceId);
     setCategoryFilter(null);
-  }, [currentWorkspaceId]);
+  }
 
   // Unfiltered query for totals (deduplicated with filtered when activeFilter === 'all')
   const allQuery = useTransactions(currentWorkspaceId, year, month);
@@ -157,7 +161,11 @@ export function useTransactionsScreen() {
     router.navigate({ pathname: '/insights', params: { mode: 'month' } });
   }
 
-  const isLoading = allQuery.isLoading || filteredQuery.isLoading;
+  // No data yet is loading, also while the queries wait (disabled) for the workspace.
+  const isLoading = isAwaitingData([allQuery, filteredQuery], {
+    id: currentWorkspaceId,
+    isResolving: isWorkspaceResolving,
+  });
 
   return {
     nav,
