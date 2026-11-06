@@ -6,18 +6,38 @@ import { useMemo } from 'react';
 
 import { showAlertDialog } from '@/lib/alert-dialog';
 import i18n from '@/lib/i18n';
+import { leaveToHome } from '@/lib/navigation';
 import { k } from '@/locales/keys';
+import { useGuestSession } from '@/hooks/use-auth';
 import { useScanReceipt } from '@/hooks/use-scan-receipt';
+import { useSignInPrompt } from '@/hooks/use-sign-in-prompt';
 
 export type CategorizedFile = ShareIntentFile & {
   isImage: boolean;
   isPdf: boolean;
 };
 
+/**
+ * Screen hook for a share intent: the shared content by kind, Close, and Scan Receipt. Scanning is
+ * account only (#100): without a session (a guest, or before onboarding) Scan Receipt opens the
+ * sign-in prompt instead. Its Sign In drops the share for Login. Its Not Now leaves a guest here,
+ * and closes this screen too when nobody is signed in (there's nothing else to do with the share).
+ */
 export function useShareIntentScreen() {
   const router = useRouter();
   const { hasShareIntent, shareIntent, resetShareIntent } = useShareIntentContext();
   const scanReceipt = useScanReceipt();
+  const { guestId } = useGuestSession();
+  const signInPrompt = useSignInPrompt({
+    // Drops the share and closes the prompt with this screen, then Login pushes over home in the
+    // same tick: the tab shell for a guest, the signed-out start (Welcome) otherwise.
+    onSignIn: () => {
+      handleDismiss();
+      router.push('/login');
+    },
+    // A guest keeps the share screen (the default just closes the prompt).
+    onNotNow: guestId ? undefined : () => handleDismiss(),
+  });
 
   const sharedText = shareIntent.text ?? null;
   const sharedUrl = shareIntent.webUrl ?? null;
@@ -44,15 +64,20 @@ export function useShareIntentScreen() {
   const isScanning = scanReceipt.isPending;
 
   /**
-   * Back to the tab shell: pops to it (the root Stack anchors it under this screen), or replaces
-   * this screen with it when Android's share intent replaced the tabs.
+   * Home (`leaveToHome`): the tab shell, or signed out the value pages or Welcome, with nothing
+   * left behind. Resetting a share leaves through the provider's `onResetShareIntent`, so it's
+   * called once; with no share left (the empty state) there's no reset, so it leaves directly.
    */
   function handleDismiss() {
-    resetShareIntent();
-    router.dismissTo('/');
+    if (hasShareIntent) resetShareIntent();
+    else leaveToHome();
   }
 
   function handleScanReceipt() {
+    signInPrompt.requireAccount('scanReceipt', scan);
+  }
+
+  function scan() {
     const scannableFiles = [...imageFiles, ...pdfFiles] as ShareIntentFile[];
     const text = sharedText ?? sharedUrl ?? undefined;
 
@@ -61,8 +86,8 @@ export function useShareIntentScreen() {
       {
         onSuccess: () => {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+          // Leaves through the provider's `onResetShareIntent` (`leaveToHome`).
           resetShareIntent();
-          router.dismissTo('/');
         },
         onError: (error) => {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);

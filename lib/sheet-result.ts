@@ -12,6 +12,8 @@ export interface SheetResultPayloads {
   'category-picker': { category: Tables<'categories'> };
   'icon-picker': { icon: string };
   'color-picker': { color: string };
+  /** The guest's choice on the sign-in prompt (#100); the presenter closes it and goes on. */
+  'sign-in-prompt': { choice: 'signIn' | 'notNow' };
 }
 
 export type SheetKey = keyof SheetResultPayloads;

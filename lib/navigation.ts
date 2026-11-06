@@ -22,3 +22,23 @@ export function resetTo(href: Href) {
   if (router.canDismiss()) router.dismissAll();
   router.dismissTo(href);
 }
+
+/** Where `leaveToHome` goes: the tab shell, or signed out the signed-out start. Kept by `useAuthRoutes`. */
+let homeHref: Href = '/';
+
+/** For `useAuthRoutes`: the tabs (`/`) with access to the app, otherwise `signedOutHref`. */
+export function setHomeHref(href: Href) {
+  homeHref = href;
+}
+
+/**
+ * Leaves a screen open to everyone (the share screen) for home. With access to the app that's the
+ * tab shell: pops to it (anchored under the screen on a cold link), or replaces the screen with it
+ * when Android's share intent replaced the tabs. Signed out (no account, no guest) the tabs are
+ * guarded, so the screen and anything over it are replaced by the signed-out start (the value
+ * pages, or Welcome), with nothing left to go back to.
+ */
+export function leaveToHome() {
+  if (homeHref === '/') router.dismissTo('/');
+  else resetTo(homeHref);
+}

@@ -20,6 +20,7 @@ import { useDeleteTransaction } from '@/hooks/use-delete-transaction';
 import { useDiscardGuard } from '@/hooks/use-discard-guard';
 import { useExchangeRate } from '@/hooks/use-exchange-rate';
 import { useSheetResult } from '@/hooks/use-sheet-result';
+import { useSignInPrompt } from '@/hooks/use-sign-in-prompt';
 import { useTransaction } from '@/hooks/use-transaction';
 import { useUpdateTransaction } from '@/hooks/use-update-transaction';
 import type { Tables } from '@/types/supabase';
@@ -299,14 +300,32 @@ export function useTransactionForm(transactionId?: string, initialDate?: string)
     });
   }
 
+  // Proofs are account only (#100): a guest's View Proofs opens the sign-in prompt, and its Sign In
+  // leaves the editor (unsaved changes are confirmed first) for Login.
+  const signInPrompt = useSignInPrompt({
+    inEditor: true,
+    onSignIn: () => {
+      goBackOrHome();
+      leave(
+        () => {
+          goBackOrHome();
+          router.push('/login');
+        },
+        { confirm: true },
+      );
+    },
+  });
+
   // iOS pushes what the sheet opens inside the sheet's own Stack (one sheet at a time, HIG);
   // Android keeps the modal and picker sheet over its full-screen modal.
   function openProofs() {
     if (!transactionId) return;
-    router.push({
-      pathname: Platform.OS === 'ios' ? '/add-transaction/proofs' : '/proof-viewer',
-      params: { transactionId },
-    });
+    signInPrompt.requireAccount('proofs', () =>
+      router.push({
+        pathname: Platform.OS === 'ios' ? '/add-transaction/proofs' : '/proof-viewer',
+        params: { transactionId },
+      }),
+    );
   }
 
   function openCategoryPicker() {

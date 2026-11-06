@@ -3,7 +3,7 @@ import { DarkTheme, DefaultTheme, Stack, ThemeProvider, useRouter, useSegments }
 import { ShareIntentProvider, useShareIntentContext } from 'expo-share-intent';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Platform, PlatformColor, StyleSheet, useColorScheme } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
@@ -17,7 +17,7 @@ import { PeriodProvider } from '@/contexts/period';
 import { WorkspaceProvider } from '@/contexts/workspace';
 import { type AuthRoutes, useAuthRoutes } from '@/hooks/use-auth-routes';
 import { useGuestUpload, useGuestUploadNotice } from '@/hooks/use-guest-upload';
-import { goBackOrHome } from '@/lib/navigation';
+import { goBackOrHome, leaveToHome } from '@/lib/navigation';
 import { k } from '@/locales/keys';
 
 // The system launch screen (expo-splash-screen, app.json) stays up until the first screen the
@@ -39,17 +39,25 @@ const queryClient = new QueryClient();
 const LIGHT_THEME = { ...DefaultTheme, colors: { ...DefaultTheme.colors, primary: ACCENT_HEX } };
 const DARK_THEME = { ...DarkTheme, colors: { ...DarkTheme.colors, primary: ACCENT_HEX } };
 
+/**
+ * Android: a share intent replaces the focused screen with the share screen, once per share. Only
+ * its arrival moves, not every later route change, so what the share screen opens over itself
+ * (the sign-in prompt, #100) stays open while the share is pending.
+ */
 function ShareIntentNavigator() {
-  const { hasShareIntent } = useShareIntentContext();
+  const { hasShareIntent, shareIntent } = useShareIntentContext();
   const router = useRouter();
   const segments = useSegments();
+  const shownIntent = useRef<typeof shareIntent | null>(null);
 
   useEffect(() => {
-    if (Platform.OS !== 'android') return;
-    if (hasShareIntent && segments[0] !== 'shareintent') {
+    if (Platform.OS !== 'android' || !hasShareIntent) return;
+    if (shownIntent.current === shareIntent) return;
+    shownIntent.current = shareIntent;
+    if (segments[0] !== 'shareintent') {
       router.replace('/shareintent');
     }
-  }, [hasShareIntent, segments, router]);
+  }, [hasShareIntent, shareIntent, segments, router]);
 
   return null;
 }
@@ -227,6 +235,13 @@ function RootStack({ routes }: { routes: AuthRoutes }) {
           />
         </Stack.Protected>
         {/* Open to both. */}
+        {/* The sign-in prompt (#100): over a guest's account-only feature, and over a share
+            intent before anyone has signed in. Small: a symbol, two lines and two buttons; at
+            large text sizes it scrolls, or drags to full height. */}
+        <Stack.Screen
+          name="(sheets)/sign-in-prompt"
+          options={{ ...sheetOptions([0.5, 1], { header: true }), title: '' }}
+        />
         <Stack.Screen
           name="shareintent"
           options={{
@@ -266,8 +281,6 @@ function RootStack({ routes }: { routes: AuthRoutes }) {
 }
 
 export default function RootLayout() {
-  const router = useRouter();
-
   return (
     <GestureHandlerRootView style={styles.root}>
       <LanguageProvider>
@@ -276,7 +289,7 @@ export default function RootLayout() {
             options={{
               debug: __DEV__,
               resetOnBackground: true,
-              onResetShareIntent: () => router.dismissTo('/'),
+              onResetShareIntent: leaveToHome,
             }}
           >
             <AuthListener>

@@ -132,6 +132,15 @@ const en = {
     // A guest's row at the top (#100): opens Sign In.
     signIn: 'Sign In',
     signOutFailed: 'Sign Out Failed',
+    // A guest's way out (#100), in place of Sign Out: deletes the on-device data.
+    eraseData: 'Erase Data',
+    erasingData: 'Erasing Data…',
+    eraseDataConfirm: 'Erase All Data',
+    // The Android dialog's headline; the iOS action sheet shows only the message and its button.
+    eraseDataPrompt: 'Erase all data?',
+    eraseDataMessage:
+      'The transactions and categories on this device will be deleted. Sign in instead to keep them.',
+    eraseDataFailed: "Couldn't Erase Data",
     profileError: 'Failed to load profile data. Some information may be incomplete.',
     unknown: 'Unknown',
     noEmail: 'No email',
@@ -217,6 +226,19 @@ const en = {
     continueFailed: "Couldn't Continue",
   },
   // The note once a guest's on-device data is in their account (#100).
+  // Shown when a guest (#100) taps an account-only feature: what it needs, Sign In / Not Now.
+  signInPrompt: {
+    scanReceiptTitle: 'Sign In to Scan Receipts',
+    proofsTitle: 'Sign In to Attach Proofs',
+    createWorkspaceTitle: 'Sign In to Create Workspaces',
+    joinWorkspaceTitle: 'Sign In to Join Workspaces',
+    inviteTitle: 'Sign In to Invite People',
+    genericTitle: 'Sign In to Continue',
+    body: 'The transactions and categories on this device come with you.',
+    bodySignedOut: 'Sign in or create an account to continue.',
+    signIn: 'Sign In',
+    notNow: 'Not Now',
+  },
   guestUpload: {
     title: 'Added from This Device',
     message: {

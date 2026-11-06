@@ -4,8 +4,10 @@ import { useState } from 'react';
 
 import { useLanguage } from '@/contexts/language';
 import { useWorkspace } from '@/contexts/workspace';
+import { useIsGuest } from '@/hooks/use-auth';
 import { useCurrentUserId } from '@/hooks/use-data-source';
 import { useDiscardGuard } from '@/hooks/use-discard-guard';
+import { useSignInPrompt } from '@/hooks/use-sign-in-prompt';
 import { useRevokeInvite, useWorkspaceInvites } from '@/hooks/use-workspace-invites';
 import {
   useLeaveWorkspace,
@@ -32,7 +34,8 @@ const FOREIGN_KEY_VIOLATION = '23503';
  * Screen hook for Workspace Settings (`?id=`): the owner edits the name and home currency (saved
  * from the header), removes members and revokes or sends invites, and deletes a shared workspace;
  * a member sees read-only details and can leave. Destructive actions confirm with a native alert,
- * failures show one. Going back with an unsaved name or currency is confirmed first.
+ * failures show one. Going back with an unsaved name or currency is confirmed first. A guest (#100)
+ * owns their one workspace but has no members: Invite Member opens the sign-in prompt.
  */
 export function useWorkspaceSettingsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -51,6 +54,8 @@ export function useWorkspaceSettingsScreen() {
   const removeMember = useRemoveMember();
   const leaveWorkspace = useLeaveWorkspace();
   const revokeInvite = useRevokeInvite();
+  const { requireAccount } = useSignInPrompt();
+  const isGuest = useIsGuest();
 
   // Edits over the loaded values; null means untouched (shows the saved value).
   const [nameDraft, setNameDraft] = useState<string | null>(null);
@@ -193,12 +198,17 @@ export function useWorkspaceSettingsScreen() {
     canSave,
     isSaving: updateWorkspace.isPending,
     save,
+    /** A guest's workspace has no members table, so the empty section is left out. */
+    showsMembers: !isGuest,
     members: memberRows,
     membersTitle: t(k.workspace.members),
     invites: inviteRows,
     openInviteSheet: () => {
       if (!workspace) return;
-      router.push({ pathname: '/workspace-invite', params: { workspaceId: workspace.id } });
+      const workspaceId = workspace.id;
+      requireAccount('invite', () =>
+        router.push({ pathname: '/workspace-invite', params: { workspaceId } }),
+      );
     },
     isRemoving: leaveWorkspace.isPending || deleteWorkspace.isPending,
     confirmLeave,

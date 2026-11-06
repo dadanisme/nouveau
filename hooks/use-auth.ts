@@ -45,6 +45,13 @@ export function useGuestSession() {
   return { guestId: guestId ?? null };
 }
 
+/** Using the app without an account (#100): a guest, with no session. */
+export function useIsGuest(): boolean {
+  const { session } = useSession();
+  const { guestId } = useGuestSession();
+  return !session && !!guestId;
+}
+
 /**
  * Starts guest mode in a home currency: seeds the on-device workspace and categories, then
  * becomes the guest.
@@ -215,24 +222,29 @@ export function useSignInWithApple() {
   });
 }
 
-/**
- * Signs out. A guest's sign-out erases their on-device data (there is no account to come back to),
- * with no confirmation of its own.
- */
+/** Signs out of the account. A guest has no account to sign out of: they erase their data. */
 export function useSignOut() {
   const queryClient = useQueryClient();
-  const { session } = useSession();
-  const { guestId } = useGuestSession();
-  const isGuest = !session && !!guestId;
+
+  return useMutation({
+    mutationFn: signOutLocally,
+    onSuccess: () => {
+      queryClient.clear();
+    },
+  });
+}
+
+/**
+ * Ends guest mode (#100): erases the on-device data and the guest id, which lands on Welcome, as a
+ * sign-out does. Settings confirms first.
+ */
+export function useEraseGuestData() {
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async () => {
-      if (!isGuest) {
-        await signOutLocally();
-        return;
-      }
       await endGuest();
-      // Signed out before the cache goes, as the auth listener does for an account.
+      // No guest before the cache goes, as the auth listener signs an account out.
       queryClient.setQueryData(GUEST_SESSION_KEY, null);
     },
     onSuccess: () => {
