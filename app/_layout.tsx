@@ -1,9 +1,17 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { DarkTheme, DefaultTheme, Stack, ThemeProvider, useRouter, useSegments } from 'expo-router';
+import {
+  DarkTheme,
+  DefaultTheme,
+  Stack,
+  ThemeProvider,
+  useGlobalSearchParams,
+  useRouter,
+  useSegments,
+} from 'expo-router';
 import { ShareIntentProvider, useShareIntentContext } from 'expo-share-intent';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Platform, StyleSheet, useColorScheme } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
@@ -16,7 +24,9 @@ import { LanguageProvider, useLanguage } from '@/contexts/language';
 import { PeriodProvider } from '@/contexts/period';
 import { WorkspaceProvider } from '@/contexts/workspace';
 import { useGuestSession, useSession } from '@/hooks/use-auth';
+import { useCurrencyStepNeeded } from '@/hooks/use-currency-step-needed';
 import { goBackOrHome, resetTo } from '@/lib/navigation';
+import { markOnboardingSeen, readOnboardingSeen } from '@/lib/onboarding';
 import { k } from '@/locales/keys';
 
 // The system launch screen (expo-splash-screen, app.json) stays up until AuthGuard has routed, so
@@ -52,29 +62,64 @@ function ShareIntentNavigator() {
   return null;
 }
 
+/**
+ * Routes between the signed-out entry screens and the app (#78):
+ * - Signed out: the value pages on a fresh install, Welcome once they've been seen (or after any
+ *   sign-in, so signing out lands on Welcome). Login, Signup, onboarding and a share intent stay.
+ * - Signed in or a guest: entry screens reset to the tabs, except a brand-new account's currency
+ *   step (`/onboarding/currency?for=account`), which it's sent to once, from anywhere.
+ * The system splash stays up until the first routing pass, so no wrong screen flashes.
+ */
 function AuthGuard({ children }: { children: React.ReactNode }) {
   const { session, isLoading } = useSession();
   // A guest (#100) uses the app like a signed-in user, with on-device data.
   const { guestId } = useGuestSession();
   const isSignedIn = !!session || !!guestId;
+  const currencyStep = useCurrencyStepNeeded();
   const segments = useSegments();
+  const params = useGlobalSearchParams<{ for?: string }>();
+  // The account the currency step was shown to, so it's offered once per sign-in.
+  const currencyStepShownTo = useRef<string | null>(null);
   const [isNavigationReady, setIsNavigationReady] = useState(false);
 
   useEffect(() => {
     if (isLoading) return;
 
-    const inAuthGroup = segments[0] === 'login' || segments[0] === 'signup';
-    const inShareIntent = segments[0] === 'shareintent';
+    const [root, child] = segments as string[];
+    const inEntry = root === 'login' || root === 'signup' || root === 'onboarding';
+    const inShareIntent = root === 'shareintent';
+    const onAccountCurrencyStep =
+      root === 'onboarding' && child === 'currency' && params.for === 'account';
+    const userId = session?.user.id ?? null;
 
-    if (!isSignedIn && !inAuthGroup && !inShareIntent) {
-      resetTo('/login');
-    } else if (isSignedIn && inAuthGroup) {
-      resetTo('/');
+    if (!isSignedIn) {
+      currencyStepShownTo.current = null;
+      if (!inEntry && !inShareIntent) {
+        resetTo(readOnboardingSeen() ? '/onboarding/welcome' : '/onboarding');
+      }
+    } else {
+      // Someone who has used the app returns to Welcome after signing out, not the value pages.
+      markOnboardingSeen();
+      if (currencyStep.isNeeded && userId && currencyStepShownTo.current !== userId) {
+        currencyStepShownTo.current = userId;
+        if (!onAccountCurrencyStep) resetTo('/onboarding/currency?for=account');
+      } else if (inEntry && !currencyStep.isChecking) {
+        const staysOnCurrencyStep = onAccountCurrencyStep && currencyStep.isNeeded;
+        if (!staysOnCurrencyStep) resetTo('/');
+      }
     }
 
     const timeout = setTimeout(() => setIsNavigationReady(true), 50);
     return () => clearTimeout(timeout);
-  }, [isSignedIn, isLoading, segments]);
+  }, [
+    isSignedIn,
+    isLoading,
+    segments,
+    params.for,
+    session?.user.id,
+    currencyStep.isNeeded,
+    currencyStep.isChecking,
+  ]);
 
   useEffect(() => {
     if (!isLoading && isNavigationReady) SplashScreen.hideAsync();
@@ -109,22 +154,21 @@ function RootStack() {
             gestureEnabled: false,
           }}
         />
+        {/* The first-run flow (#78): value pages, Welcome, the currency step. Its own Stack
+            draws the bars; swipe-back would leave the flow for whatever is under it. */}
+        <Stack.Screen name="onboarding" options={{ headerShown: false, gestureEnabled: false }} />
         <Stack.Screen
           name="login"
-          // iOS: an empty native bar, as on Signup, so scrolled content doesn't run under the
+          // A native push from Welcome: the system back button and swipe-back return there. iOS:
+          // a native bar with only Back, as on Signup, so scrolled content doesn't run under the
           // status bar (it blurs behind the bar on iOS 26+). Android pads the form itself.
           options={{
             headerShown: Platform.OS === 'ios',
             title: '',
-            // The signed-out root: AuthGuard replaces into it, so there is nothing to go back to.
-            headerBackVisible: false,
             headerShadowVisible: false,
             headerStyle: {
               backgroundColor: formHeaderBackground(colorScheme === 'dark' ? 'dark' : 'light'),
             },
-            animation: 'flip',
-            animationDuration: 300,
-            gestureEnabled: false,
           }}
         />
         <Stack.Screen
