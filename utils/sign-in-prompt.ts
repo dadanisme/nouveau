@@ -12,6 +12,7 @@ export const SIGN_IN_FEATURES = [
   'createWorkspace',
   'joinWorkspace',
   'invite',
+  'premium',
   'generic',
 ] as const;
 
@@ -44,6 +45,11 @@ const CONTENT: Record<SignInFeature, SignInPromptContent> = {
   invite: {
     titleKey: k.signInPrompt.inviteTitle,
     symbol: { sf: 'person.badge.plus', material: 'person_add' },
+  },
+  // Settings' Premium row (#79): buying Premium needs an account.
+  premium: {
+    titleKey: k.signInPrompt.premiumTitle,
+    symbol: { sf: 'sparkles', material: 'workspace_premium' },
   },
   generic: {
     titleKey: k.signInPrompt.genericTitle,

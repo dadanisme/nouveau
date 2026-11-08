@@ -14,6 +14,8 @@ export interface SheetResultPayloads {
   'color-picker': { color: string };
   /** The guest's choice on the sign-in prompt (#100); the presenter closes it and goes on. */
   'sign-in-prompt': { choice: 'signIn' | 'notNow' };
+  /** The paywall (#79): Premium was bought or restored, so the held feature can go on. */
+  paywall: { purchased: boolean };
 }
 
 export type SheetKey = keyof SheetResultPayloads;

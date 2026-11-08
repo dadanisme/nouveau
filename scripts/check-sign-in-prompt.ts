@@ -49,7 +49,8 @@ function isSentenceCase(text: string, properNouns: readonly string[] = []): bool
 }
 
 const LOCALES = { en, id } as const;
-const PROPER_NOUNS = { en: [], id: ['Anda'] } as const;
+// Product names keep their capitals in sentence case ("Sign in to get Premium", #79).
+const PROPER_NOUNS = { en: ['Premium'], id: ['Anda', 'Premium'] } as const;
 
 // Each feature: its own title, in every locale and in Android sentence case.
 const titles = new Set<string>();
