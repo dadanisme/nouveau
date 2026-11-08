@@ -1,16 +1,17 @@
 #!/usr/bin/env bash
-# Verification-matrix helper. UDIDs are looked up by name+runtime at run time (never hardcoded).
+# Verification-matrix helper. UDIDs are looked up by name+runtime at run time, except where a key is
+# pinned below (two sims share the name and runtime); a pinned UDID that's gone falls back to the lookup.
 #   matrix.sh list                 -> print matrix entries with UDID/state
 #   matrix.sh udid <key>           -> print UDID (iOS) or AVD name (android) for a key
 #   matrix.sh boot <key>|all       -> boot sim / start emulator (waits until ready)
 #   matrix.sh shutdown <key>|all   -> shut down
-# Keys: ios27 (iPhone 17, iOS 27.0) | ios18 (iPhone 16, iOS 18.5) | duo (iPhone Duo, iOS 27.1) | pixel (Pixel_9a AVD)
+# Keys: ios27 (iPhone 17, iOS 27.2) | ios18 (iPhone 16, iOS 18.5) | duo (iPhone Duo, iOS 27.1) | pixel (Pixel_9a AVD)
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 . "$HERE/android-env.sh"
 
 name_of() { case "$1" in
-  ios27) echo "iPhone 17|iOS 27.0";; ios18) echo "iPhone 16|iOS 18.5";;
+  ios27) echo "iPhone 17|iOS 27.2";; ios18) echo "iPhone 16|iOS 18.5";;
   duo) echo "iPhone Duo|iOS 27.1";; pixel) echo "Pixel_9a|android";;
   *) echo "unknown key: $1" >&2; exit 2;; esac; }
 
@@ -20,8 +21,16 @@ ios_udid() { # $1=device name $2=runtime label e.g. "iOS 27.0"
     inrt { line=$0; sub(/^ +/,"",line); if (index(line, n" (")==1) { match(line,/\([0-9A-F-]{36}\)/); print substr(line,RSTART+1,RLENGTH-2); exit } }'
 }
 
-resolve() { local e; e="$(name_of "$1")"; local n="${e%%|*}" rt="${e##*|}"
-  if [ "$rt" = android ]; then echo "$n"; else ios_udid "$n" "$rt"; fi; }
+# Pinned UDIDs. ios27: the iPhone 17 on iOS 27.2 (Xcode 27.2); another iPhone 17 shares that runtime,
+# and the iOS 27.0 one is dead (2026-11-08).
+pinned_of() { case "$1" in
+  ios27) echo "BB37FC6C-13B1-4DF1-888E-103B9115C6A4";;
+  *) echo "";; esac; }
+
+resolve() { local e; e="$(name_of "$1")"; local n="${e%%|*}" rt="${e##*|}" pin; pin="$(pinned_of "$1")"
+  if [ "$rt" = android ]; then echo "$n"; return; fi
+  if [ -n "$pin" ] && xcrun simctl list devices available | grep -q "($pin)"; then echo "$pin"; return; fi
+  ios_udid "$n" "$rt"; }
 
 emu_serial() { # serial of running emulator for AVD $1
   for s in $(adb devices | awk '/^emulator-/{print $1}'); do
