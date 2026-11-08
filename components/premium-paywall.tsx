@@ -1,4 +1,4 @@
-import { Button, HStack, Image, Section, Text, VStack } from '@expo/ui/swift-ui';
+import { Button, HStack, Image, Section, Spacer, Text, VStack } from '@expo/ui/swift-ui';
 import {
   accessibilityAddTraits,
   accessibilityHidden,
@@ -15,6 +15,7 @@ import {
   listRowInsets,
   listRowSeparator,
   multilineTextAlignment,
+  opacity,
   shapes,
 } from '@expo/ui/swift-ui/modifiers';
 import { PlatformColor } from 'react-native';
@@ -23,7 +24,6 @@ import { FormDetailRow } from '@/components/form-detail-row';
 import { FormPrimaryButtonRow } from '@/components/form-primary-button-row';
 import {
   FormButtonRow,
-  FormListRow,
   FormLoadingRow,
   FormNoticeRow,
   FormSection,
@@ -51,7 +51,7 @@ export type PremiumPaywallProps = {
   /** The unavailable / error line. */
   notice: string;
   retryLabel: string;
-  /** Try Again works only while RevenueCat is identified as the signed-in account. */
+  /** Try Again needs a signed-in account (it identifies RevenueCat as it again, then reloads). */
   canRetry: boolean;
   onRetry: () => void;
   plansTitle: string;
@@ -79,7 +79,7 @@ export type PremiumPaywallProps = {
   privacyLabel: string;
   onOpenTerms: () => void;
   onOpenPrivacy: () => void;
-  /** Onboarding only: a borderless Not Now under the purchase button. */
+  /** Onboarding only: a borderless Not Now in its own row, after the renewal terms. */
   notNowLabel?: string;
   onNotNow: () => void;
 };
@@ -88,8 +88,8 @@ export type PremiumPaywallProps = {
  * The paywall (iOS, #79), as a grouped SwiftUI form in the sheet: a hero (symbol in a tinted
  * circle, "Nouveau Premium", a line), the three benefits, the plans as single-choice rows (the
  * trial under them), the large prominent Subscribe / Start Free Trial with the renewal terms
- * under it, then Restore Purchases and the Terms and Privacy links. Rows stack at accessibility
- * text sizes like every form row.
+ * right under it, onboarding's Not Now after those terms, then Restore Purchases and the Terms
+ * and Privacy links. Rows stack at accessibility text sizes like every form row.
  */
 export function PremiumPaywall(props: PremiumPaywallProps) {
   const circleSize = useScaledSize(CIRCLE_SIZE);
@@ -161,14 +161,7 @@ export function PremiumPaywall(props: PremiumPaywallProps) {
           <FormLoadingRow />
         ) : props.state === 'ready' ? (
           props.planRows.map((row) => (
-            <FormListRow
-              key={row.plan}
-              title={row.title}
-              subtitle={row.subtitle}
-              value={row.badge}
-              selected={row.selected}
-              onPress={() => props.onSelectPlan(row.plan)}
-            />
+            <PlanRow key={row.plan} row={row} onPress={() => props.onSelectPlan(row.plan)} />
           ))
         ) : (
           <>
@@ -191,7 +184,12 @@ export function PremiumPaywall(props: PremiumPaywallProps) {
           disabled={!props.canSubscribe}
           onPress={props.onSubscribe}
         />
-        {props.notNowLabel ? (
+      </FormSection>
+
+      {props.notNowLabel ? (
+        // After the renewal terms, never between them and the button they describe; on the sheet
+        // background, a full-width borderless button.
+        <Section>
           <Button
             onPress={props.onNotNow}
             modifiers={[
@@ -206,8 +204,8 @@ export function PremiumPaywall(props: PremiumPaywallProps) {
               {props.notNowLabel}
             </Text>
           </Button>
-        ) : null}
-      </FormSection>
+        </Section>
+      ) : null}
 
       <Section>
         {/* Restore and the legal links sit on the sheet background, under the purchase, as in
@@ -240,6 +238,64 @@ export function PremiumPaywall(props: PremiumPaywallProps) {
         </VStack>
       </Section>
     </NativeForm>
+  );
+}
+
+/**
+ * A plan as a single-choice row: the name, its price on its own line, and the saving under that,
+ * so the price keeps the row's width. The checkmark's space is kept when it isn't shown, so
+ * selecting a plan never changes its layout or height.
+ */
+function PlanRow({
+  row,
+  onPress,
+}: {
+  row: PremiumPaywallProps['planRows'][number];
+  onPress: () => void;
+}) {
+  const wrap = fixedSize({ horizontal: false, vertical: true });
+  return (
+    <Button
+      onPress={onPress}
+      modifiers={row.selected ? [accessibilityAddTraits(['isSelected'])] : undefined}
+    >
+      <HStack spacing={12}>
+        <VStack alignment="leading" spacing={2}>
+          <Text modifiers={[foregroundStyle(PlatformColor('label')), wrap]}>{row.title}</Text>
+          <Text
+            modifiers={[
+              font({ textStyle: 'subheadline' }),
+              foregroundStyle(PlatformColor('secondaryLabel')),
+              wrap,
+            ]}
+          >
+            {row.subtitle}
+          </Text>
+          {row.badge ? (
+            <Text
+              modifiers={[
+                font({ textStyle: 'subheadline', weight: 'semibold' }),
+                foregroundStyle(ACCENT_COLOR),
+                wrap,
+              ]}
+            >
+              {row.badge}
+            </Text>
+          ) : null}
+        </VStack>
+        <Spacer />
+        {/* The Selected trait says it, so the glyph itself isn't read. */}
+        <Image
+          systemName="checkmark"
+          modifiers={[
+            font({ textStyle: 'body', weight: 'semibold' }),
+            foregroundStyle(ACCENT_COLOR),
+            opacity(row.selected ? 1 : 0),
+            accessibilityHidden(true),
+          ]}
+        />
+      </HStack>
+    </Button>
   );
 }
 
