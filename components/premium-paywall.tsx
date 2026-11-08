@@ -51,6 +51,8 @@ export type PremiumPaywallProps = {
   /** The unavailable / error line. */
   notice: string;
   retryLabel: string;
+  /** Try Again works only while RevenueCat is identified as the signed-in account. */
+  canRetry: boolean;
   onRetry: () => void;
   plansTitle: string;
   planRows: readonly {
@@ -171,7 +173,11 @@ export function PremiumPaywall(props: PremiumPaywallProps) {
           <>
             <FormNoticeRow text={props.notice} icon={WARNING} />
             {props.state === 'error' ? (
-              <FormButtonRow title={props.retryLabel} onPress={props.onRetry} />
+              <FormButtonRow
+                title={props.retryLabel}
+                onPress={props.onRetry}
+                disabled={!props.canRetry}
+              />
             ) : null}
           </>
         )}

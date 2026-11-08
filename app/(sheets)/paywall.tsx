@@ -24,6 +24,7 @@ export default function PaywallSheet() {
         state={sheet.state}
         notice={sheet.notice}
         retryLabel={t(k.premium.tryAgain)}
+        canRetry={sheet.canRetry}
         onRetry={sheet.retry}
         plansTitle={sheet.plansTitle}
         planRows={sheet.planRows}

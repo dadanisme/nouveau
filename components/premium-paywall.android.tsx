@@ -82,7 +82,11 @@ export function PremiumPaywall(props: PremiumPaywallProps) {
           <>
             <FormNoticeRow text={props.notice} icon={ICONS.warning} />
             {props.state === 'error' ? (
-              <FormButtonRow title={props.retryLabel} onPress={props.onRetry} />
+              <FormButtonRow
+                title={props.retryLabel}
+                onPress={props.onRetry}
+                disabled={!props.canRetry}
+              />
             ) : null}
           </>
         )}

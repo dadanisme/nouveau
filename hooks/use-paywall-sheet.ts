@@ -1,10 +1,11 @@
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Platform } from 'react-native';
 
 import { LEGAL_URLS } from '@/constants/legal';
 import { useLanguage } from '@/contexts/language';
+import { useIsGuest, useSession } from '@/hooks/use-auth';
 import { usePremiumOffering, usePurchasePremium, useRestorePurchases } from '@/hooks/use-purchases';
 import { useSheetResponder } from '@/hooks/use-sheet-result';
 import { showAlertDialog } from '@/lib/alert-dialog';
@@ -57,18 +58,35 @@ export type PaywallState = 'loading' | 'unavailable' | 'error' | 'ready';
  * this account can have it, the renewal disclosure, Subscribe / Start Free Trial, Restore
  * Purchases, and the Terms and Privacy links. Buying or restoring Premium closes the sheet and
  * tells the presenter, which runs the held feature; a cancelled store sheet leaves it open with
- * nothing said; a pending (deferred) payment closes it and says Premium turns on once it's paid. From onboarding it also has Not Now, which just closes it.
+ * nothing said; a pending (deferred) payment closes it and says Premium turns on once it's paid.
+ * From onboarding it also has Not Now, which just closes it.
+ *
+ * It only buys, restores or reloads plans while RevenueCat's app user id is the signed-in
+ * account's, so a purchase can never land on an anonymous or another account's RevenueCat user.
+ * A guest who reaches it (e.g. a `nouveau://paywall` link) gets the sign-in prompt in its place.
  */
 export function usePaywallSheet() {
   const { t } = useLanguage();
+  const router = useRouter();
   const params = useLocalSearchParams<Partial<PaywallSheetParams>>();
   const source = parsePaywallSource(params.source);
+  const { session } = useSession();
+  const isGuest = useIsGuest();
   const offering = usePremiumOffering();
+  const userId = session?.user.id ?? null;
+  /** RevenueCat is identified as the signed-in account: only then can it buy or restore. */
+  const isIdentified = !!userId && offering.purchasesUserId === userId;
   const purchase = usePurchasePremium();
   const restore = useRestorePurchases();
   const respond = useSheetResponder('paywall');
   const [chosenPlan, setChosenPlan] = useState<PremiumPlan>('yearly');
   const storeName = t(getStoreNameKey(Platform.OS));
+
+  // Buying Premium needs an account: a guest gets the sign-in prompt instead (it closes itself,
+  // and its Sign In pushes Login).
+  useEffect(() => {
+    if (isGuest) router.replace({ pathname: '/sign-in-prompt', params: { feature: 'premium' } });
+  }, [isGuest, router]);
 
   const label = (value: LabelKey | null) => (value ? t(value.key, value.params) : '');
 
@@ -103,16 +121,19 @@ export function usePaywallSheet() {
 
   const state: PaywallState = !isPurchasesAvailable()
     ? 'unavailable'
-    : offering.isSettling || offering.isLoading
+    : // A guest sees a spinner for the moment before the sign-in prompt replaces the sheet.
+      isGuest || offering.isSettling || offering.isLoading
       ? 'loading'
       : selected
         ? 'ready'
         : 'error';
 
   const isBusy = purchase.isPending || restore.isPending;
+  const canSubscribe = isIdentified && state === 'ready' && !isBusy;
+  const canRestore = isIdentified && state !== 'unavailable' && state !== 'loading' && !isBusy;
 
   function subscribe() {
-    if (!selected || isBusy) return;
+    if (!selected || !canSubscribe) return;
     purchase.mutate(selected.pkg, {
       onSuccess: (outcome) => {
         // Cancelled in the store sheet: stay, with nothing to say.
@@ -136,7 +157,7 @@ export function usePaywallSheet() {
   }
 
   function restorePurchases() {
-    if (isBusy) return;
+    if (!canRestore) return;
     restore.mutate(undefined, {
       onSuccess: (info) => {
         if (toEntitlementSnapshot(info)?.isActive) {
@@ -166,18 +187,21 @@ export function usePaywallSheet() {
     })),
     state,
     notice: state === 'unavailable' ? t(k.premium.unavailable) : t(k.premium.loadFailed),
-    retry: () => void offering.refetch(),
+    canRetry: isIdentified,
+    retry: () => {
+      if (isIdentified) void offering.refetch();
+    },
     plansTitle: t(k.premium.plansSection),
     planRows,
     selectPlan: setChosenPlan,
     trialFooter: duration ? t(k.premium.trialFooter, { duration, price }) : undefined,
     primaryLabel: t(getPrimaryActionKey(isTrialEligible)),
     isPurchasing: purchase.isPending,
-    canSubscribe: state === 'ready' && !isBusy,
+    canSubscribe,
     subscribe,
     restoreLabel: restore.isPending ? t(k.premium.restoring) : t(k.premium.restore),
     isRestoring: restore.isPending,
-    canRestore: state !== 'unavailable' && state !== 'loading' && !isBusy,
+    canRestore,
     restorePurchases,
     disclosure: selected
       ? t(getDisclosureKey(isTrialEligible), { duration, price, store: storeName })

@@ -234,8 +234,17 @@ function isPending(error: unknown): boolean {
   return getErrorCode(error) === PURCHASES_ERROR_CODE.PAYMENT_PENDING_ERROR;
 }
 
-export async function purchasePremium(pkg: PurchasesPackage): Promise<PurchaseOutcome> {
+/**
+ * Buying and restoring need RevenueCat identified as an account: after a sign-out it holds an
+ * anonymous user, and a purchase made there would belong to nobody.
+ */
+function assertIdentified() {
   if (!configured) throw new Error('Purchases are not available');
+  if (!identifiedUserId) throw new Error('Sign in to buy or restore Premium');
+}
+
+export async function purchasePremium(pkg: PurchasesPackage): Promise<PurchaseOutcome> {
+  assertIdentified();
   try {
     const result = await Purchases.purchasePackage(pkg);
     return { kind: 'purchased', info: result.customerInfo };
@@ -247,7 +256,7 @@ export async function purchasePremium(pkg: PurchasesPackage): Promise<PurchaseOu
 }
 
 export async function restorePremium(): Promise<CustomerInfo> {
-  if (!configured) throw new Error('Purchases are not available');
+  assertIdentified();
   return Purchases.restorePurchases();
 }
 
