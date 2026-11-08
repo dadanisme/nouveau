@@ -1,4 +1,4 @@
-import { Button, Image, Section, Text, VStack } from '@expo/ui/swift-ui';
+import { Button, HStack, Image, Section, Text, VStack } from '@expo/ui/swift-ui';
 import {
   accessibilityAddTraits,
   accessibilityHidden,
@@ -31,7 +31,7 @@ import {
 } from '@/components/native-form';
 import type { FormSymbol } from '@/components/native-form-types';
 import { ACCENT_COLOR } from '@/constants/accent';
-import { useScaledSize } from '@/hooks/use-accessibility-text-size';
+import { useIsAccessibilityTextSize, useScaledSize } from '@/hooks/use-accessibility-text-size';
 import type { PremiumPlan } from '@/utils/premium';
 
 // The tinted circle behind the hero symbol at the default text size; it grows with it.
@@ -93,6 +93,7 @@ export type PremiumPaywallProps = {
  */
 export function PremiumPaywall(props: PremiumPaywallProps) {
   const circleSize = useScaledSize(CIRCLE_SIZE);
+  const isStacked = useIsAccessibilityTextSize();
   const wrap = fixedSize({ horizontal: false, vertical: true });
 
   return (
@@ -208,16 +209,64 @@ export function PremiumPaywall(props: PremiumPaywallProps) {
         ) : null}
       </FormSection>
 
-      <FormSection>
-        <FormButtonRow
-          title={props.restoreLabel}
-          pending={props.isRestoring}
-          disabled={!props.canRestore}
-          onPress={props.onRestore}
-        />
-        <FormButtonRow title={props.termsLabel} onPress={props.onOpenTerms} />
-        <FormButtonRow title={props.privacyLabel} onPress={props.onOpenPrivacy} />
-      </FormSection>
+      <Section>
+        {/* Restore and the legal links sit on the sheet background, under the purchase, as in
+            StoreKit's own subscription sheet: plain links, not a card of misaligned rows. Each
+            borderless button takes its own taps inside the one row. */}
+        <VStack
+          spacing={4}
+          modifiers={[
+            frame({ maxWidth: Infinity }),
+            listRowBackground('clear'),
+            listRowSeparator('hidden'),
+          ]}
+        >
+          <FooterLink
+            title={props.restoreLabel}
+            disabled={!props.canRestore || props.isRestoring}
+            onPress={props.onRestore}
+          />
+          {isStacked ? (
+            <VStack spacing={4}>
+              <FooterLink title={props.termsLabel} onPress={props.onOpenTerms} />
+              <FooterLink title={props.privacyLabel} onPress={props.onOpenPrivacy} />
+            </VStack>
+          ) : (
+            <HStack spacing={20}>
+              <FooterLink title={props.termsLabel} onPress={props.onOpenTerms} />
+              <FooterLink title={props.privacyLabel} onPress={props.onOpenPrivacy} />
+            </HStack>
+          )}
+        </VStack>
+      </Section>
     </NativeForm>
+  );
+}
+
+/** A small borderless link under the purchase (Restore Purchases, Terms, Privacy), 44pt tall. */
+function FooterLink({
+  title,
+  disabled: isDisabled,
+  onPress,
+}: {
+  title: string;
+  disabled?: boolean;
+  onPress: () => void;
+}) {
+  return (
+    <Button
+      onPress={onPress}
+      modifiers={[buttonStyle('borderless'), disabled(Boolean(isDisabled))]}
+    >
+      <Text
+        modifiers={[
+          font({ textStyle: 'footnote' }),
+          multilineTextAlignment('center'),
+          frame({ minHeight: 44 }),
+        ]}
+      >
+        {title}
+      </Text>
+    </Button>
   );
 }
