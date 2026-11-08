@@ -502,6 +502,8 @@ const id: Translations = {
     nothingToRestoreMessage: 'Akun %{store} ini tidak memiliki langganan Nouveau Premium.',
     paymentPending: 'Pembayaran Tertunda',
     paymentPendingMessage: 'Premium aktif begitu pembayaran Anda selesai.',
+    notConfirmed: 'Premium Belum Terkonfirmasi',
+    notConfirmedMessage: 'Langganan Premium Anda belum sampai ke Nouveau. Coba lagi sebentar lagi.',
     upgrade: 'Tingkatkan ke Premium',
     manage: 'Kelola Langganan',
     manageFooter: 'Ganti paket atau batalkan di pengaturan %{store}.',

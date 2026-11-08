@@ -2,7 +2,7 @@ import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { useShareIntentContext } from 'expo-share-intent';
 import type { ShareIntentFile } from 'expo-share-intent';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { showAlertDialog } from '@/lib/alert-dialog';
 import i18n from '@/lib/i18n';
@@ -13,6 +13,12 @@ import { useScanReceipt } from '@/hooks/use-scan-receipt';
 import { useRequirePremium } from '@/hooks/use-require-premium';
 import { isPremiumRequiredError } from '@/utils/premium';
 
+/**
+ * How long to wait before scanning again when the server says `premium_required` but this device
+ * already sees Premium (a purchase moments ago): the server re-checks RevenueCat on each request.
+ */
+const PREMIUM_RECHECK_DELAY_MS = 2000;
+
 export type CategorizedFile = ShareIntentFile & {
   isImage: boolean;
   isPdf: boolean;
@@ -21,7 +27,9 @@ export type CategorizedFile = ShareIntentFile & {
 /**
  * Screen hook for a share intent: the shared content by kind, Close, and Scan Receipt. Scanning is
  * Premium (#79, `useRequirePremium`): a free account gets the paywall, and buying there scans
- * right away; a server `premium_required` refusal opens it too. It's also account only (#100):
+ * right away; a server `premium_required` refusal opens it too, unless this device already sees
+ * Premium (bought moments ago, not yet seen by the server): then it scans once more after a moment,
+ * and says Premium couldn't be confirmed if the server still refuses. It's also account only (#100):
  * without a session (a guest, or before onboarding) Scan Receipt opens the sign-in prompt instead. Its Sign In drops the share for Login. Its Not Now leaves a guest here,
  * and closes this screen too when nobody is signed in (there's nothing else to do with the share).
  */
@@ -40,6 +48,14 @@ export function useShareIntentScreen() {
     // A guest keeps the share screen (the default just closes the prompt).
     onNotNow: guestId ? undefined : () => handleDismiss(),
   });
+
+  const [isRechecking, setIsRechecking] = useState(false);
+  // The latest status for the scan's error handler: a scan held by the paywall runs with the
+  // closure from before the purchase, when Premium wasn't active yet.
+  const isPremiumRef = useRef(premiumGate.isPremium);
+  useEffect(() => {
+    isPremiumRef.current = premiumGate.isPremium;
+  }, [premiumGate.isPremium]);
 
   const sharedText = shareIntent.text ?? null;
   const sharedUrl = shareIntent.webUrl ?? null;
@@ -63,7 +79,7 @@ export function useShareIntentScreen() {
   }, [shareIntent.files]);
 
   const canScan = imageFiles.length > 0 || pdfFiles.length > 0;
-  const isScanning = scanReceipt.isPending;
+  const isScanning = scanReceipt.isPending || isRechecking;
 
   /**
    * Home (`leaveToHome`): the tab shell, or signed out the value pages or Welcome, with nothing
@@ -76,10 +92,11 @@ export function useShareIntentScreen() {
   }
 
   function handleScanReceipt() {
-    premiumGate.requirePremium('scanReceipt', scan);
+    premiumGate.requirePremium('scanReceipt', () => scan());
   }
 
-  function scan() {
+  /** `isRecheck`: the one retry after the server refused a Premium this device already sees. */
+  function scan(isRecheck = false) {
     const scannableFiles = [...imageFiles, ...pdfFiles] as ShareIntentFile[];
     const text = sharedText ?? sharedUrl ?? undefined;
 
@@ -92,9 +109,24 @@ export function useShareIntentScreen() {
           resetShareIntent();
         },
         onError: (error) => {
-          // Premium lapsed, or the status hadn't loaded: the paywall, then the scan again.
           if (isPremiumRequiredError(error)) {
-            premiumGate.openPaywall('scanReceipt', scan);
+            // Premium lapsed, or the status hadn't loaded: the paywall, then the scan again.
+            if (!isPremiumRef.current) {
+              premiumGate.openPaywall('scanReceipt', () => scan());
+              return;
+            }
+            // This device sees Premium but the server doesn't yet (it was just bought): once
+            // more after a moment, never the paywall again.
+            if (!isRecheck) {
+              setIsRechecking(true);
+              setTimeout(() => {
+                setIsRechecking(false);
+                scan(true);
+              }, PREMIUM_RECHECK_DELAY_MS);
+              return;
+            }
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+            showAlertDialog(i18n.t(k.premium.notConfirmed), i18n.t(k.premium.notConfirmedMessage));
             return;
           }
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);

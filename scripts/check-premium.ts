@@ -414,6 +414,8 @@ const TITLE_CASE_KEYS = [
   'premium.purchaseFailed',
   'premium.restoreFailed',
   'premium.nothingToRestore',
+  'premium.paymentPending',
+  'premium.notConfirmed',
   'premium.manage',
   'premium.status.monthly',
   'premium.status.yearly',

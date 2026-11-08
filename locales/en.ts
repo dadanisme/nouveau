@@ -511,6 +511,9 @@ const en = {
     nothingToRestoreMessage: 'This %{store} account has no Nouveau Premium subscription.',
     paymentPending: 'Payment Pending',
     paymentPendingMessage: 'Premium turns on as soon as your payment is complete.',
+    notConfirmed: "Couldn't Confirm Premium",
+    notConfirmedMessage:
+      "Your Premium subscription hasn't reached Nouveau yet. Try again in a moment.",
     upgrade: 'Upgrade to Premium',
     manage: 'Manage Subscription',
     manageFooter: 'Change your plan or cancel in your %{store} settings.',
