@@ -14,7 +14,12 @@ import {
   PREMIUM_PRODUCT_IDS,
   STORE_SUBSCRIPTIONS_URLS,
 } from '@/constants/premium';
-import type { PremiumEntitlementSnapshot, PremiumPlan, TrialPeriod } from '@/utils/premium';
+import type {
+  PremiumEntitlementSnapshot,
+  PremiumPeriodType,
+  PremiumPlan,
+  TrialPeriod,
+} from '@/utils/premium';
 
 /**
  * RevenueCat (`react-native-purchases`) for Nouveau Premium (#79). The API key is per store
@@ -127,7 +132,8 @@ export function toEntitlementSnapshot(
   return {
     isActive: entitlement.isActive,
     willRenew: entitlement.willRenew,
-    periodType: entitlement.periodType,
+    // A plain string in react-native-purchases 10.x (typed `PeriodType` from 11); same values.
+    periodType: entitlement.periodType as PremiumPeriodType,
     expirationDate: entitlement.expirationDate,
     productIdentifier: entitlement.productIdentifier,
   };
