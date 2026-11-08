@@ -17,6 +17,7 @@ import { PeriodProvider } from '@/contexts/period';
 import { WorkspaceProvider } from '@/contexts/workspace';
 import { type AuthRoutes, useAuthRoutes } from '@/hooks/use-auth-routes';
 import { useGuestUpload, useGuestUploadNotice } from '@/hooks/use-guest-upload';
+import { useOnboardingPaywall } from '@/hooks/use-onboarding-paywall';
 import { goBackOrHome, leaveToHome } from '@/lib/navigation';
 import { k } from '@/locales/keys';
 
@@ -71,6 +72,8 @@ function RootNavigator() {
   const upload = useGuestUpload();
   const routes = useAuthRoutes({ isUploading: upload.isUploading });
   useGuestUploadNotice(upload, routes.isReady && routes.isSettled);
+  // A brand-new account's one-time paywall (#79), once its currency step has landed on the tabs.
+  useOnboardingPaywall(routes.isReady && routes.isSettled);
   if (!routes.isReady) return null;
 
   return (
@@ -186,6 +189,13 @@ function RootStack({ routes }: { routes: AuthRoutes }) {
           <Stack.Screen name="(sheets)/category-picker" options={sheetOptions([0.5, 1])} />
           <Stack.Screen name="(sheets)/icon-picker" options={sheetOptions([0.75, 1])} />
           <Stack.Screen name="(sheets)/color-picker" options={sheetOptions([0.8, 1])} />
+          {/* The Nouveau Premium paywall (#79), from a Premium feature, Settings or onboarding.
+              One large detent: the benefits, plans, button and the store-required terms need the
+              full height to be seen together. */}
+          <Stack.Screen
+            name="(sheets)/paywall"
+            options={{ ...sheetOptions([1], { header: true }), title: '' }}
+          />
         </Stack.Protected>
         {/* Signed out (and a new account's currency step): the first-run flow. Once signed in or
             a guest, it redirects to the tabs. */}

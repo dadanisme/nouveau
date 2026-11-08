@@ -3,10 +3,11 @@ import { useCallback, useState } from 'react';
 import { BackHandler, Platform } from 'react-native';
 
 import { useLanguage } from '@/contexts/language';
-import { useStartGuest } from '@/hooks/use-auth';
+import { useSession, useStartGuest } from '@/hooks/use-auth';
 import { useMyWorkspaces, useUpdateWorkspace } from '@/hooks/use-workspaces';
 import { showAlertDialog } from '@/lib/alert-dialog';
 import { deviceCurrency } from '@/lib/guest';
+import { queueOnboardingPaywall } from '@/lib/premium-onboarding';
 import { resetTo } from '@/lib/navigation';
 import { k } from '@/locales/keys';
 import { getErrorMessage } from '@/utils/error';
@@ -22,8 +23,9 @@ import { getCurrencyStepRows, suggestedHomeCurrency } from '@/utils/workspace';
  *   (`useAuthRoutes`) then replace onboarding with the tabs.
  * - Account mode (`?for=account`, a brand-new account's first sign-in): writes the currency to
  *   the Personal workspace, even when unchanged, so the step is never asked again, then goes to
- *   the tabs. It has no way back: iOS hides Back and swipe-back (the layout), and Android's Back
- *   is held here, since the screens under it are the signed-out ones.
+ *   the tabs, where the Premium paywall is presented once (#79). It has no way back: iOS hides
+ *   Back and swipe-back (the layout), and Android's Back is held here, since the screens under it
+ *   are the signed-out ones.
  */
 export function useCurrencyStepScreen() {
   const { t } = useLanguage();
@@ -38,6 +40,7 @@ export function useCurrencyStepScreen() {
   const { rows } = suggestion;
   const [selection, setSelection] = useState(rows.suggested.code);
 
+  const { session } = useSession();
   const startGuest = useStartGuest();
   const updateWorkspace = useUpdateWorkspace();
   const workspaces = useMyWorkspaces();
@@ -71,7 +74,14 @@ export function useCurrencyStepScreen() {
     }
     updateWorkspace.mutate(
       { id: personalWorkspace.id, home_currency: selection },
-      { onSuccess: () => resetTo('/'), onError: showFailure },
+      {
+        onSuccess: () => {
+          // A brand-new account sees the paywall once, over the tabs (`useOnboardingPaywall`).
+          if (session) queueOnboardingPaywall(session.user.id);
+          resetTo('/');
+        },
+        onError: showFailure,
+      },
     );
   }
 

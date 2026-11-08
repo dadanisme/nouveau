@@ -10,7 +10,8 @@ import { leaveToHome } from '@/lib/navigation';
 import { k } from '@/locales/keys';
 import { useGuestSession } from '@/hooks/use-auth';
 import { useScanReceipt } from '@/hooks/use-scan-receipt';
-import { useSignInPrompt } from '@/hooks/use-sign-in-prompt';
+import { useRequirePremium } from '@/hooks/use-require-premium';
+import { isPremiumRequiredError } from '@/utils/premium';
 
 export type CategorizedFile = ShareIntentFile & {
   isImage: boolean;
@@ -19,8 +20,9 @@ export type CategorizedFile = ShareIntentFile & {
 
 /**
  * Screen hook for a share intent: the shared content by kind, Close, and Scan Receipt. Scanning is
- * account only (#100): without a session (a guest, or before onboarding) Scan Receipt opens the
- * sign-in prompt instead. Its Sign In drops the share for Login. Its Not Now leaves a guest here,
+ * Premium (#79, `useRequirePremium`): a free account gets the paywall, and buying there scans
+ * right away; a server `premium_required` refusal opens it too. It's also account only (#100):
+ * without a session (a guest, or before onboarding) Scan Receipt opens the sign-in prompt instead. Its Sign In drops the share for Login. Its Not Now leaves a guest here,
  * and closes this screen too when nobody is signed in (there's nothing else to do with the share).
  */
 export function useShareIntentScreen() {
@@ -28,7 +30,7 @@ export function useShareIntentScreen() {
   const { hasShareIntent, shareIntent, resetShareIntent } = useShareIntentContext();
   const scanReceipt = useScanReceipt();
   const { guestId } = useGuestSession();
-  const signInPrompt = useSignInPrompt({
+  const premiumGate = useRequirePremium({
     // Drops the share and closes the prompt with this screen, then Login pushes over home in the
     // same tick: the tab shell for a guest, the signed-out start (Welcome) otherwise.
     onSignIn: () => {
@@ -74,7 +76,7 @@ export function useShareIntentScreen() {
   }
 
   function handleScanReceipt() {
-    signInPrompt.requireAccount('scanReceipt', scan);
+    premiumGate.requirePremium('scanReceipt', scan);
   }
 
   function scan() {
@@ -90,6 +92,11 @@ export function useShareIntentScreen() {
           resetShareIntent();
         },
         onError: (error) => {
+          // Premium lapsed, or the status hadn't loaded: the paywall, then the scan again.
+          if (isPremiumRequiredError(error)) {
+            premiumGate.openPaywall('scanReceipt', scan);
+            return;
+          }
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
           showAlertDialog(
             i18n.t(k.shareIntent.scanFailed),

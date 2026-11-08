@@ -19,6 +19,7 @@ import { useCurrentUserId, useDataSource } from '@/hooks/use-data-source';
 import { useDeleteTransaction } from '@/hooks/use-delete-transaction';
 import { useDiscardGuard } from '@/hooks/use-discard-guard';
 import { useExchangeRate } from '@/hooks/use-exchange-rate';
+import { usePremium } from '@/hooks/use-premium';
 import { useSheetResult } from '@/hooks/use-sheet-result';
 import { useSignInPrompt } from '@/hooks/use-sign-in-prompt';
 import { useTransaction } from '@/hooks/use-transaction';
@@ -61,8 +62,10 @@ function showError(title: string, error: unknown) {
 export function useTransactionForm(transactionId?: string, initialDate?: string) {
   const router = useRouter();
   const currentUserId = useCurrentUserId();
-  // AI classification is account only: a guest picks the category themselves.
-  const canClassify = useDataSource()?.kind === 'remote';
+  // AI classification is Premium (#79) and account only: a guest or a free account picks the
+  // category themselves, with no request made and nothing said.
+  const premium = usePremium();
+  const canClassify = useDataSource()?.kind === 'remote' && premium.isActive;
   const { currentWorkspaceId, currentWorkspace } = useWorkspace();
   const { locale } = useLanguage();
 
