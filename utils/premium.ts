@@ -1,4 +1,5 @@
 import type { FormSymbol } from '@/components/native-form-types';
+import { PREMIUM_FEATURE_FLAGS } from '@/constants/premium';
 import { k } from '@/locales/keys';
 
 /**
@@ -23,11 +24,12 @@ export interface PremiumEntitlementSnapshot {
   productIdentifier: string;
 }
 
-/** An admin grant (`feature_subscriptions` row): only its state matters here. */
+/** An admin grant (`feature_subscriptions` row joined with its `features` row). */
 export interface PremiumGrantSnapshot {
   status: string;
   revoked_at: string | null;
   granted_at?: string | null;
+  feature?: { flag: string } | null;
 }
 
 export type PremiumStatus =
@@ -57,9 +59,15 @@ export function isGrantActive(grant: PremiumGrantSnapshot): boolean {
   return grant.status === 'active' && !grant.revoked_at;
 }
 
+/** A grant for one of the Premium features (`PREMIUM_FEATURE_FLAGS`), not e.g. `excel`. */
+export function isPremiumGrant(grant: PremiumGrantSnapshot): boolean {
+  const flag = grant.feature?.flag;
+  return !!flag && (PREMIUM_FEATURE_FLAGS as readonly string[]).includes(flag);
+}
+
 /**
- * Premium is active when the store entitlement is, or an admin grant is. A store subscription
- * wins, since it's the one with dates and a renewal to show.
+ * Premium is active when the store entitlement is, or an active admin grant for a Premium feature
+ * is. A store subscription wins, since it's the one with dates and a renewal to show.
  */
 export function getPremiumStatus(
   entitlement: PremiumEntitlementSnapshot | null | undefined,
@@ -74,7 +82,7 @@ export function getPremiumStatus(
       expiresAt: entitlement.expirationDate,
     };
   }
-  const grant = grants?.find(isGrantActive);
+  const grant = grants?.find((g) => isGrantActive(g) && isPremiumGrant(g));
   if (grant) return { kind: 'granted', grantedAt: grant.granted_at ?? null };
   return { kind: 'free' };
 }

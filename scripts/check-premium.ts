@@ -1,6 +1,7 @@
 /**
  * Checks Nouveau Premium's pure logic (#79, `utils/premium.ts`) and its strings:
- * - the status: store entitlement (plan, trial, renewal), admin grants, store over grant, revoked;
+ * - the status: store entitlement (plan, trial, renewal), admin grants (Premium flags only, not
+ *   e.g. `excel`), store over grant, revoked;
  * - the status labels (Free, Premium Yearly, renews / trial ends / expires <date>, granted);
  * - the yearly saving (rounded down), trial lengths (a week is 7 days), plan and button keys;
  * - the route params, the `premium_required` error, and when the onboarding paywall presents;
@@ -88,9 +89,32 @@ const monthlyCancelled: PremiumEntitlementSnapshot = {
   productIdentifier: 'nouveau_premium_monthly:monthly',
 };
 const expired: PremiumEntitlementSnapshot = { ...monthlyCancelled, isActive: false };
-const activeGrant = { status: 'active', revoked_at: null, granted_at: '2026-01-02T00:00:00Z' };
-const revokedGrant = { status: 'revoked', revoked_at: '2026-02-01T00:00:00Z' };
-const revokedButActive = { status: 'active', revoked_at: '2026-02-01T00:00:00Z' };
+const scanFeature = { flag: 'receipt_scanning' };
+const activeGrant = {
+  status: 'active',
+  revoked_at: null,
+  granted_at: '2026-01-02T00:00:00Z',
+  feature: scanFeature,
+};
+const revokedGrant = { status: 'revoked', revoked_at: '2026-02-01T00:00:00Z', feature: scanFeature };
+const revokedButActive = {
+  status: 'active',
+  revoked_at: '2026-02-01T00:00:00Z',
+  feature: scanFeature,
+};
+const classifyGrant = {
+  status: 'active',
+  revoked_at: null,
+  granted_at: '2026-03-01T00:00:00Z',
+  feature: { flag: 'description_classification' },
+};
+const excelGrant = {
+  status: 'active',
+  revoked_at: null,
+  granted_at: '2026-04-01T00:00:00Z',
+  feature: { flag: 'excel' },
+};
+const noFeatureGrant = { status: 'active', revoked_at: null, granted_at: null, feature: null };
 
 equal('no entitlement, no grants: free', getPremiumStatus(null, []), { kind: 'free' });
 equal('undefined everything: free', getPremiumStatus(undefined, undefined), { kind: 'free' });
@@ -122,6 +146,18 @@ check(
   'a revoked grant before an active one still counts the active one',
   getPremiumStatus(null, [revokedGrant, activeGrant]).kind === 'granted',
 );
+equal('classification grant: granted', getPremiumStatus(null, [classifyGrant]), {
+  kind: 'granted',
+  grantedAt: '2026-03-01T00:00:00Z',
+});
+equal('excel-only grant: free', getPremiumStatus(null, [excelGrant]), { kind: 'free' });
+equal('grant without its feature row: free', getPremiumStatus(null, [noFeatureGrant]), {
+  kind: 'free',
+});
+equal('excel grant before a Premium grant: the Premium one', getPremiumStatus(null, [excelGrant, activeGrant]), {
+  kind: 'granted',
+  grantedAt: '2026-01-02T00:00:00Z',
+});
 check('free is not active', !isPremiumActive({ kind: 'free' }));
 check('granted is active', isPremiumActive({ kind: 'granted', grantedAt: null }));
 
