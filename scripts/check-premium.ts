@@ -208,6 +208,29 @@ equal(
   },
 );
 equal(
+  'label: trial ends, then the renewal price',
+  getPremiumStatusLabels(store({ isTrial: true }), fmt, 'Rp99,000/year').detail,
+  {
+    key: 'premium.status.trialEndsThen',
+    params: { date: '<2027-03-04>', price: 'Rp99,000/year' },
+  },
+);
+equal(
+  'label: no store price, the trial line has just the date',
+  getPremiumStatusLabels(store({ isTrial: true }), fmt, null).detail,
+  { key: 'premium.status.trialEnds', params: { date: '<2027-03-04>' } },
+);
+equal(
+  'label: a cancelled trial ignores the renewal price',
+  getPremiumStatusLabels(store({ isTrial: true, willRenew: false }), fmt, 'Rp99,000/year').detail,
+  { key: 'premium.status.expires', params: { date: '<2027-03-04>' } },
+);
+equal(
+  'label: a renewing subscription ignores the renewal price',
+  getPremiumStatusLabels(store({}), fmt, 'Rp99,000/year').detail,
+  { key: 'premium.status.renews', params: { date: '<2027-03-04>' } },
+);
+equal(
   'label: cancelled trial expires',
   getPremiumStatusLabels(store({ isTrial: true, willRenew: false }), fmt).detail,
   { key: 'premium.status.expires', params: { date: '<2027-03-04>' } },

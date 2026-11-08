@@ -526,6 +526,7 @@ const en = {
       granted: 'Premium (Granted)',
       grantedDetail: 'Given to your account by Nouveau.',
       trialEnds: 'Free trial ends %{date}',
+      trialEndsThen: 'Free trial ends %{date}, then %{price}',
       renews: 'Renews %{date}',
       expires: 'Expires %{date}',
     },

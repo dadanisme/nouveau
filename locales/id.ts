@@ -516,6 +516,7 @@ const id: Translations = {
       granted: 'Premium (Diberikan)',
       grantedDetail: 'Diberikan ke akun Anda oleh Nouveau.',
       trialEnds: 'Uji coba gratis berakhir %{date}',
+      trialEndsThen: 'Uji coba gratis berakhir %{date}, lalu %{price}',
       renews: 'Diperpanjang %{date}',
       expires: 'Berakhir %{date}',
     },

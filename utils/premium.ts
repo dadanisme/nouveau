@@ -100,10 +100,13 @@ export interface LabelKey {
 /**
  * The Settings Premium screen's status: the title ("Premium Yearly") and the line under it
  * ("Renews Mar 4, 2027", "Free trial ends …", "Expires …"). `formatDate` renders an ISO date.
+ * During a trial that converts, `renewalPrice` ("Rp99,000/year", from the store product) says
+ * what it becomes: "Free trial ends Mar 4, 2027, then Rp99,000/year"; without it, just the date.
  */
 export function getPremiumStatusLabels(
   status: PremiumStatus,
   formatDate: (iso: string) => string,
+  renewalPrice?: string | null,
 ): { title: LabelKey; detail: LabelKey | null } {
   if (status.kind === 'free') return { title: { key: k.premium.status.free }, detail: null };
   if (status.kind === 'granted') {
@@ -128,6 +131,12 @@ export function getPremiumStatusLabels(
     : status.isTrial
       ? k.premium.status.trialEnds
       : k.premium.status.renews;
+  if (detailKey === k.premium.status.trialEnds && renewalPrice) {
+    return {
+      title,
+      detail: { key: k.premium.status.trialEndsThen, params: { date, price: renewalPrice } },
+    };
+  }
   return { title, detail: { key: detailKey, params: { date } } };
 }
 

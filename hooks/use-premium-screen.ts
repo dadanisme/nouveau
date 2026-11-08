@@ -3,13 +3,13 @@ import { Platform } from 'react-native';
 
 import { useLanguage } from '@/contexts/language';
 import { usePremium } from '@/hooks/use-premium';
-import { useRestorePurchases } from '@/hooks/use-purchases';
+import { usePremiumOffering, useRestorePurchases } from '@/hooks/use-purchases';
 import { showAlertDialog } from '@/lib/alert-dialog';
 import { openSubscriptionManagement, toEntitlementSnapshot } from '@/lib/purchases';
 import { k } from '@/locales/keys';
 import { formatMediumDate } from '@/utils/date';
 import { getErrorMessage } from '@/utils/error';
-import { getPremiumStatusLabels, getStoreNameKey } from '@/utils/premium';
+import { getPlanPriceKey, getPremiumStatusLabels, getStoreNameKey } from '@/utils/premium';
 
 /**
  * Screen hook for Settings' Premium (#79): the status (Free, Premium Monthly / Yearly with its
@@ -24,7 +24,16 @@ export function usePremiumScreen() {
   const premium = usePremium();
   const restore = useRestorePurchases();
   const storeName = t(getStoreNameKey(Platform.OS));
-  const labels = getPremiumStatusLabels(premium.status, formatMediumDate);
+  // In a trial that converts, the plan's store price says what it becomes ("…, then Rp99,000/year").
+  const status = premium.status;
+  const isConvertingTrial = status.kind === 'store' && status.isTrial && status.willRenew;
+  const offering = usePremiumOffering({ enabled: isConvertingTrial });
+  const renewal = status.kind === 'store' && status.plan ? offering.data?.[status.plan] : null;
+  const renewalPrice =
+    isConvertingTrial && renewal
+      ? t(getPlanPriceKey(renewal.plan), { price: renewal.pkg.product.priceString })
+      : null;
+  const labels = getPremiumStatusLabels(status, formatMediumDate, renewalPrice);
 
   function restorePurchases() {
     if (restore.isPending) return;
