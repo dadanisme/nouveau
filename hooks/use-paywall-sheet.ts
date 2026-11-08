@@ -187,9 +187,12 @@ export function usePaywallSheet() {
     })),
     state,
     notice: state === 'unavailable' ? t(k.premium.unavailable) : t(k.premium.loadFailed),
-    canRetry: isIdentified,
+    // Try Again also covers a failed RevenueCat logIn: it identifies the signed-in account again,
+    // and the offering then loads under that identity (its query is keyed by it).
+    canRetry: !!userId && !isGuest,
     retry: () => {
       if (isIdentified) void offering.refetch();
+      else if (userId) void offering.retryIdentity();
     },
     plansTitle: t(k.premium.plansSection),
     planRows,

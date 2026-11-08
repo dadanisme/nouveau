@@ -19,8 +19,9 @@ export interface Premium {
   /** When the store subscription renews (`willRenew`) or expires; null otherwise. */
   renewsAt: string | null;
   expiresAt: string | null;
-  /** Reading the status failed (grants or customer info), with nothing to show. */
+  /** Reading the status failed (grants, RevenueCat identity or customer info), with nothing to show. */
   hasError: boolean;
+  /** Re-reads the status; when RevenueCat isn't identified as the account, identifies it first. */
   refresh: () => Promise<void>;
 }
 
@@ -55,11 +56,17 @@ export function usePremium(): Premium {
     isGranted: status.kind === 'granted',
     renewsAt: store?.willRenew ? store.expiresAt : null,
     expiresAt: store && !store.willRenew ? store.expiresAt : null,
-    hasError: !isActive && (grants.isError || customerInfo.isError),
+    hasError:
+      !isActive && (grants.isError || customerInfo.isError || (isAvailable && identity.isFailed)),
     refresh: async () => {
       await Promise.all([
         grants.refetch(),
-        identity.purchasesUserId ? customerInfo.refetch() : null,
+        // Once identified, the customer-info query (keyed by the account) loads on its own.
+        identity.purchasesUserId
+          ? customerInfo.refetch()
+          : userId && isAvailable
+            ? identity.retry()
+            : null,
       ]);
     },
   };

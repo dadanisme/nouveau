@@ -42,7 +42,8 @@ export function useOnboardingPaywall(isSettled: boolean) {
     shownTo: parseShownIds(shown),
     isSettled,
     isAvailable: premium.isAvailable,
-    isStatusLoading: premium.isLoading,
+    // An unknown status (it failed to load) waits too: the account may already have Premium.
+    isStatusLoading: premium.isLoading || premium.hasError,
     isPremium: premium.isActive,
   });
 

@@ -94,7 +94,9 @@ export function useSettingsScreen() {
     openCategories: () => router.push('/categories'),
     // Free / Trial / Active, once known; a guest's row has no value.
     premiumValue:
-      isGuest || premium.isLoading ? undefined : t(getPremiumRowValueKey(premium.status)),
+      isGuest || premium.isLoading || premium.hasError
+        ? undefined
+        : t(getPremiumRowValueKey(premium.status)),
     openPremium: () => requireAccount('premium', () => router.push('/premium')),
     openIntroduction: () => router.push('/introduction'),
   };

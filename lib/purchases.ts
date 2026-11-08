@@ -20,6 +20,7 @@ import type {
   PremiumPlan,
   TrialPeriod,
 } from '@/utils/premium';
+import { withTimeout } from '@/utils/promise';
 
 /**
  * RevenueCat (`react-native-purchases`) for Nouveau Premium (#79). The API key is per store
@@ -34,7 +35,9 @@ import type {
  * account signs in, with that id; later sign-ins `logIn`, and sign-out `logOut`s, after which
  * RevenueCat holds an anonymous user until the next sign-in. A guest never logs in to RevenueCat
  * and can never purchase: the paywall only sells while RevenueCat is identified as the signed-in
- * account (`usePurchasesIdentity`).
+ * account (`usePurchasesIdentity`). Every SDK call a screen waits on has a timeout
+ * (`PURCHASES_TIMEOUT_MS`), so a call that never answers ends in an error with Try Again, not a
+ * spinner.
  */
 
 // Inlined at build time: `EXPO_PUBLIC_*` must be read as literal member expressions.
@@ -75,9 +78,46 @@ function configure(appUserID: string): boolean {
 }
 
 /**
+ * RevenueCat's identity, held here rather than in the query cache: a sign-out or Erase Data
+ * clears the cache (`queryClient.clear()`), and an identity kept there was lost with it while the
+ * sync that writes it had no reason to run again (#79). `userId` is the session it was last asked
+ * for; `purchasesUserId` the account it's identified as (null when signed out, unavailable or
+ * failed); `status` is `settling` while a configure / logIn / logOut runs, `failed` when the
+ * logIn for `userId` failed or timed out (Try Again re-runs it).
+ */
+export interface PurchasesIdentityState {
+  userId: string | null;
+  purchasesUserId: string | null;
+  status: 'idle' | 'settling' | 'ready' | 'failed';
+}
+
+/** How long a RevenueCat call may take before the screen waiting on it shows an error. */
+export const PURCHASES_TIMEOUT_MS = 15_000;
+
+let identityState: PurchasesIdentityState = { userId: null, purchasesUserId: null, status: 'idle' };
+const identityListeners = new Set<() => void>();
+
+function setIdentityState(next: PurchasesIdentityState) {
+  identityState = next;
+  identityListeners.forEach((listener) => listener());
+}
+
+export function getPurchasesIdentity(): PurchasesIdentityState {
+  return identityState;
+}
+
+export function subscribePurchasesIdentity(listener: () => void): () => void {
+  identityListeners.add(listener);
+  return () => {
+    identityListeners.delete(listener);
+  };
+}
+
+/**
  * Points RevenueCat at the signed-in account (`userId`), or at nobody after a sign-out. Resolves
- * the id it's now identified as (null when signed out or unavailable). Failures are logged and
- * leave the previous identity; the next session change tries again.
+ * the id it's now identified as (null when signed out or unavailable). A failed or timed-out
+ * logIn is logged, leaves the previous identity and marks the state `failed`; the next session
+ * change or a retry tries again.
  */
 export function identifyPurchases(userId: string | null): Promise<string | null> {
   // One change at a time, in order: a quick sign-out and sign-in can't interleave logOut/logIn.
@@ -89,30 +129,50 @@ export function identifyPurchases(userId: string | null): Promise<string | null>
 let identityQueue: Promise<unknown> = Promise.resolve();
 
 async function applyIdentity(userId: string | null): Promise<string | null> {
-  if (userId === identifiedUserId) return identifiedUserId;
+  if (userId === identifiedUserId) {
+    // Already there (e.g. a token refresh for the same account): nothing to settle.
+    setIdentityState({
+      userId,
+      purchasesUserId: identifiedUserId,
+      status: userId ? 'ready' : 'idle',
+    });
+    return identifiedUserId;
+  }
+  setIdentityState({ userId, purchasesUserId: null, status: 'settling' });
   if (!userId) {
     if (configured && identifiedUserId) {
       identifiedUserId = null;
       try {
-        await Purchases.logOut();
+        await withTimeout(Purchases.logOut(), PURCHASES_TIMEOUT_MS, 'RevenueCat logOut timed out');
       } catch (error) {
         console.warn('RevenueCat logOut failed', error);
       }
     }
+    setIdentityState({ userId: null, purchasesUserId: null, status: 'idle' });
     return null;
   }
   if (!configured) {
-    if (!configure(userId)) return null;
-    identifiedUserId = userId;
-    return userId;
+    if (configure(userId)) identifiedUserId = userId;
+  } else {
+    try {
+      await withTimeout(
+        Purchases.logIn(userId),
+        PURCHASES_TIMEOUT_MS,
+        'RevenueCat logIn timed out',
+      );
+      identifiedUserId = userId;
+    } catch (error) {
+      console.warn('RevenueCat logIn failed', error);
+    }
   }
-  try {
-    await Purchases.logIn(userId);
-    identifiedUserId = userId;
-  } catch (error) {
-    console.warn('RevenueCat logIn failed', error);
-  }
-  return identifiedUserId;
+  const isIdentified = identifiedUserId === userId;
+  setIdentityState({
+    userId,
+    purchasesUserId: isIdentified ? userId : null,
+    // Unavailable (no key, no native module) isn't a failure: the paywall says so instead.
+    status: isIdentified || !isPurchasesAvailable() ? 'ready' : 'failed',
+  });
+  return isIdentified ? userId : null;
 }
 
 /** Every customer-info update from the SDK (renewals, purchases elsewhere, expiry). */
@@ -141,7 +201,11 @@ export function toEntitlementSnapshot(
 
 export async function getCustomerInfo(): Promise<CustomerInfo | null> {
   if (!configured) return null;
-  return Purchases.getCustomerInfo();
+  return withTimeout(
+    Purchases.getCustomerInfo(),
+    PURCHASES_TIMEOUT_MS,
+    'RevenueCat customer info timed out',
+  );
 }
 
 /** A plan's package from the `default` offering, with whether its free trial is offered. */
@@ -186,7 +250,11 @@ function findPackage(packages: PurchasesPackage[], productId: string) {
  */
 export async function getPremiumOffering(): Promise<PremiumOffering | null> {
   if (!configured) return null;
-  const offerings = await Purchases.getOfferings();
+  const offerings = await withTimeout(
+    Purchases.getOfferings(),
+    PURCHASES_TIMEOUT_MS,
+    'RevenueCat offerings timed out',
+  );
   const offering = offerings.all[PREMIUM_OFFERING_ID] ?? offerings.current;
   if (!offering) return null;
   const packages = offering.availablePackages;
@@ -197,7 +265,11 @@ export async function getPremiumOffering(): Promise<PremiumOffering | null> {
   let eligibility: Record<string, { status: INTRO_ELIGIBILITY_STATUS }> = {};
   if (Platform.OS === 'ios') {
     const ids = [monthly, yearly].flatMap((pkg) => (pkg ? [pkg.product.identifier] : []));
-    eligibility = await Purchases.checkTrialOrIntroductoryPriceEligibility(ids).catch(() => ({}));
+    eligibility = await withTimeout(
+      Purchases.checkTrialOrIntroductoryPriceEligibility(ids),
+      PURCHASES_TIMEOUT_MS,
+      'RevenueCat trial eligibility timed out',
+    ).catch(() => ({}));
   }
   const toPlan = (plan: PremiumPlan, pkg: PurchasesPackage | null): PremiumPackage | null => {
     if (!pkg) return null;

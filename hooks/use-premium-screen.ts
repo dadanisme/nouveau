@@ -15,7 +15,8 @@ import { getPremiumStatusLabels, getStoreNameKey } from '@/utils/premium';
  * Screen hook for Settings' Premium (#79): the status (Free, Premium Monthly / Yearly with its
  * trial, renewal or expiry date, or an admin grant), Upgrade (opens the paywall) while free,
  * Manage Subscription (the store's own management) for a store subscription, and Restore
- * Purchases. Pull to refresh re-reads the status.
+ * Purchases. Pull to refresh, or Try Again when the status failed to load, re-reads it (and
+ * identifies RevenueCat as the account again when that failed).
  */
 export function usePremiumScreen() {
   const router = useRouter();
@@ -47,6 +48,7 @@ export function usePremiumScreen() {
   return {
     isLoading: premium.isLoading,
     hasError: premium.hasError,
+    retry: () => void premium.refresh(),
     statusTitle: t(labels.title.key, labels.title.params),
     statusDetail: labels.detail ? t(labels.detail.key, labels.detail.params) : undefined,
     canUpgrade: !premium.isActive,

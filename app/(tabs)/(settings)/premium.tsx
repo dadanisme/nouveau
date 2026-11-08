@@ -46,7 +46,10 @@ export default function PremiumScreen() {
           />
         )}
         {screen.hasError ? (
-          <FormNoticeRow text={t(k.premium.statusLoadFailed)} icon={ICONS.warning} />
+          <>
+            <FormNoticeRow text={t(k.premium.statusLoadFailed)} icon={ICONS.warning} />
+            <FormButtonRow title={t(k.premium.tryAgain)} onPress={screen.retry} />
+          </>
         ) : null}
       </FormSection>
 
