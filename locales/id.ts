@@ -500,6 +500,8 @@ const id: Translations = {
     restoreFailed: 'Gagal Memulihkan Pembelian',
     nothingToRestore: 'Tidak Ada Pembelian',
     nothingToRestoreMessage: 'Akun %{store} ini tidak memiliki langganan Nouveau Premium.',
+    paymentPending: 'Pembayaran Tertunda',
+    paymentPendingMessage: 'Premium aktif begitu pembayaran Anda selesai.',
     upgrade: 'Tingkatkan ke Premium',
     manage: 'Kelola Langganan',
     manageFooter: 'Ganti paket atau batalkan di pengaturan %{store}.',

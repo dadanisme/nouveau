@@ -26,6 +26,9 @@ import {
   type PremiumPlan,
 } from '@/utils/premium';
 
+/** After a pending purchase closes the paywall, so its alert doesn't land on the closing sheet. */
+const PENDING_NOTICE_DELAY_MS = 600;
+
 export interface PaywallSheetParams {
   /** `onboarding` | `feature` | `settings`; anything else reads as `settings`. */
   source: string;
@@ -54,7 +57,7 @@ export type PaywallState = 'loading' | 'unavailable' | 'error' | 'ready';
  * this account can have it, the renewal disclosure, Subscribe / Start Free Trial, Restore
  * Purchases, and the Terms and Privacy links. Buying or restoring Premium closes the sheet and
  * tells the presenter, which runs the held feature; a cancelled store sheet leaves it open with
- * nothing said. From onboarding it also has Not Now, which just closes it.
+ * nothing said; a pending (deferred) payment closes it and says Premium turns on once it's paid. From onboarding it also has Not Now, which just closes it.
  */
 export function usePaywallSheet() {
   const { t } = useLanguage();
@@ -114,6 +117,15 @@ export function usePaywallSheet() {
       onSuccess: (outcome) => {
         // Cancelled in the store sheet: stay, with nothing to say.
         if (outcome.kind === 'purchased') respond({ purchased: true });
+        // A deferred payment (e.g. paid later at a store): not a failure. Premium turns on through
+        // a customer-info update once it completes, so the paywall closes and says so.
+        if (outcome.kind === 'pending') {
+          respond({ purchased: false });
+          setTimeout(
+            () => showAlertDialog(t(k.premium.paymentPending), t(k.premium.paymentPendingMessage)),
+            PENDING_NOTICE_DELAY_MS,
+          );
+        }
       },
       onError: (error) =>
         showAlertDialog(

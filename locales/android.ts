@@ -119,6 +119,7 @@ export const androidOverrides: { en: Overrides<Translations>; id: Overrides<Tran
       purchaseFailed: 'Purchase failed',
       restoreFailed: "Couldn't restore purchases",
       nothingToRestore: 'No purchases found',
+      paymentPending: 'Payment pending',
       manage: 'Manage subscription',
       status: {
         monthly: 'Premium monthly',
@@ -239,6 +240,7 @@ export const androidOverrides: { en: Overrides<Translations>; id: Overrides<Tran
       purchaseFailed: 'Pembelian gagal',
       restoreFailed: 'Gagal memulihkan pembelian',
       nothingToRestore: 'Tidak ada pembelian',
+      paymentPending: 'Pembayaran tertunda',
       upgrade: 'Tingkatkan ke Premium',
       manage: 'Kelola langganan',
       status: {

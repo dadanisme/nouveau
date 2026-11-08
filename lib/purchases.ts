@@ -207,13 +207,31 @@ export async function getPremiumOffering(): Promise<PremiumOffering | null> {
   return { monthly: toPlan('monthly', monthly), yearly: toPlan('yearly', yearly) };
 }
 
-/** How a purchase ended: bought (with the new customer info), or cancelled in the store sheet. */
-export type PurchaseOutcome = { kind: 'purchased'; info: CustomerInfo } | { kind: 'cancelled' };
+/**
+ * How a purchase ended: bought (with the new customer info), cancelled in the store sheet, or
+ * pending: a deferred payment (Google Play's pay-at-a-store, a parent's Ask to Buy) that turns
+ * Premium on later, through a customer-info update, once it completes.
+ */
+export type PurchaseOutcome =
+  | { kind: 'purchased'; info: CustomerInfo }
+  | { kind: 'cancelled' }
+  | { kind: 'pending' };
+
+function getErrorCode(error: unknown): unknown {
+  if (typeof error !== 'object' || error === null) return undefined;
+  return (error as { code?: unknown }).code;
+}
 
 function isCancelled(error: unknown): boolean {
   if (typeof error !== 'object' || error === null) return false;
-  const { code, userCancelled } = error as { code?: unknown; userCancelled?: unknown };
-  return code === PURCHASES_ERROR_CODE.PURCHASE_CANCELLED_ERROR || userCancelled === true;
+  const { userCancelled } = error as { userCancelled?: unknown };
+  return (
+    getErrorCode(error) === PURCHASES_ERROR_CODE.PURCHASE_CANCELLED_ERROR || userCancelled === true
+  );
+}
+
+function isPending(error: unknown): boolean {
+  return getErrorCode(error) === PURCHASES_ERROR_CODE.PAYMENT_PENDING_ERROR;
 }
 
 export async function purchasePremium(pkg: PurchasesPackage): Promise<PurchaseOutcome> {
@@ -223,6 +241,7 @@ export async function purchasePremium(pkg: PurchasesPackage): Promise<PurchaseOu
     return { kind: 'purchased', info: result.customerInfo };
   } catch (error) {
     if (isCancelled(error)) return { kind: 'cancelled' };
+    if (isPending(error)) return { kind: 'pending' };
     throw error;
   }
 }

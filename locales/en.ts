@@ -509,6 +509,8 @@ const en = {
     restoreFailed: "Couldn't Restore Purchases",
     nothingToRestore: 'No Purchases Found',
     nothingToRestoreMessage: 'This %{store} account has no Nouveau Premium subscription.',
+    paymentPending: 'Payment Pending',
+    paymentPendingMessage: 'Premium turns on as soon as your payment is complete.',
     upgrade: 'Upgrade to Premium',
     manage: 'Manage Subscription',
     manageFooter: 'Change your plan or cancel in your %{store} settings.',
