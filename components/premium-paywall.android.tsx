@@ -32,7 +32,7 @@ const BOTTOM_INSET = 48;
 const CIRCLE_SIZE = 72;
 const ICON_SIZE = 36;
 const BUTTON_HEIGHT = 48;
-const HERO_SYMBOL: FormSymbol = { sf: 'sparkles', material: 'workspace_premium' };
+const HERO_SYMBOL: FormSymbol = { sf: 'crown', material: 'workspace_premium' };
 const ICONS = {
   warning: { sf: 'exclamationmark.triangle', md: require('@/assets/icons/warning.xml') },
   restore: { sf: 'arrow.clockwise', md: require('@/assets/icons/autorenew.xml') },

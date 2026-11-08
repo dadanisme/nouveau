@@ -17,7 +17,7 @@ const ICONS = {
   currentWorkspace: { sf: 'arrow.left.arrow.right', md: require('@/assets/icons/swap_horiz.xml') },
   workspaces: { sf: 'person.2', md: require('@/assets/icons/group.xml') },
   categories: { sf: 'square.grid.2x2', md: require('@/assets/icons/category.xml') },
-  premium: { sf: 'sparkles', md: require('@/assets/icons/workspace_premium.xml') },
+  premium: { sf: 'crown', md: require('@/assets/icons/workspace_premium.xml') },
   language: { sf: 'globe', md: require('@/assets/icons/language.xml') },
   introduction: { sf: 'sparkles', md: require('@/assets/icons/auto_awesome.xml') },
   signOut: { sf: 'rectangle.portrait.and.arrow.right', md: require('@/assets/icons/logout.xml') },

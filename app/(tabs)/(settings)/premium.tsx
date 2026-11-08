@@ -13,13 +13,13 @@ import { usePremiumScreen } from '@/hooks/use-premium-screen';
 import { k } from '@/locales/keys';
 
 const STATUS_SYMBOL: FormSymbol = {
-  sf: 'sparkles',
+  sf: 'crown',
   material: 'workspace_premium',
   color: ACCENT_COLOR,
 };
 const ICONS = {
   warning: { sf: 'exclamationmark.triangle', md: require('@/assets/icons/warning.xml') },
-  upgrade: { sf: 'sparkles', md: require('@/assets/icons/workspace_premium.xml') },
+  upgrade: { sf: 'crown', md: require('@/assets/icons/workspace_premium.xml') },
   restore: { sf: 'arrow.clockwise', md: require('@/assets/icons/autorenew.xml') },
 } as const;
 

@@ -49,7 +49,7 @@ const CONTENT: Record<SignInFeature, SignInPromptContent> = {
   // Settings' Premium row (#79): buying Premium needs an account.
   premium: {
     titleKey: k.signInPrompt.premiumTitle,
-    symbol: { sf: 'sparkles', material: 'workspace_premium' },
+    symbol: { sf: 'crown', material: 'workspace_premium' },
   },
   generic: {
     titleKey: k.signInPrompt.genericTitle,

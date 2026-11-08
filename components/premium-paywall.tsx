@@ -36,7 +36,7 @@ import type { PremiumPlan } from '@/utils/premium';
 
 // The tinted circle behind the hero symbol at the default text size; it grows with it.
 const CIRCLE_SIZE = 72;
-const HERO_SYMBOL: FormSymbol = { sf: 'sparkles', material: 'workspace_premium' };
+const HERO_SYMBOL: FormSymbol = { sf: 'crown', material: 'workspace_premium' };
 const WARNING = {
   sf: 'exclamationmark.triangle',
   md: require('@/assets/icons/warning.xml'),
