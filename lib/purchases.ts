@@ -18,15 +18,18 @@ import type { PremiumEntitlementSnapshot, PremiumPlan, TrialPeriod } from '@/uti
 
 /**
  * RevenueCat (`react-native-purchases`) for Nouveau Premium (#79). The API key is per store
- * (`EXPO_PUBLIC_REVENUECAT_IOS_KEY`, `EXPO_PUBLIC_REVENUECAT_ANDROID_KEY`), falling back to the
- * RevenueCat Test Store key (`EXPO_PUBLIC_REVENUECAT_TEST_STORE_KEY`) on both platforms in
- * development. With no key at all (or a dev client built before the native module was added)
- * Premium is unavailable: nothing is configured, every call here resolves to "nothing", and the
- * paywall says plans can't be loaded.
+ * (`EXPO_PUBLIC_REVENUECAT_IOS_KEY`, `EXPO_PUBLIC_REVENUECAT_ANDROID_KEY`). Only a development
+ * build (`__DEV__`) falls back to the RevenueCat Test Store key
+ * (`EXPO_PUBLIC_REVENUECAT_TEST_STORE_KEY`), on both platforms; a release build never uses it,
+ * since Test Store purchases aren't real. With no key (or a dev client built before the native
+ * module was added) Premium is unavailable: nothing is configured, every call here resolves to
+ * "nothing", and the paywall says plans can't be loaded.
  *
  * The RevenueCat app user id is the Supabase user id. The SDK is configured the first time an
- * account signs in (never for a guest, who can't buy), with that id, so no anonymous RevenueCat
- * user is created; later sign-ins `logIn`, and sign-out `logOut`s.
+ * account signs in, with that id; later sign-ins `logIn`, and sign-out `logOut`s, after which
+ * RevenueCat holds an anonymous user until the next sign-in. A guest never logs in to RevenueCat
+ * and can never purchase: the paywall only sells while RevenueCat is identified as the signed-in
+ * account (`usePurchasesIdentity`).
  */
 
 // Inlined at build time: `EXPO_PUBLIC_*` must be read as literal member expressions.
@@ -34,7 +37,8 @@ const STORE_KEY =
   Platform.OS === 'ios'
     ? process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY
     : process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_KEY;
-const API_KEY = STORE_KEY || process.env.EXPO_PUBLIC_REVENUECAT_TEST_STORE_KEY || null;
+const TEST_STORE_KEY = __DEV__ ? process.env.EXPO_PUBLIC_REVENUECAT_TEST_STORE_KEY : undefined;
+const API_KEY = STORE_KEY || TEST_STORE_KEY || null;
 
 /** The SDK's state: configured once, then identified as one account or none. */
 let configured = false;
