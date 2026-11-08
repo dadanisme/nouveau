@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Platform } from 'react-native';
 
 import { useLanguage } from '@/contexts/language';
 import { useDeleteAccount, useDeletionPreview } from '@/hooks/use-account-deletion';
@@ -6,6 +7,7 @@ import { useSession } from '@/hooks/use-auth';
 import { showAlertDialog } from '@/lib/alert-dialog';
 import { confirmDestructive } from '@/lib/confirm-destructive';
 import i18n from '@/lib/i18n';
+import { openSubscriptionManagement } from '@/lib/purchases';
 import { k } from '@/locales/keys';
 import {
   getDeletedRows,
@@ -13,6 +15,7 @@ import {
   getWorkspaceChangeRows,
   isIncorrectPassword,
 } from '@/utils/account-deletion';
+import { getStoreNameKey } from '@/utils/premium';
 
 /**
  * Screen hook for Delete Account (pushed from Settings): the preview of what's deleted and what
@@ -20,7 +23,8 @@ import {
  * with an action sheet (an M3 dialog on Android). A dismissed Google or Apple sheet leaves the
  * person on the screen with no alert; every failure shows one. Once the account is deleted the
  * app is on Login and an alert says so (HIG managing-accounts#Deleting-accounts: "notify them
- * when it's finished").
+ * when it's finished"). It also says that a Premium subscription isn't cancelled with the
+ * account, with Manage Subscription (#79).
  */
 export function useDeleteAccountScreen() {
   const { t } = useLanguage();
@@ -83,5 +87,10 @@ export function useDeleteAccountScreen() {
     canDelete,
     isDeleting,
     confirmDelete,
+    // #79: deleting the account doesn't cancel an App Store / Google Play subscription.
+    subscriptionNote: t(k.deleteAccount.subscriptionNote, {
+      store: t(getStoreNameKey(Platform.OS)),
+    }),
+    manageSubscription: () => void openSubscriptionManagement(),
   };
 }

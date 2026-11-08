@@ -6,15 +6,18 @@ import { useWorkspace } from '@/contexts/workspace';
 import { useEraseGuestData, useIsGuest, useSignOut } from '@/hooks/use-auth';
 import { useProfileSummary } from '@/hooks/use-profile-summary';
 import { useMyPendingInvites } from '@/hooks/use-workspace-invites';
+import { usePremium } from '@/hooks/use-premium';
+import { useSignInPrompt } from '@/hooks/use-sign-in-prompt';
 import { showAlertDialog } from '@/lib/alert-dialog';
 import { confirmDestructive } from '@/lib/confirm-destructive';
 import { k } from '@/locales/keys';
+import { getPremiumRowValueKey } from '@/utils/premium';
 
 /**
  * Screen hook for Settings: Sign In for a guest (#100, pushes Login), the profile row (opens
  * Profile), active workspace, language, View Introduction (the value pages again), and sign-out,
  * which a guest has as Erase Data instead (there's no account to sign out of). A guest has no
- * profile or subscriptions, so the screen hides those.
+ * profile, so the screen hides it; their Premium row opens the sign-in prompt (#79).
  */
 export function useSettingsScreen() {
   const router = useRouter();
@@ -25,6 +28,8 @@ export function useSettingsScreen() {
   const isGuest = useIsGuest();
   const { currentWorkspace } = useWorkspace();
   const { data: pendingInvites = [] } = useMyPendingInvites();
+  const premium = usePremium();
+  const { requireAccount } = useSignInPrompt();
 
   const languageOptions = LANGUAGE_OPTIONS.map((option) => ({
     value: option.locale,
@@ -87,7 +92,10 @@ export function useSettingsScreen() {
     openWorkspaceSwitcher: () => router.push('/workspace-switcher'),
     openWorkspaces: () => router.push('/workspaces'),
     openCategories: () => router.push('/categories'),
-    openSubscriptions: () => router.push('/subscriptions'),
+    // Free / Trial / Active, once known; a guest's row has no value.
+    premiumValue:
+      isGuest || premium.isLoading ? undefined : t(getPremiumRowValueKey(premium.status)),
+    openPremium: () => requireAccount('premium', () => router.push('/premium')),
     openIntroduction: () => router.push('/introduction'),
   };
 }

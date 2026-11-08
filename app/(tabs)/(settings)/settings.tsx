@@ -17,10 +17,7 @@ const ICONS = {
   currentWorkspace: { sf: 'arrow.left.arrow.right', md: require('@/assets/icons/swap_horiz.xml') },
   workspaces: { sf: 'person.2', md: require('@/assets/icons/group.xml') },
   categories: { sf: 'square.grid.2x2', md: require('@/assets/icons/category.xml') },
-  subscriptions: {
-    sf: 'arrow.triangle.2.circlepath',
-    md: require('@/assets/icons/autorenew.xml'),
-  },
+  premium: { sf: 'sparkles', md: require('@/assets/icons/workspace_premium.xml') },
   language: { sf: 'globe', md: require('@/assets/icons/language.xml') },
   introduction: { sf: 'sparkles', md: require('@/assets/icons/auto_awesome.xml') },
   signOut: { sf: 'rectangle.portrait.and.arrow.right', md: require('@/assets/icons/logout.xml') },
@@ -80,14 +77,14 @@ export default function SettingsScreen() {
           icon={ICONS.categories}
           onPress={screen.openCategories}
         />
-        {/* Subscriptions come from the account's email (moneymail), so a guest has none. */}
-        {screen.isGuest ? null : (
-          <FormNavRow
-            title={t(k.settings.subscriptions)}
-            icon={ICONS.subscriptions}
-            onPress={screen.openSubscriptions}
-          />
-        )}
+        {/* Nouveau Premium (#79): status, upgrade, manage. A guest sees it too; the tap asks
+            them to sign in first (buying needs an account). */}
+        <FormNavRow
+          title={t(k.settings.premium)}
+          icon={ICONS.premium}
+          value={screen.premiumValue}
+          onPress={screen.openPremium}
+        />
       </FormSection>
 
       <FormSection title={t(k.settings.preferencesSection)}>
