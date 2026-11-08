@@ -21,3 +21,20 @@ export const ACCENT_COLOR: ColorValue =
         highContrastDark: '#FF681F',
       })
     : ACCENT_HEX;
+
+/**
+ * The accent as a fill behind white text (prominent buttons). `ACCENT_COLOR`'s dark Increase
+ * Contrast tone is lighter, which helps accent text on dark backgrounds but drops white text on it
+ * to 2.90:1 (#79 HIG review), so a fill takes the darker `#B53B00` in both appearances when
+ * Increase Contrast is on: white on it is 5.85:1 (accessibility#Vision). By default it stays the
+ * brand hex, like the tint.
+ */
+export const ACCENT_FILL_COLOR: ColorValue =
+  Platform.OS === 'ios'
+    ? DynamicColorIOS({
+        light: ACCENT_HEX,
+        dark: ACCENT_HEX,
+        highContrastLight: '#B53B00',
+        highContrastDark: '#B53B00',
+      })
+    : ACCENT_HEX;

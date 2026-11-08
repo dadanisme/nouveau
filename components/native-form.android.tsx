@@ -87,8 +87,13 @@ const SECTION_GAP = 24;
 const DISABLED_ALPHA = '61';
 
 // The system (dynamic) palette, so surfaces match the native tab bar; the accent only tints, as
-// the `primary` role (section headers).
-const COLOR_OVERRIDES: Partial<MaterialColors> = { primary: ACCENT_COLOR as `#${string}` };
+// the `primary` role (section headers, filled buttons). `onPrimary` is its pairing: white on the
+// accent in both themes, as in the auth form and sign-in prompt (the dark palette's own onPrimary is
+// a dark tone meant for a light primary: navy on the accent measured 3.28:1, #79).
+const COLOR_OVERRIDES: Partial<MaterialColors> = {
+  primary: ACCENT_COLOR as `#${string}`,
+  onPrimary: '#FFFFFF',
+};
 
 // A full-width M3 button at the 48dp touch-target height (the default is 40dp).
 const BUTTON_HEIGHT = 48;

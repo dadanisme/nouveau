@@ -38,7 +38,8 @@ const HAS_PASSWORD_SECTION_TITLE = Platform.OS === 'ios';
 
 /**
  * Delete Account (pushed from Settings): what is deleted for good, what passes to other members
- * of shared workspaces, the password for email accounts, and the red Delete Account button,
+ * of shared workspaces, that a Premium subscription needs cancelling in the store (with Manage
+ * Subscription), the password for email accounts, and the red Delete Account button,
  * confirmed before anything happens (HIG managing-accounts#Deleting-accounts).
  */
 export default function DeleteAccountScreen() {
@@ -102,6 +103,11 @@ export default function DeleteAccountScreen() {
               />
             </FormSection>
           ) : null}
+
+          {/* A store subscription outlives the account unless it's cancelled (#79). */}
+          <FormSection footer={screen.subscriptionNote}>
+            <FormButtonRow title={t(k.premium.manage)} onPress={screen.manageSubscription} />
+          </FormSection>
 
           <FormSection footer={screen.confirmFooter}>
             <FormButtonRow

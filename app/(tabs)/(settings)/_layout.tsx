@@ -18,7 +18,7 @@ export default function SettingsLayout() {
         options={{ ...LARGE_TITLE_OPTIONS, title: t(k.settings.title) }}
       />
       <Stack.Screen name="categories" options={{ title: t(k.categories.title) }} />
-      <Stack.Screen name="subscriptions" options={{ title: t(k.subscriptions.title) }} />
+      <Stack.Screen name="premium" options={{ title: t(k.premium.rowTitle) }} />
       <Stack.Screen name="workspaces" options={{ title: t(k.workspace.workspaces) }} />
       <Stack.Screen
         name="workspace-settings"

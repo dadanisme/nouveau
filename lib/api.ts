@@ -13,8 +13,9 @@ export const API_BASE_URL = (
 export class ApiError extends Error {
   status: number;
   /**
-   * The machine-readable error the server sent (`{ error: 'reauth_required' }`, or the message
-   * of `{ error: { message } }`), for callers that branch on it.
+   * The machine-readable error the server sent: its `code` (`premium_required`), else the error
+   * string (`{ error: 'reauth_required' }`) or the message of `{ error: { message } }`, for
+   * callers that branch on it.
    */
   code: string | undefined;
 
@@ -55,7 +56,14 @@ export async function authenticatedFetch<T>(url: string, options?: RequestInit):
     try {
       const json = JSON.parse(body);
       message = json.error?.message ?? json.error ?? json.message ?? body;
-      code = typeof message === 'string' ? message : undefined;
+      // An explicit `code` (`{ error, code: 'premium_required' }`, #79) wins over the message.
+      const explicitCode = json.code ?? json.error?.code;
+      code =
+        typeof explicitCode === 'string'
+          ? explicitCode
+          : typeof message === 'string'
+            ? message
+            : undefined;
     } catch {
       message = body || `Request failed with status ${response.status}`;
     }

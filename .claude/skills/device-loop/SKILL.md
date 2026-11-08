@@ -14,7 +14,7 @@ Scripts live in `.claude/skills/device-loop/scripts/` (call them by absolute pat
 ## Rules
 
 - Screenshots go to the session scratchpad (`$SCRATCHPAD/device-loop/<key>/`), **never the repo**. `export SHOT_DIR=...`.
-- Never hardcode UDIDs; use `matrix.sh udid <key>`.
+- Never hardcode UDIDs; use `matrix.sh udid <key>` (it pins `ios27`, since two iPhone 17 sims share iOS 27.2).
 - Android commands need JDK 17: `. $S/android-env.sh` (sets JAVA_HOME/ANDROID_HOME/PATH; does not touch shell profiles).
 - The user must be able to watch: keep Device Hub open (below). Never run sims "headless" on purpose.
 - **Never use AXe accessibility commands on the iPhone Duo** (see Hard warning in section 3).
@@ -22,7 +22,7 @@ Scripts live in `.claude/skills/device-loop/scripts/` (call them by absolute pat
 
 ## Prerequisites (installed 2026-11-02, MCP flow verified 2026-11-03)
 
-- Xcode 27.1, runtimes iOS 27.0 / 27.1 / 18.5. Simulator.app is gone; **Device Hub** replaces it
+- Xcode 27.2, runtimes iOS 27.2 / 27.1 / 18.5 (the iOS 27.0 iPhone 17 is dead; `ios27` is the 27.2 one). Simulator.app is gone; **Device Hub** replaces it
   (`/Applications/Xcode.app/Contents/Applications/DeviceHub.app`). `bunx expo run:ios` still fails
   ("Can't determine id of Simulator app"), so iOS builds go through the MCP or `xcodebuild` (section 1).
 - AXe 1.8 (`brew install cameroncooke/axe/axe`), `jq`. Fallback only.
@@ -45,7 +45,7 @@ Scripts live in `.claude/skills/device-loop/scripts/` (call them by absolute pat
 
 | key     | device                                | runtime             | notes                                             |
 | ------- | ------------------------------------- | ------------------- | ------------------------------------------------- |
-| `ios27` | iPhone 17                             | iOS 27.0            | MCP run destination                               |
+| `ios27` | iPhone 17                             | iOS 27.2            | pinned UDID `BB37FC6C…`; MCP run destination      |
 | `ios18` | iPhone 16                             | iOS 18.5            | created via `simctl create`; MCP run destination  |
 | `duo`   | iPhone Duo (outer + inner)            | iOS 27.1            | **deferred (#38)**, not in the DoD; see section 4 |
 | `pixel` | Pixel_9a AVD                          | Android 16 (API 36) |                                                   |
@@ -84,7 +84,7 @@ for k in ios27 ios18; do xcrun simctl install "$($S/matrix.sh udid $k)" ios/buil
 xcrun simctl launch <udid> com.muhammadramdan.nouveau   # opens dev launcher -> tap the http://<ip>:8081 server
 ```
 
-First load shows the Expo dev menu, sometimes an onboarding page with **Continue** instead: tap Close/Continue (MCP; AXe `axe tap --label Close --element-type Button --udid <udid>` except on the Duo).
+First load shows the Expo dev menu, sometimes an onboarding page with **Continue** instead: tap Close/Continue (MCP; AXe `axe tap --label Close --element-type Button --tap-style physical --udid <udid>` except on the Duo).
 
 Physical iPhone 15 (or MCP path (a) with destination "Ramdan’s Iphone"):
 
@@ -101,7 +101,7 @@ Android: `. $S/android-env.sh && CI=1 bunx expo run:android --device Pixel_9a --
 Routes are `app/*.tsx` names: `nouveau://settings`, `nouveau://signup`, `nouveau://categories`, ...
 
 - iOS sim: `xcrun simctl openurl <udid> nouveau://settings`, then tap **Open** on the system sheet (MCP tap from the
-  hierarchy; AXe `axe tap --label Open --element-type Button --wait-timeout 5 --udid <udid>` except on the Duo).
+  hierarchy; AXe `axe tap --label Open --element-type Button --tap-style physical --wait-timeout 5 --udid <udid>` except on the Duo).
 - Android: `adb -s <serial> shell am start -W -a android.intent.action.VIEW -d nouveau://settings com.muhammadramdan.nouveau`.
 - Physical iPhone: unverified (`devicectl device process launch --payload-url` is a candidate).
   Auth: Android emulator holds a logged-in demo session; a fresh iOS install lands on the login screen (`/login`, `/signup` reachable without auth).
@@ -136,6 +136,8 @@ iOS 18.5 sim, so that one is AXe-only. Observed 2026-11-04 on iOS 18.5:
 
 - A plain `axe tap` can report success without reaching the app, and header bar buttons often ignore it. Use
   `axe touch --x X --y Y --down --up --delay 0.1 --udid <udid>`.
+- **Xcode 27.2:** AXe taps need `--tap-style physical` (`axe tap --label "Sign In" --tap-style physical --udid <udid>`),
+  or `axe touch --x X --y Y --down --up --delay 0.15 --udid <udid>`; the default simulator tap doesn't reach the app.
 - `axe type` is unreliable (it drops characters, or doesn't reach secure fields). Use `echo "text" | axe type --stdin --udid <udid>`, or
   type one character at a time, then re-read `AXValue`.
 - If no input reaches a sim even after a reboot, restart CoreSimulatorService
@@ -145,7 +147,7 @@ iOS 18.5 sim, so that one is AXe-only. Observed 2026-11-04 on iOS 18.5:
 
 ```bash
 axe describe-ui --udid <udid> | jq -r '.. | objects | select(.AXLabel? != null and .AXLabel != "") | "\(.type) \"\(.AXLabel)\" \(.AXFrame)"'
-axe tap --label "Sign In" [--element-type Button] [--wait-timeout 5] --udid <udid>   # or -x X -y Y (points)
+axe tap --label "Sign In" --tap-style physical [--element-type Button] [--wait-timeout 5] --udid <udid>   # or -x X -y Y (points)
 axe swipe --start-x 200 --start-y 600 --end-x 200 --end-y 300 --udid <udid>
 axe type 'text' --udid <udid>    # tap the field first; it dropped trailing chars once ("demo@examp") -> re-read AXValue
 ```

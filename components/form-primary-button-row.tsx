@@ -8,7 +8,10 @@ import {
   listRowBackground,
   listRowInsets,
   listRowSeparator,
+  tint,
 } from '@expo/ui/swift-ui/modifiers';
+
+import { ACCENT_FILL_COLOR } from '@/constants/accent';
 
 export type FormPrimaryButtonRowProps = {
   title: string;
@@ -33,6 +36,8 @@ export function FormPrimaryButtonRow({
       onPress={onPress}
       modifiers={[
         buttonStyle('borderedProminent'),
+        // White text on the fill: the darker Increase Contrast tone in dark mode too.
+        tint(ACCENT_FILL_COLOR),
         // A capsule on every iOS version (iOS 26+ default), matching the provider pills below.
         buttonBorderShape('capsule'),
         controlSize('large'),

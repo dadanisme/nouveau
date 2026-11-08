@@ -6,7 +6,7 @@ type Overrides<T> = { [K in keyof T]?: T[K] extends string ? string : Overrides<
  * Android wording, merged over `en.ts` / `id.ts` on Android only (`lib/i18n.ts`). Material 3
  * writes UI text, buttons and dialog headlines included, in sentence case ("Delete transaction");
  * iOS keeps the Title Case labels in the base locales (Apple's title-style capitalization for
- * buttons). Proper nouns (Google, Apple, Anda) keep their capitals. Only override what differs,
+ * buttons). Proper nouns (Google, Apple, Anda, Nouveau, Premium) keep their capitals. Only override what differs,
  * and keep `en` and `id` in step.
  */
 export const androidOverrides: { en: Overrides<Translations>; id: Overrides<Translations> } = {
@@ -46,6 +46,7 @@ export const androidOverrides: { en: Overrides<Translations>; id: Overrides<Tran
       joinWorkspaceTitle: 'Sign in to join workspaces',
       inviteTitle: 'Sign in to invite people',
       genericTitle: 'Sign in to continue',
+      premiumTitle: 'Sign in to get Premium',
       signIn: 'Sign in',
       notNow: 'Not now',
     },
@@ -102,7 +103,31 @@ export const androidOverrides: { en: Overrides<Translations>; id: Overrides<Tran
         natureTravel: 'Nature & travel',
       },
     },
-    subscriptions: { unknownFeature: 'Unknown feature' },
+    premium: {
+      benefits: {
+        autoCategorize: 'Auto-categorize',
+        scanReceipts: 'Scan receipts',
+        proofs: 'Receipt proofs',
+      },
+      plansSection: 'Choose a plan',
+      startTrial: 'Start free trial',
+      restore: 'Restore purchases',
+      notNow: 'Not now',
+      terms: 'Terms of use',
+      privacy: 'Privacy policy',
+      tryAgain: 'Try again',
+      purchaseFailed: 'Purchase failed',
+      restoreFailed: "Couldn't restore purchases",
+      nothingToRestore: 'No purchases found',
+      paymentPending: 'Payment pending',
+      notConfirmed: "Couldn't confirm Premium",
+      manage: 'Manage subscription',
+      status: {
+        monthly: 'Premium monthly',
+        yearly: 'Premium yearly',
+        granted: 'Premium (granted)',
+      },
+    },
     proofs: {
       title: 'Receipt proofs',
       saveToPhotos: 'Save to photos',
@@ -151,6 +176,7 @@ export const androidOverrides: { en: Overrides<Translations>; id: Overrides<Tran
       joinWorkspaceTitle: 'Masuk untuk bergabung ke workspace',
       inviteTitle: 'Masuk untuk mengundang orang',
       genericTitle: 'Masuk untuk melanjutkan',
+      premiumTitle: 'Masuk untuk mendapatkan Premium',
       notNow: 'Nanti saja',
     },
     guestUpload: { title: 'Ditambahkan dari perangkat ini' },
@@ -199,7 +225,33 @@ export const androidOverrides: { en: Overrides<Translations>; id: Overrides<Tran
       chooseColor: 'Pilih warna',
       colors: { teal: 'Hijau kebiruan', pink: 'Merah muda' },
     },
-    subscriptions: { unknownFeature: 'Fitur tidak dikenal' },
+    premium: {
+      benefits: {
+        autoCategorize: 'Kategori otomatis',
+        scanReceipts: 'Pindai struk',
+        proofs: 'Bukti penerimaan',
+      },
+      plansSection: 'Pilih paket',
+      startTrial: 'Mulai uji coba gratis',
+      restore: 'Pulihkan pembelian',
+      notNow: 'Nanti saja',
+      terms: 'Ketentuan penggunaan',
+      privacy: 'Kebijakan privasi',
+      tryAgain: 'Coba lagi',
+      purchaseFailed: 'Pembelian gagal',
+      restoreFailed: 'Gagal memulihkan pembelian',
+      nothingToRestore: 'Tidak ada pembelian',
+      paymentPending: 'Pembayaran tertunda',
+      notConfirmed: 'Premium belum terkonfirmasi',
+      upgrade: 'Tingkatkan ke Premium',
+      manage: 'Kelola langganan',
+      status: {
+        monthly: 'Premium bulanan',
+        yearly: 'Premium tahunan',
+        granted: 'Premium (diberikan)',
+      },
+      rowValue: { trial: 'Uji coba' },
+    },
     proofs: {
       title: 'Bukti penerimaan',
       saveToPhotos: 'Simpan ke foto',

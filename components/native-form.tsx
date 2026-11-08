@@ -81,7 +81,7 @@ import type {
   NativeFormProps,
 } from '@/components/native-form-types';
 import { RowSymbol } from '@/components/row-symbol';
-import { ACCENT_COLOR } from '@/constants/accent';
+import { ACCENT_COLOR, ACCENT_FILL_COLOR } from '@/constants/accent';
 import { useIsAccessibilityTextSize } from '@/hooks/use-accessibility-text-size';
 import { reportFieldFocus } from '@/lib/keyboard';
 import { isIOSVersionAtLeast } from '@/utils/platform';
@@ -794,7 +794,11 @@ export function FormEmptyRow({ title, description, symbol, action }: FormEmptyRo
           <Button
             label={action.title}
             onPress={action.onPress}
-            modifiers={[buttonStyle('borderedProminent'), controlSize('large')]}
+            modifiers={[
+              buttonStyle('borderedProminent'),
+              controlSize('large'),
+              tint(ACCENT_FILL_COLOR),
+            ]}
           />
         ) : undefined
       }

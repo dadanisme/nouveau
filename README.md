@@ -35,6 +35,15 @@ A personal finance tracker built with Expo and React Native. Track your income a
    EXPO_PUBLIC_SUPABASE_KEY=your_supabase_anon_key
    ```
 
+   Optional, for Nouveau Premium (RevenueCat public SDK keys; see `.env.example`). Without any of
+   them the app runs and Premium shows as unavailable:
+
+   ```
+   EXPO_PUBLIC_REVENUECAT_IOS_KEY=appl_xxx
+   EXPO_PUBLIC_REVENUECAT_ANDROID_KEY=goog_xxx
+   EXPO_PUBLIC_REVENUECAT_TEST_STORE_KEY=test_xxx
+   ```
+
 3. Start the dev server:
 
    ```bash
