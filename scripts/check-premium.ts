@@ -96,7 +96,11 @@ const activeGrant = {
   granted_at: '2026-01-02T00:00:00Z',
   feature: scanFeature,
 };
-const revokedGrant = { status: 'revoked', revoked_at: '2026-02-01T00:00:00Z', feature: scanFeature };
+const revokedGrant = {
+  status: 'revoked',
+  revoked_at: '2026-02-01T00:00:00Z',
+  feature: scanFeature,
+};
 const revokedButActive = {
   status: 'active',
   revoked_at: '2026-02-01T00:00:00Z',
@@ -154,10 +158,14 @@ equal('excel-only grant: free', getPremiumStatus(null, [excelGrant]), { kind: 'f
 equal('grant without its feature row: free', getPremiumStatus(null, [noFeatureGrant]), {
   kind: 'free',
 });
-equal('excel grant before a Premium grant: the Premium one', getPremiumStatus(null, [excelGrant, activeGrant]), {
-  kind: 'granted',
-  grantedAt: '2026-01-02T00:00:00Z',
-});
+equal(
+  'excel grant before a Premium grant: the Premium one',
+  getPremiumStatus(null, [excelGrant, activeGrant]),
+  {
+    kind: 'granted',
+    grantedAt: '2026-01-02T00:00:00Z',
+  },
+);
 check('free is not active', !isPremiumActive({ kind: 'free' }));
 check('granted is active', isPremiumActive({ kind: 'granted', grantedAt: null }));
 
