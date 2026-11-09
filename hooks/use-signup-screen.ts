@@ -41,8 +41,12 @@ export function useSignupScreen() {
     signUpWithEmail.mutate(
       { email: email.trim(), password },
       {
-        onSuccess: () => {
-          showAlertDialog(t(k.signup.checkEmail), t(k.signup.checkEmailMessage));
+        onSuccess: (result) => {
+          // With a session the account is already signed in: the handover and the new-account
+          // currency step take over, so there's nothing to tell them (#120).
+          if (result === 'confirmEmail') {
+            showAlertDialog(t(k.signup.checkEmail), t(k.signup.checkEmailMessage));
+          }
         },
         onError: (error) => {
           showAlertDialog(

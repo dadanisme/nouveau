@@ -137,11 +137,24 @@ export function useSignInWithEmail() {
   });
 }
 
+/**
+ * How an email sign-up ended: `'signedIn'` when the project returns a session at once (email
+ * confirmation off), `'confirmEmail'` when the account has to verify its email first (#120).
+ */
+export type EmailSignUpResult = 'signedIn' | 'confirmEmail';
+
 export function useSignUpWithEmail() {
   return useMutation({
-    mutationFn: async ({ email, password }: { email: string; password: string }) => {
-      const { error } = await supabase.auth.signUp({ email, password });
+    mutationFn: async ({
+      email,
+      password,
+    }: {
+      email: string;
+      password: string;
+    }): Promise<EmailSignUpResult> => {
+      const { data, error } = await supabase.auth.signUp({ email, password });
       if (error) throw error;
+      return data.session ? 'signedIn' : 'confirmEmail';
     },
   });
 }
