@@ -9,7 +9,7 @@
     "userInterfaceStyle": "automatic",
     "primaryColor": "#E24A00",
     "ios": {
-      "supportsTablet": true,
+      "supportsTablet": false,
       "bundleIdentifier": "com.muhammadramdan.nouveau",
       "appleTeamId": "C4SQMCY5WT",
       "usesAppleSignIn": true,
