@@ -3,10 +3,12 @@ import { Link } from '@tanstack/react-router';
 import { AuthLayout } from '@/components/auth/auth-layout';
 import { FormMessage } from '@/components/auth/form-message';
 import { PasswordInput } from '@/components/auth/password-input';
+import { LegalLink } from '@/components/legal/legal-link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useSignupForm } from '@/hooks/use-signup-form';
+import { LEGAL_URLS } from '@/lib/legal';
 import { en } from '@/locales/en';
 
 export function SignupForm() {
@@ -62,6 +64,17 @@ export function SignupForm() {
         <Button type="submit" size="lg" disabled={form.isSubmitting}>
           {form.isSubmitting ? en.common.pleaseWait : en.signup.signUp}
         </Button>
+        <p className="text-center text-xs text-muted-foreground">
+          {en.legal.signUpAgreementStart}{' '}
+          <LegalLink href={LEGAL_URLS.terms} className="text-foreground underline">
+            {en.legal.terms}
+          </LegalLink>{' '}
+          {en.legal.signUpAgreementAnd}{' '}
+          <LegalLink href={LEGAL_URLS.privacy} className="text-foreground underline">
+            {en.legal.privacy}
+          </LegalLink>
+          .
+        </p>
       </form>
 
       <p className="mt-6 text-center text-muted-foreground">

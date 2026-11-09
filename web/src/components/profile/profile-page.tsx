@@ -1,6 +1,7 @@
-import { LogOutIcon, MonitorIcon, MoonIcon, SunIcon } from 'lucide-react';
+import { ExternalLinkIcon, LogOutIcon, MonitorIcon, MoonIcon, SunIcon } from 'lucide-react';
 
 import { FormMessage } from '@/components/auth/form-message';
+import { LegalLink } from '@/components/legal/legal-link';
 import { Page } from '@/components/page';
 import { SegmentedControl, type SegmentedOption } from '@/components/segmented-control';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -8,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useProfile } from '@/hooks/use-profile';
 import { useTheme } from '@/hooks/use-theme';
+import { LEGAL_URLS } from '@/lib/legal';
 import { en } from '@/locales/en';
 import { getInitials } from '@/utils/string';
 import type { ThemePreference } from '@/utils/theme';
@@ -23,7 +25,8 @@ const THEME_OPTIONS: SegmentedOption<ThemePreference>[] = [
 /**
  * The account: avatar or initials, name, email and sign out. Read-only, like the profile card
  * on mobile's settings screen (mobile has no way to edit the name either). Below it, the
- * appearance setting, which belongs to this browser rather than the account.
+ * appearance setting, which belongs to this browser rather than the account, and the Terms of
+ * Use and Privacy Policy (#81).
  */
 export function ProfilePage() {
   const profile = useProfile();
@@ -80,6 +83,27 @@ export function ProfilePage() {
             onChange={setPreference}
             className="self-start"
           />
+        </section>
+
+        {/* The legal pages (#81), in a new tab. */}
+        <section aria-labelledby="legal-heading" className="flex flex-col gap-2 border-t pt-4">
+          <h2 id="legal-heading" className="font-medium">
+            {t.legal}
+          </h2>
+          <ul className="flex flex-col gap-1.5">
+            <li>
+              <LegalLink href={LEGAL_URLS.terms} className="inline-flex items-center gap-1.5">
+                {en.legal.terms}
+                <ExternalLinkIcon aria-hidden="true" className="size-3.5 text-muted-foreground" />
+              </LegalLink>
+            </li>
+            <li>
+              <LegalLink href={LEGAL_URLS.privacy} className="inline-flex items-center gap-1.5">
+                {en.legal.privacy}
+                <ExternalLinkIcon aria-hidden="true" className="size-3.5 text-muted-foreground" />
+              </LegalLink>
+            </li>
+          </ul>
         </section>
 
         <div className="border-t pt-4">

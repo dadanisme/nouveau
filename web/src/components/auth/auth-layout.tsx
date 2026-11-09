@@ -1,4 +1,7 @@
 import { BrandMark } from '@/components/brand-mark';
+import { LegalLink } from '@/components/legal/legal-link';
+import { LEGAL_URLS } from '@/lib/legal';
+import { en } from '@/locales/en';
 
 interface AuthLayoutProps {
   heading: string;
@@ -14,6 +17,16 @@ export function AuthLayout({ heading, subtitle, children }: AuthLayoutProps) {
         <h1 className="text-2xl font-semibold tracking-tight">{heading}</h1>
         <p className="mt-1.5 text-muted-foreground">{subtitle}</p>
         <div className="mt-6">{children}</div>
+        <footer
+          aria-label={en.legal.footerLabel}
+          className="mt-10 text-center text-xs text-muted-foreground"
+        >
+          <LegalLink href={LEGAL_URLS.terms}>{en.legal.termsShort}</LegalLink>
+          <span aria-hidden="true" className="mx-2">
+            ·
+          </span>
+          <LegalLink href={LEGAL_URLS.privacy}>{en.legal.privacyShort}</LegalLink>
+        </footer>
       </div>
     </div>
   );
