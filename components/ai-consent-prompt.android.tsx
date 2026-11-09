@@ -26,6 +26,7 @@ import { ComposeHost } from '@/components/compose-host';
 import { ComposeSymbolIcon } from '@/components/compose-symbol-icon';
 import { FormPrimaryButtonRow } from '@/components/form-primary-button-row';
 import { ACCENT_COLOR } from '@/constants/accent';
+import { useIsAccessibilityTextSize } from '@/hooks/use-accessibility-text-size';
 
 // Material 3 compact metrics, as in the sign-in prompt: 24dp side margins for the text, 16dp under
 // the actions (the buttons carry their own 16dp side padding), the 48dp touch target for the text
@@ -46,33 +47,49 @@ const COLOR_OVERRIDES: Partial<MaterialColors> = {
 
 /**
  * The AI consent prompt (Android, #122), in a headerless form sheet: the sparkles in a tinted
- * circle, the headline, what is sent and to whom, and a Privacy policy text button, which scroll
- * above a pinned full-width M3 filled Allow and a Not now text button.
+ * circle, the headline, what is sent and to whom, and a Privacy policy text button, above a
+ * full-width M3 filled Allow and a Not now text button. With `fitContent` (and below the
+ * accessibility text sizes) the host is as tall as its content and the sheet fits it; otherwise it
+ * fills the sheet and the text scrolls above the pinned buttons.
  */
 export function AiConsentPrompt(props: AiConsentPromptProps) {
-  return (
-    <ComposeHost style={styles.fill} colorOverrides={COLOR_OVERRIDES}>
-      <PromptSurface {...props} />
+  const isLargeText = useIsAccessibilityTextSize();
+  const fit = props.fitContent === true && !isLargeText;
+
+  // `matchContents` is read once on mount, so each layout has its own keyed host.
+  return fit ? (
+    <ComposeHost key="fit" matchContents={{ vertical: true }} colorOverrides={COLOR_OVERRIDES}>
+      <PromptSurface {...props} fit />
+    </ComposeHost>
+  ) : (
+    <ComposeHost key="fill" style={styles.fill} colorOverrides={COLOR_OVERRIDES}>
+      <PromptSurface {...props} fit={false} />
     </ComposeHost>
   );
 }
 
-function PromptSurface(props: AiConsentPromptProps) {
+function PromptSurface({ fit, ...props }: AiConsentPromptProps & { fit: boolean }) {
   const colors = useMaterialColors();
   const insets = useSafeAreaInsets();
 
   return (
     <Column
       modifiers={[
-        fillMaxSize(),
+        fit ? fillMaxWidth() : fillMaxSize(),
         background(colors.surface),
         padding(0, 0, 0, insets.bottom + BOTTOM),
       ]}
     >
+      {/* Measured at its own height when fitting: a vertical scroll there would get an unbounded
+          height to scroll in. */}
       <Column
         horizontalAlignment="center"
         verticalArrangement={{ spacedBy: 16 }}
-        modifiers={[fillMaxWidth(), weight(1), verticalScroll(), padding(0, TOP, 0, 8)]}
+        modifiers={
+          fit
+            ? [fillMaxWidth(), padding(0, TOP, 0, 8)]
+            : [fillMaxWidth(), weight(1), verticalScroll(), padding(0, TOP, 0, 8)]
+        }
       >
         <Box
           contentAlignment="center"

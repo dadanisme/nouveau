@@ -40,13 +40,21 @@ export type AiConsentPromptProps = {
   onOpenPrivacy: () => void;
   onAllow: () => void;
   onNotNow: () => void;
+  /**
+   * Size to the content, for a `fitToContents` sheet (the root `(sheets)/ai-consent`), so the
+   * whole disclosure and the Privacy Policy show above Allow. Ignored at accessibility text sizes,
+   * where that sheet is full height and everything scrolls. Off for a screen that fills its space
+   * (the prompt pushed inside the Add Transaction sheet): the text scrolls over pinned buttons.
+   */
+  fitContent?: boolean;
 };
 
 /**
  * The AI consent prompt (iOS, #122), built like the sign-in prompt: the sparkles in a tinted
  * circle, the question, what is sent and to whom, and a Privacy Policy link, over a large
- * prominent Allow and a borderless Not Now. The text scrolls above the pinned buttons when it
- * outgrows the half-height sheet; at accessibility text sizes everything scrolls together.
+ * prominent Allow and a borderless Not Now. With `fitContent` the host is as tall as its content
+ * and the sheet fits it; filling a screen, the text scrolls above the pinned buttons. At
+ * accessibility text sizes everything scrolls together.
  */
 export function AiConsentPrompt(props: AiConsentPromptProps) {
   const isLargeText = useIsAccessibilityTextSize();
@@ -114,28 +122,52 @@ export function AiConsentPrompt(props: AiConsentPromptProps) {
     </VStack>
   );
 
-  return (
-    <Host style={styles.fill} seedColor={ACCENT_COLOR}>
-      {isLargeText ? (
+  // `matchContents` is read once on mount, so each layout has its own keyed host.
+  if (isLargeText) {
+    return (
+      <Host key="scroll" style={styles.fill} seedColor={ACCENT_COLOR}>
         <ScrollView>
           <VStack spacing={32} modifiers={[padding({ horizontal: SIDE, vertical: 24 })]}>
             {intro}
             {actions}
           </VStack>
         </ScrollView>
-      ) : (
-        <VStack spacing={16} modifiers={[padding({ bottom: 8 })]}>
-          <ScrollView>
-            <VStack modifiers={[padding({ horizontal: SIDE, top: 8 })]}>{intro}</VStack>
-          </ScrollView>
-          <VStack modifiers={[padding({ horizontal: SIDE })]}>{actions}</VStack>
+      </Host>
+    );
+  }
+
+  if (props.fitContent) {
+    return (
+      <Host
+        key="fit"
+        matchContents={{ vertical: true }}
+        style={styles.background}
+        seedColor={ACCENT_COLOR}
+      >
+        <VStack spacing={24} modifiers={[padding({ horizontal: SIDE, top: 8, bottom: 8 })]}>
+          {intro}
+          {actions}
         </VStack>
-      )}
+      </Host>
+    );
+  }
+
+  return (
+    <Host key="pinned" style={styles.fill} seedColor={ACCENT_COLOR}>
+      <VStack spacing={16} modifiers={[padding({ bottom: 8 })]}>
+        <ScrollView>
+          <VStack modifiers={[padding({ horizontal: SIDE, top: 8 })]}>{intro}</VStack>
+        </ScrollView>
+        <VStack modifiers={[padding({ horizontal: SIDE })]}>{actions}</VStack>
+      </VStack>
     </Host>
   );
 }
 
+// The grouped background, as the other sheets' forms have, so the circle stands out on it.
+const GROUPED_BACKGROUND = PlatformColor('systemGroupedBackground');
+
 const styles = StyleSheet.create({
-  // The grouped background, as the other sheets' forms have, so the circle stands out on it.
-  fill: { flex: 1, backgroundColor: PlatformColor('systemGroupedBackground') },
+  background: { backgroundColor: GROUPED_BACKGROUND },
+  fill: { flex: 1, backgroundColor: GROUPED_BACKGROUND },
 });
