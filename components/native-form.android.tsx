@@ -61,6 +61,7 @@ import type {
   FormButtonRowProps,
   FormEmptyRowProps,
   FormHeadlineRowProps,
+  FormLinkRowProps,
   FormListRowProps,
   FormNavRowProps,
   FormNoticeRowProps,
@@ -247,6 +248,26 @@ export function FormNavRow({ title, role, icon, value, badge, onPress }: FormNav
           </Badge>
         </ListItem.TrailingContent>
       ) : null}
+    </ListItem>
+  );
+}
+
+/**
+ * A row that opens a web page (e.g. the Terms of use) in Custom Tabs rather than a screen: a
+ * trailing `open_in_new`, Material's external-link icon.
+ */
+export function FormLinkRow({ title, icon, onPress }: FormLinkRowProps) {
+  const colors = useMaterialColors();
+  return (
+    <ListItem modifiers={[clickable(onPress)]}>
+      <RowIcon icon={icon} />
+      <ListItem.HeadlineContent>
+        <Text>{title}</Text>
+      </ListItem.HeadlineContent>
+      <ListItem.TrailingContent>
+        {/* Decorative: the title names the row. */}
+        <Icon source={require('@/assets/icons/open_in_new.xml')} tint={colors.onSurfaceVariant} />
+      </ListItem.TrailingContent>
     </ListItem>
   );
 }

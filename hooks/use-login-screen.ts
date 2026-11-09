@@ -9,12 +9,14 @@ import {
   useSignInWithGoogle,
 } from '@/hooks/use-auth';
 import { showAlertDialog } from '@/lib/alert-dialog';
+import { openLegalPage } from '@/lib/legal';
 import { k } from '@/locales/keys';
 import { getErrorCode, getErrorMessage } from '@/utils/error';
 
 /**
- * Screen hook for Login: the email/password form, Apple (iOS) and Google sign-in, and the switch
- * to Sign Up. Guest mode starts from Welcome's Get Started instead (#78). Cancelling a provider sheet is silent; failures alert.
+ * Screen hook for Login: the email/password form, Apple (iOS) and Google sign-in, the switch to
+ * Sign Up, and the Terms of Use / Privacy Policy links (#81). Guest mode starts from Welcome's Get
+ * Started instead (#78). Cancelling a provider sheet is silent; failures alert.
  */
 export function useLoginScreen() {
   const router = useRouter();
@@ -77,5 +79,7 @@ export function useLoginScreen() {
     isAppleAvailable,
     signInWithApple: signInWithAppleId,
     openSignUp: () => router.push('/signup'),
+    openTerms: () => openLegalPage('terms'),
+    openPrivacy: () => openLegalPage('privacy'),
   };
 }

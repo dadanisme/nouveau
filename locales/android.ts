@@ -51,6 +51,7 @@ export const androidOverrides: { en: Overrides<Translations>; id: Overrides<Tran
       notNow: 'Not now',
     },
     guestUpload: { title: 'Added from this device' },
+    legal: { terms: 'Terms of use', privacy: 'Privacy policy' },
     profile: { signInSection: 'Sign-in method', saveFailed: "Couldn't save name" },
     deleteAccount: {
       title: 'Delete account',
@@ -113,8 +114,6 @@ export const androidOverrides: { en: Overrides<Translations>; id: Overrides<Tran
       startTrial: 'Start free trial',
       restore: 'Restore purchases',
       notNow: 'Not now',
-      terms: 'Terms of use',
-      privacy: 'Privacy policy',
       tryAgain: 'Try again',
       purchaseFailed: 'Purchase failed',
       restoreFailed: "Couldn't restore purchases",
@@ -180,6 +179,7 @@ export const androidOverrides: { en: Overrides<Translations>; id: Overrides<Tran
       notNow: 'Nanti saja',
     },
     guestUpload: { title: 'Ditambahkan dari perangkat ini' },
+    legal: { terms: 'Ketentuan penggunaan', privacy: 'Kebijakan privasi' },
     profile: { saveFailed: 'Gagal menyimpan nama' },
     deleteAccount: {
       title: 'Hapus akun',
@@ -235,8 +235,6 @@ export const androidOverrides: { en: Overrides<Translations>; id: Overrides<Tran
       startTrial: 'Mulai uji coba gratis',
       restore: 'Pulihkan pembelian',
       notNow: 'Nanti saja',
-      terms: 'Ketentuan penggunaan',
-      privacy: 'Kebijakan privasi',
       tryAgain: 'Coba lagi',
       purchaseFailed: 'Pembelian gagal',
       restoreFailed: 'Gagal memulihkan pembelian',

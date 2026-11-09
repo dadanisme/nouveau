@@ -1,14 +1,13 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import * as WebBrowser from 'expo-web-browser';
 import { useEffect, useState } from 'react';
 import { Platform } from 'react-native';
 
-import { LEGAL_URLS } from '@/constants/legal';
 import { useLanguage } from '@/contexts/language';
 import { useIsGuest, useSession } from '@/hooks/use-auth';
 import { usePremiumOffering, usePurchasePremium, useRestorePurchases } from '@/hooks/use-purchases';
 import { useSheetResponder } from '@/hooks/use-sheet-result';
 import { showAlertDialog } from '@/lib/alert-dialog';
+import { openLegalPage } from '@/lib/legal';
 import { goBackOrHome } from '@/lib/navigation';
 import { isPurchasesAvailable, toEntitlementSnapshot, type PremiumPackage } from '@/lib/purchases';
 import { k } from '@/locales/keys';
@@ -209,10 +208,10 @@ export function usePaywallSheet() {
     disclosure: selected
       ? t(getDisclosureKey(isTrialEligible), { duration, price, store: storeName })
       : undefined,
-    termsLabel: t(k.premium.terms),
-    privacyLabel: t(k.premium.privacy),
-    openTerms: () => void WebBrowser.openBrowserAsync(LEGAL_URLS.terms),
-    openPrivacy: () => void WebBrowser.openBrowserAsync(LEGAL_URLS.privacy),
+    termsLabel: t(k.legal.terms),
+    privacyLabel: t(k.legal.privacy),
+    openTerms: () => openLegalPage('terms'),
+    openPrivacy: () => openLegalPage('privacy'),
     /** Onboarding's Not Now: a clear way on to the app. */
     notNowLabel: source === 'onboarding' ? t(k.premium.notNow) : undefined,
     close: () => goBackOrHome(),

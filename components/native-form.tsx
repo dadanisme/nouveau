@@ -23,6 +23,7 @@ import {
 } from '@expo/ui/swift-ui';
 import {
   accessibilityAddTraits,
+  accessibilityRemoveTraits,
   accessibilityElement,
   accessibilityHidden,
   accessibilityLabel,
@@ -65,6 +66,7 @@ import type {
   FormEmptyRowProps,
   FormHeadlineRowProps,
   FormIcon,
+  FormLinkRowProps,
   FormListRowProps,
   FormNavRowProps,
   FormNoticeRowProps,
@@ -119,6 +121,19 @@ function Chevron() {
   return (
     <Image
       systemName="chevron.right"
+      modifiers={[font({ textStyle: 'footnote', weight: 'semibold' }), TERTIARY, DECORATIVE]}
+    />
+  );
+}
+
+/**
+ * The external-link indicator: the page opens outside the app's screens. Decorative, like the
+ * chevron: the row's link trait tells VoiceOver.
+ */
+function LinkArrow() {
+  return (
+    <Image
+      systemName="arrow.up.right"
       modifiers={[font({ textStyle: 'footnote', weight: 'semibold' }), TERTIARY, DECORATIVE]}
     />
   );
@@ -192,6 +207,41 @@ export function FormNavRow({ title, role, icon, value, badge: count, onPress }: 
           <Spacer />
           {valueText}
           <Chevron />
+        </HStack>
+      )}
+    </Button>
+  );
+}
+
+/**
+ * A row that opens a web page (e.g. the Terms of Use) rather than a screen: the label, then an
+ * `arrow.up.right` where a nav row has its chevron. It opens in the in-app browser, which a
+ * SwiftUI `Link` can't (it hands the URL to Safari).
+ */
+export function FormLinkRow({ title, icon, onPress }: FormLinkRowProps) {
+  const isStacked = useIsAccessibilityTextSize();
+  const titleText = <Text modifiers={[PRIMARY]}>{title}</Text>;
+
+  return (
+    // Read as a link ("Terms of Use, link"), as a SwiftUI `Link` is, not as a button.
+    <Button
+      onPress={onPress}
+      modifiers={[accessibilityAddTraits(['isLink']), accessibilityRemoveTraits(['isButton'])]}
+    >
+      {isStacked ? (
+        <HStack>
+          <VStack alignment="leading" spacing={4}>
+            {icon ? <StackedIcon icon={icon} /> : null}
+            {titleText}
+          </VStack>
+          <Spacer />
+          <LinkArrow />
+        </HStack>
+      ) : (
+        <HStack>
+          <Label systemImage={icon?.sf}>{titleText}</Label>
+          <Spacer />
+          <LinkArrow />
         </HStack>
       )}
     </Button>

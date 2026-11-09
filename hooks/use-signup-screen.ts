@@ -9,12 +9,14 @@ import {
   useSignUpWithEmail,
 } from '@/hooks/use-auth';
 import { showAlertDialog } from '@/lib/alert-dialog';
+import { openLegalPage } from '@/lib/legal';
 import { k } from '@/locales/keys';
 import { getErrorMessage } from '@/utils/error';
 
 /**
  * Screen hook for Signup: the email/new-password form, Sign up with Apple (iOS) and Google, and the
- * switch back to Sign In. Cancelling a provider sheet is silent; failures alert.
+ * switch back to Sign In, and the Terms of Use / Privacy Policy links under them (#81). Cancelling a
+ * provider sheet is silent; failures alert.
  */
 export function useSignupScreen() {
   const router = useRouter();
@@ -77,5 +79,7 @@ export function useSignupScreen() {
     signUpWithApple,
     signUpWithGoogle,
     openSignIn: () => router.back(),
+    openTerms: () => openLegalPage('terms'),
+    openPrivacy: () => openLegalPage('privacy'),
   };
 }

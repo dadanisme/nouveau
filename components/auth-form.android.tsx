@@ -1,5 +1,6 @@
 import {
   Column,
+  FlowRow,
   Row,
   Text,
   TextButton,
@@ -21,6 +22,7 @@ import { ComposeHost } from '@/components/compose-host';
 import type {
   AuthFormProps,
   AuthFormSectionProps,
+  AuthLegalFooterProps,
   AuthSwitchRowProps,
 } from '@/components/auth-form';
 import { ACCENT_COLOR } from '@/constants/accent';
@@ -136,6 +138,44 @@ export function AuthSwitchRow({
         <Text>{action}</Text>
       </TextButton>
     </Row>
+  );
+}
+
+/**
+ * The agreement line under the sign-up / sign-in actions (#81): centered supporting text, then
+ * the Terms of use and Privacy policy as M3 text buttons (48dp targets) that open in Custom Tabs.
+ * The buttons wrap onto a second line at large font sizes.
+ */
+export function AuthLegalFooter({
+  text,
+  termsLabel,
+  privacyLabel,
+  onOpenTerms,
+  onOpenPrivacy,
+}: AuthLegalFooterProps) {
+  const colors = useMaterialColors();
+
+  return (
+    <Column
+      horizontalAlignment="center"
+      verticalArrangement={{ spacedBy: 4 }}
+      modifiers={[fillMaxWidth(), padding(SIDE, 0, SIDE, 0)]}
+    >
+      <Text
+        color={colors.onSurfaceVariant}
+        style={{ typography: 'bodySmall', textAlign: 'center' }}
+      >
+        {text}
+      </Text>
+      <FlowRow horizontalArrangement="center" modifiers={[fillMaxWidth()]}>
+        <TextButton onClick={onOpenTerms}>
+          <Text>{termsLabel}</Text>
+        </TextButton>
+        <TextButton onClick={onOpenPrivacy}>
+          <Text>{privacyLabel}</Text>
+        </TextButton>
+      </FlowRow>
+    </Column>
   );
 }
 

@@ -10,12 +10,14 @@ import { usePremium } from '@/hooks/use-premium';
 import { useSignInPrompt } from '@/hooks/use-sign-in-prompt';
 import { showAlertDialog } from '@/lib/alert-dialog';
 import { confirmDestructive } from '@/lib/confirm-destructive';
+import { openLegalPage } from '@/lib/legal';
 import { k } from '@/locales/keys';
 import { getPremiumRowValueKey } from '@/utils/premium';
 
 /**
  * Screen hook for Settings: Sign In for a guest (#100, pushes Login), the profile row (opens
- * Profile), active workspace, language, View Introduction (the value pages again), and sign-out,
+ * Profile), active workspace, language, View Introduction (the value pages again), the Terms of
+ * Use and Privacy Policy (#81, in the in-app browser), and sign-out,
  * which a guest has as Erase Data instead (there's no account to sign out of). A guest has no
  * profile, so the screen hides it; their Premium row opens the sign-in prompt (#79).
  */
@@ -99,5 +101,7 @@ export function useSettingsScreen() {
         : t(getPremiumRowValueKey(premium.status)),
     openPremium: () => requireAccount('premium', () => router.push('/premium')),
     openIntroduction: () => router.push('/introduction'),
+    openTerms: () => openLegalPage('terms'),
+    openPrivacy: () => openLegalPage('privacy'),
   };
 }

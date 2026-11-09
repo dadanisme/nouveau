@@ -60,6 +60,17 @@ export type FormNavRowProps = {
   onPress: () => void;
 };
 
+/**
+ * A row that opens a web page outside the app's screens (e.g. the Terms of Use, in the in-app
+ * browser): a trailing `arrow.up.right` (iOS) / `open_in_new` (Android) instead of a disclosure
+ * chevron, which would promise a pushed screen. VoiceOver reads it as a link.
+ */
+export type FormLinkRowProps = {
+  title: string;
+  icon?: FormIcon;
+  onPress: () => void;
+};
+
 export type FormPickerOption<T extends string> = { value: T; label: string };
 
 export type FormPickerRowProps<T extends string> = {

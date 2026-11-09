@@ -1,7 +1,7 @@
 import { useRef } from 'react';
 
 import { AppleSignInButton } from '@/components/apple-sign-in-button';
-import { AuthForm, AuthFormSection, AuthSwitchRow } from '@/components/auth-form';
+import { AuthForm, AuthFormSection, AuthLegalFooter, AuthSwitchRow } from '@/components/auth-form';
 import { FormPrimaryButtonRow } from '@/components/form-primary-button-row';
 import { FormTextFieldRow } from '@/components/native-form';
 import type { FormTextFieldRowRef } from '@/components/native-form-types';
@@ -71,6 +71,15 @@ export default function LoginScreen() {
           onPress={screen.signInWithGoogle}
         />
       </AuthFormSection>
+
+      {/* The legal pages (#81): Apple and Google create an account on first use here too agrees to them. */}
+      <AuthLegalFooter
+        text={t(k.legal.signInAgreement)}
+        termsLabel={t(k.legal.terms)}
+        privacyLabel={t(k.legal.privacy)}
+        onOpenTerms={screen.openTerms}
+        onOpenPrivacy={screen.openPrivacy}
+      />
     </AuthForm>
   );
 }
