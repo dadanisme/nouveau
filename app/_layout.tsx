@@ -196,6 +196,14 @@ function RootStack({ routes }: { routes: AuthRoutes }) {
             name="(sheets)/paywall"
             options={{ ...sheetOptions([1], { header: true }), title: '' }}
           />
+          {/* The one-time AI consent (#122), before auto-categorize or a receipt scan first sends
+              anything to OpenRouter, and from Settings' AI Processing toggle. Signed-in accounts
+              only (guests and free accounts have no AI). Small, like the sign-in prompt: its text
+              scrolls over the pinned buttons, or it drags to full height. */}
+          <Stack.Screen
+            name="(sheets)/ai-consent"
+            options={{ ...sheetOptions([0.5, 1], { header: true }), title: '' }}
+          />
         </Stack.Protected>
         {/* Signed out (and a new account's currency step): the first-run flow. Once signed in or
             a guest, it redirects to the tabs. */}

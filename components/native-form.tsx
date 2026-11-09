@@ -16,6 +16,7 @@ import {
   SwipeActions,
   Text,
   TextField,
+  Toggle,
   useNativeState,
   VStack,
   type SecureFieldRef,
@@ -79,6 +80,7 @@ import type {
   FormSymbol,
   FormTextFieldContentType,
   FormTextFieldRowProps,
+  FormToggleRowProps,
   FormValueRowProps,
   NativeFormProps,
 } from '@/components/native-form-types';
@@ -245,6 +247,26 @@ export function FormLinkRow({ title, icon, onPress }: FormLinkRowProps) {
         </HStack>
       )}
     </Button>
+  );
+}
+
+/**
+ * An on/off setting: the system `Toggle` row (label leading, switch trailing). Controlled, so a
+ * change the screen doesn't take springs back.
+ */
+export function FormToggleRow({
+  title,
+  icon,
+  value,
+  onValueChange,
+  disabled: isDisabled,
+}: FormToggleRowProps) {
+  return (
+    <Toggle isOn={value} onIsOnChange={onValueChange} modifiers={[disabled(Boolean(isDisabled))]}>
+      <Label systemImage={icon?.sf}>
+        <Text modifiers={[PRIMARY]}>{title}</Text>
+      </Label>
+    </Toggle>
   );
 }
 

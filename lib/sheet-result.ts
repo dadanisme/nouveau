@@ -16,6 +16,8 @@ export interface SheetResultPayloads {
   'sign-in-prompt': { choice: 'signIn' | 'notNow' };
   /** The paywall (#79): Premium was bought or restored, so the held feature can go on. */
   paywall: { purchased: boolean };
+  /** The AI consent prompt (#122): Allow or Not Now; the presenter closes it and goes on. */
+  'ai-consent': { choice: 'allow' | 'notNow' };
 }
 
 export type SheetKey = keyof SheetResultPayloads;

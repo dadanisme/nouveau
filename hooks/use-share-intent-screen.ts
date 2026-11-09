@@ -10,7 +10,9 @@ import { leaveToHome } from '@/lib/navigation';
 import { k } from '@/locales/keys';
 import { useGuestSession } from '@/hooks/use-auth';
 import { useScanReceipt } from '@/hooks/use-scan-receipt';
+import { useRequireAiConsent } from '@/hooks/use-require-ai-consent';
 import { useRequirePremium } from '@/hooks/use-require-premium';
+import { isAiConsentRequiredError } from '@/utils/ai-consent';
 import { isPremiumRequiredError } from '@/utils/premium';
 
 /**
@@ -32,6 +34,9 @@ export type CategorizedFile = ShareIntentFile & {
  * and says Premium couldn't be confirmed if the server still refuses. It's also account only (#100):
  * without a session (a guest, or before onboarding) Scan Receipt opens the sign-in prompt instead. Its Sign In drops the share for Login. Its Not Now leaves a guest here,
  * and closes this screen too when nobody is signed in (there's nothing else to do with the share).
+ * After Premium comes the AI consent (#122, `useRequireAiConsent`): unless it's granted, each tap
+ * asks, Allow stores it and scans, Not Now cancels that scan. A server `ai_consent_required`
+ * refusal (consent turned off on another device) asks again too.
  */
 export function useShareIntentScreen() {
   const router = useRouter();
@@ -48,6 +53,7 @@ export function useShareIntentScreen() {
     // A guest keeps the share screen (the default just closes the prompt).
     onNotNow: guestId ? undefined : () => handleDismiss(),
   });
+  const consentGate = useRequireAiConsent();
 
   const [isRechecking, setIsRechecking] = useState(false);
   // The latest status for the scan's error handler: a scan held by the paywall runs with the
@@ -92,7 +98,11 @@ export function useShareIntentScreen() {
   }
 
   function handleScanReceipt() {
-    premiumGate.requirePremium('scanReceipt', () => scan());
+    // Account, then Premium, then consent, then the scan.
+    premiumGate.requirePremium(
+      'scanReceipt',
+      () => void consentGate.requireAiConsent(() => scan()),
+    );
   }
 
   /** `isRecheck`: the one retry after the server refused a Premium this device already sees. */
@@ -112,7 +122,10 @@ export function useShareIntentScreen() {
           if (isPremiumRequiredError(error)) {
             // Premium lapsed, or the status hadn't loaded: the paywall, then the scan again.
             if (!isPremiumRef.current) {
-              premiumGate.openPaywall('scanReceipt', () => scan());
+              premiumGate.openPaywall(
+                'scanReceipt',
+                () => void consentGate.requireAiConsent(() => scan()),
+              );
               return;
             }
             // This device sees Premium but the server doesn't yet (it was just bought): once
@@ -127,6 +140,11 @@ export function useShareIntentScreen() {
             }
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
             showAlertDialog(i18n.t(k.premium.notConfirmed), i18n.t(k.premium.notConfirmedMessage));
+            return;
+          }
+          if (isAiConsentRequiredError(error)) {
+            // Consent was turned off on another device: a scan always asks again.
+            void consentGate.recheck('scanReceipt', () => scan());
             return;
           }
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);

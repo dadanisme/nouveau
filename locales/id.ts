@@ -521,6 +521,16 @@ const id: Translations = {
     },
     rowValue: { free: 'Gratis', trial: 'Uji Coba', active: 'Aktif' },
   },
+  aiConsent: {
+    title: 'Izinkan Pemrosesan AI?',
+    body: 'Untuk menyarankan kategori dan membaca struk, Nouveau mengirimkan deskripsi transaksi dan nama kategori Anda, atau gambar maupun PDF struk, ke OpenRouter, yang memprosesnya dengan Google Gemini. Tidak ada yang dikirim sebelum Anda mengizinkannya.',
+    allow: 'Izinkan',
+    notNow: 'Nanti Saja',
+    toggle: 'Pemrosesan AI',
+    footer:
+      'Mengirimkan deskripsi transaksi, nama kategori, dan struk ke OpenRouter (Google Gemini) untuk menyarankan kategori dan membaca struk.',
+    saveFailed: 'Gagal Menyimpan Pilihan Anda',
+  },
   legal: {
     terms: 'Ketentuan Penggunaan',
     privacy: 'Kebijakan Privasi',

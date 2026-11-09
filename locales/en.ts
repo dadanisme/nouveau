@@ -532,6 +532,18 @@ const en = {
     },
     rowValue: { free: 'Free', trial: 'Trial', active: 'Active' },
   },
+  // The one-time consent before anything goes to a third-party AI (#122): its prompt, and the
+  // AI Processing toggle on Settings' Premium.
+  aiConsent: {
+    title: 'Allow AI Processing?',
+    body: 'To suggest categories and read receipts, Nouveau sends the transaction description and your category names, or the receipt image or PDF, to OpenRouter, which processes them with Google Gemini. Nothing is sent until you allow it.',
+    allow: 'Allow',
+    notNow: 'Not Now',
+    toggle: 'AI Processing',
+    footer:
+      'Sends transaction descriptions, category names and receipts to OpenRouter (Google Gemini) to suggest categories and read receipts.',
+    saveFailed: "Couldn't Save Your Choice",
+  },
   // The legal pages (#81), opened in the in-app browser.
   legal: {
     terms: 'Terms of Use',

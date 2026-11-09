@@ -2,11 +2,15 @@ import { useRouter } from 'expo-router';
 import { Platform } from 'react-native';
 
 import { useLanguage } from '@/contexts/language';
+import { useSession } from '@/hooks/use-auth';
 import { usePremium } from '@/hooks/use-premium';
 import { usePremiumOffering, useRestorePurchases } from '@/hooks/use-purchases';
+import { useRequireAiConsent } from '@/hooks/use-require-ai-consent';
 import { showAlertDialog } from '@/lib/alert-dialog';
+import { openLegalPage } from '@/lib/legal';
 import { openSubscriptionManagement, toEntitlementSnapshot } from '@/lib/purchases';
 import { k } from '@/locales/keys';
+import { getToggleAction, isAiProcessingOn } from '@/utils/ai-consent';
 import { formatMediumDate } from '@/utils/date';
 import { getErrorMessage } from '@/utils/error';
 import { getPlanPriceKey, getPremiumStatusLabels, getStoreNameKey } from '@/utils/premium';
@@ -16,7 +20,9 @@ import { getPlanPriceKey, getPremiumStatusLabels, getStoreNameKey } from '@/util
  * trial, renewal or expiry date, or an admin grant), Upgrade (opens the paywall) while free,
  * Manage Subscription (the store's own management) for a store subscription, and Restore
  * Purchases. Pull to refresh, or Try Again when the status failed to load, re-reads it (and
- * identifies RevenueCat as the account again when that failed).
+ * identifies RevenueCat as the account again when that failed). Signed in, it also has the AI
+ * Processing toggle (#122): on while AI consent is granted; turning it on asks (the consent
+ * prompt: Allow grants, Not Now leaves it off), turning it off declines at once.
  */
 export function usePremiumScreen() {
   const router = useRouter();
@@ -34,6 +40,13 @@ export function usePremiumScreen() {
       ? t(getPlanPriceKey(renewal.plan), { price: renewal.pkg.product.priceString })
       : null;
   const labels = getPremiumStatusLabels(status, formatMediumDate, renewalPrice);
+  const { session } = useSession();
+  const aiConsent = useRequireAiConsent();
+
+  function setAiProcessing(isOn: boolean) {
+    if (getToggleAction(isOn) === 'ask') void aiConsent.ask('settings');
+    else aiConsent.save('declined');
+  }
 
   function restorePurchases() {
     if (restore.isPending) return;
@@ -70,5 +83,12 @@ export function usePremiumScreen() {
     isRestoring: restore.isPending,
     restorePurchases,
     refresh: premium.refresh,
+    /** Accounts only: a guest has no AI features to consent to. */
+    showsAiProcessing: !!session,
+    isAiProcessingOn: isAiProcessingOn(aiConsent.consent),
+    /** Until the stored answer loads, and while one saves. */
+    isAiProcessingDisabled: !aiConsent.isKnown || aiConsent.isSaving,
+    setAiProcessing,
+    openPrivacy: () => openLegalPage('privacy'),
   };
 }

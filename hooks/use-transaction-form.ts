@@ -1,6 +1,6 @@
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useEffectEvent, useRef, useState } from 'react';
 import { Platform } from 'react-native';
 
 import { DEFAULT_HOME_CURRENCY } from '@/constants/currencies';
@@ -20,12 +20,14 @@ import { useDeleteTransaction } from '@/hooks/use-delete-transaction';
 import { useDiscardGuard } from '@/hooks/use-discard-guard';
 import { useExchangeRate } from '@/hooks/use-exchange-rate';
 import { usePremium } from '@/hooks/use-premium';
+import { useRequireAiConsent } from '@/hooks/use-require-ai-consent';
 import { useSheetResult } from '@/hooks/use-sheet-result';
 import { useSignInPrompt } from '@/hooks/use-sign-in-prompt';
 import { useTransaction } from '@/hooks/use-transaction';
 import { useUpdateTransaction } from '@/hooks/use-update-transaction';
 import type { Tables } from '@/types/supabase';
 import type { FormSymbol } from '@/components/native-form-types';
+import { getAutoCategorizeDecision, isAiConsentRequiredError } from '@/utils/ai-consent';
 import { getCategoryColor } from '@/utils/category-color';
 import { FALLBACK_CATEGORY_SYMBOL, getCategorySymbol } from '@/utils/category-icon';
 import {
@@ -66,6 +68,9 @@ export function useTransactionForm(transactionId?: string, initialDate?: string)
   // category themselves, with no request made and nothing said.
   const premium = usePremium();
   const canClassify = useDataSource()?.kind === 'remote' && premium.isActive;
+  // And it sends the description and category names to OpenRouter only with consent (#122),
+  // asked once, the first time it would run.
+  const aiConsent = useRequireAiConsent({ inEditor: true });
   const { currentWorkspaceId, currentWorkspace } = useWorkspace();
   const { locale } = useLanguage();
 
@@ -104,6 +109,8 @@ export function useTransactionForm(transactionId?: string, initialDate?: string)
   );
   const userPickedCategoryRef = useRef(false);
   const lastClassifiedDescriptionRef = useRef<string | null>(null);
+  // The consent prompt opens at most once per editor session (#122).
+  const hasAskedConsentRef = useRef(false);
 
   // The picker lists every category grouped by type, so picking one sets the type to match.
   const categoryRequestId = useSheetResult('category-picker', ({ category }) => {
@@ -144,10 +151,54 @@ export function useTransactionForm(transactionId?: string, initialDate?: string)
     setFieldsKey((key) => key + 1);
   }, [existingTransaction, categories, prefilled]);
 
+  /** Suggests a category for `text`, unless the person has picked one meanwhile. */
+  const classify = useEffectEvent((text: string) => {
+    lastClassifiedDescriptionRef.current = text;
+    classifyDescription(text, {
+      onSuccess: (result) => {
+        if (userPickedCategoryRef.current) return;
+        const matched = categories.find((c) => c.id === result.category_id);
+        if (!matched) return;
+        setSelectedCategory(matched);
+        if (isTransactionType(matched.type)) setType(matched.type);
+      },
+      // Consent was turned off on another device: asked again only if it's now unanswered (and
+      // not asked in this editor yet); declined stays silent. Other failures say nothing, as before.
+      onError: (error) => {
+        if (!isAiConsentRequiredError(error)) return;
+        void aiConsent
+          .recheck('autoCategorize', () => classify(text), {
+            hasAsked: hasAskedConsentRef.current,
+          })
+          .then((asked) => {
+            if (asked) hasAskedConsentRef.current = true;
+          });
+      },
+    });
+  });
+
+  /**
+   * Never answered: the prompt, once per editor. Allow stores the consent, then classifies this
+   * description; Not Now stores the decline and sends nothing.
+   */
+  const askConsent = useEffectEvent((text: string) => {
+    lastClassifiedDescriptionRef.current = text;
+    hasAskedConsentRef.current = true;
+    void aiConsent.ask('autoCategorize', () => classify(text));
+  });
+
+  const { consent, isKnown: isConsentKnown } = aiConsent;
   useEffect(() => {
     if (!canClassify) return;
     if (isEditMode) return;
     if (userPickedCategoryRef.current) return;
+    // Not loaded yet (it decides once it is), declined, or already asked: nothing is sent.
+    const decision = getAutoCategorizeDecision({
+      consent,
+      isKnown: isConsentKnown,
+      hasAsked: hasAskedConsentRef.current,
+    });
+    if (decision === 'wait' || decision === 'skip') return;
 
     const trimmed = description.trim();
     if (!trimmed) return;
@@ -155,20 +206,12 @@ export function useTransactionForm(transactionId?: string, initialDate?: string)
     if (!categories.length) return;
 
     const timer = setTimeout(() => {
-      lastClassifiedDescriptionRef.current = trimmed;
-      classifyDescription(trimmed, {
-        onSuccess: (result) => {
-          if (userPickedCategoryRef.current) return;
-          const matched = categories.find((c) => c.id === result.category_id);
-          if (!matched) return;
-          setSelectedCategory(matched);
-          if (isTransactionType(matched.type)) setType(matched.type);
-        },
-      });
+      if (decision === 'classify') classify(trimmed);
+      else askConsent(trimmed);
     }, 1000);
 
     return () => clearTimeout(timer);
-  }, [description, categories, isEditMode, classifyDescription, canClassify]);
+  }, [description, categories, isEditMode, canClassify, consent, isConsentKnown]);
 
   function handleTypeChange(newType: TransactionType) {
     setType(newType);

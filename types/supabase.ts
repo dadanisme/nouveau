@@ -394,6 +394,8 @@ export type Database = {
       users: {
         Row: {
           active_workspace_id: string | null;
+          ai_consent: string | null;
+          ai_consent_updated_at: string | null;
           created_at: string | null;
           currency: string;
           display_name: string;
@@ -407,6 +409,8 @@ export type Database = {
         };
         Insert: {
           active_workspace_id?: string | null;
+          ai_consent?: string | null;
+          ai_consent_updated_at?: string | null;
           created_at?: string | null;
           currency?: string;
           display_name: string;
@@ -420,6 +424,8 @@ export type Database = {
         };
         Update: {
           active_workspace_id?: string | null;
+          ai_consent?: string | null;
+          ai_consent_updated_at?: string | null;
           created_at?: string | null;
           currency?: string;
           display_name?: string;
