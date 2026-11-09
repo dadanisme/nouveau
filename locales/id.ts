@@ -126,6 +126,7 @@ const id: Translations = {
     workspaceSection: 'Workspace',
     manageSection: 'Kelola',
     preferencesSection: 'Preferensi',
+    aboutSection: 'Tentang',
     viewIntroduction: 'Lihat Pengenalan',
     signIn: 'Masuk',
     signOutFailed: 'Gagal Keluar',
@@ -485,8 +486,6 @@ const id: Translations = {
     restore: 'Pulihkan Pembelian',
     restoring: 'Memulihkan…',
     notNow: 'Nanti Saja',
-    terms: 'Ketentuan Penggunaan',
-    privacy: 'Kebijakan Privasi',
     disclosure:
       'Nouveau Premium diperpanjang otomatis seharga %{price} sampai Anda membatalkannya. Batalkan kapan saja di pengaturan %{store}, paling lambat 24 jam sebelum periode berjalan berakhir.',
     disclosureTrial:
@@ -521,6 +520,14 @@ const id: Translations = {
       expires: 'Berakhir %{date}',
     },
     rowValue: { free: 'Gratis', trial: 'Uji Coba', active: 'Aktif' },
+  },
+  legal: {
+    terms: 'Ketentuan Penggunaan',
+    privacy: 'Kebijakan Privasi',
+    signUpAgreement:
+      'Dengan mendaftar, Anda menyetujui Ketentuan Penggunaan dan Kebijakan Privasi.',
+    signInAgreement:
+      'Dengan melanjutkan, Anda menyetujui Ketentuan Penggunaan dan Kebijakan Privasi.',
   },
   proofs: {
     title: 'Bukti Penerimaan',

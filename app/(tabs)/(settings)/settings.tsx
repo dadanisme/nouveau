@@ -1,5 +1,6 @@
 import {
   FormButtonRow,
+  FormLinkRow,
   FormNavRow,
   FormNoticeRow,
   FormPickerRow,
@@ -20,6 +21,8 @@ const ICONS = {
   premium: { sf: 'crown', md: require('@/assets/icons/workspace_premium.xml') },
   language: { sf: 'globe', md: require('@/assets/icons/language.xml') },
   introduction: { sf: 'sparkles', md: require('@/assets/icons/auto_awesome.xml') },
+  terms: { sf: 'doc.text', md: require('@/assets/icons/description.xml') },
+  privacy: { sf: 'hand.raised', md: require('@/assets/icons/privacy_tip.xml') },
   signOut: { sf: 'rectangle.portrait.and.arrow.right', md: require('@/assets/icons/logout.xml') },
   eraseData: { sf: 'trash', md: require('@/assets/icons/delete.xml') },
 } as const;
@@ -101,6 +104,12 @@ export default function SettingsScreen() {
           icon={ICONS.introduction}
           onPress={screen.openIntroduction}
         />
+      </FormSection>
+
+      {/* The legal pages (#81), for guests too: web pages in the in-app browser, so link rows. */}
+      <FormSection title={t(k.settings.aboutSection)}>
+        <FormLinkRow title={t(k.legal.terms)} icon={ICONS.terms} onPress={screen.openTerms} />
+        <FormLinkRow title={t(k.legal.privacy)} icon={ICONS.privacy} onPress={screen.openPrivacy} />
       </FormSection>
 
       <FormSection>

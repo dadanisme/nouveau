@@ -1,6 +1,9 @@
 import { Button, Form, Host, HStack, Section, Text, VStack } from '@expo/ui/swift-ui';
 import {
+  accessibilityAddTraits,
   accessibilityLabel,
+  accessibilityRemoveTraits,
+  buttonStyle,
   contentShape,
   disabled,
   font,
@@ -83,9 +86,23 @@ export type AuthFormSectionProps = {
   children: React.ReactNode;
 };
 
-/** A group of rows: inset grouped `Section` on iOS, a spaced column on Android. */
+/**
+ * A group of rows: inset grouped `Section` on iOS, a spaced column on Android. The header ("or
+ * continue with") is centered over the centered buttons; as a header view it keeps the system
+ * header font, color and capitalization.
+ */
 export function AuthFormSection({ title, children }: AuthFormSectionProps) {
-  return <Section title={title}>{children}</Section>;
+  const header = title ? (
+    <Text
+      modifiers={[
+        frame({ maxWidth: Infinity, alignment: 'center' }),
+        multilineTextAlignment('center'),
+      ]}
+    >
+      {title}
+    </Text>
+  ) : undefined;
+  return <Section header={header}>{children}</Section>;
 }
 
 export type AuthSwitchRowProps = {
@@ -159,6 +176,88 @@ export function AuthSwitchRow({
           {actionText}
         </HStack>
       )}
+    </Button>
+  );
+}
+
+export type AuthLegalFooterProps = {
+  /** e.g. "By signing up, you agree to the Terms of Use and Privacy Policy." */
+  text: string;
+  termsLabel: string;
+  privacyLabel: string;
+  onOpenTerms: () => void;
+  onOpenPrivacy: () => void;
+};
+
+/**
+ * The agreement line under the sign-up / sign-in actions (#81): a centered footnote, then the
+ * Terms of Use and Privacy Policy as two links that open in the in-app browser, on the grouped
+ * background like the paywall's footer. Separate 44pt links rather than inline Markdown ones: a
+ * Markdown link in a SwiftUI `Text` hands the URL to Safari and is only as tall as its text.
+ */
+export function AuthLegalFooter({
+  text,
+  termsLabel,
+  privacyLabel,
+  onOpenTerms,
+  onOpenPrivacy,
+}: AuthLegalFooterProps) {
+  const isStacked = useIsAccessibilityTextSize();
+  const terms = <LegalLink title={termsLabel} onPress={onOpenTerms} />;
+  const privacy = <LegalLink title={privacyLabel} onPress={onOpenPrivacy} />;
+
+  return (
+    <Section>
+      <VStack spacing={4} modifiers={[frame({ maxWidth: Infinity }), ...CLEAR_ROW]}>
+        <Text
+          modifiers={[
+            font({ textStyle: 'footnote' }),
+            foregroundStyle(PlatformColor('secondaryLabel')),
+            multilineTextAlignment('center'),
+          ]}
+        >
+          {text}
+        </Text>
+        {isStacked ? (
+          <VStack spacing={4}>
+            {terms}
+            {privacy}
+          </VStack>
+        ) : (
+          <HStack spacing={20}>
+            {terms}
+            {privacy}
+          </HStack>
+        )}
+      </VStack>
+    </Section>
+  );
+}
+
+/**
+ * A footnote link at least 44pt tall. Borderless, so each takes its own taps inside the one form
+ * row; read as a link, as a SwiftUI `Link` is.
+ */
+function LegalLink({ title, onPress }: { title: string; onPress: () => void }) {
+  return (
+    <Button
+      onPress={onPress}
+      modifiers={[
+        buttonStyle('borderless'),
+        accessibilityAddTraits(['isLink']),
+        accessibilityRemoveTraits(['isButton']),
+      ]}
+    >
+      <Text
+        modifiers={[
+          font({ textStyle: 'footnote' }),
+          multilineTextAlignment('center'),
+          frame({ minHeight: MIN_TARGET }),
+          ROW_SHAPE,
+        ]}
+      >
+        {title}
+      </Text>
     </Button>
   );
 }

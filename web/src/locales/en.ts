@@ -35,6 +35,18 @@ export const en = {
     checkEmail: 'Check your email',
     checkEmailMessage: 'We sent you a confirmation link. Please verify your email to continue.',
   },
+  // The legal pages (#81), opened in a new tab. The pages themselves are in Indonesian.
+  legal: {
+    terms: 'Terms of Use',
+    privacy: 'Privacy Policy',
+    termsShort: 'Terms',
+    privacyShort: 'Privacy',
+    // "By signing up, you agree to the <Terms of Use> and <Privacy Policy>."
+    signUpAgreementStart: 'By signing up, you agree to the',
+    signUpAgreementAnd: 'and',
+    footerLabel: 'Legal',
+    opensInNewTab: '(opens in a new tab)',
+  },
   nav: {
     transactions: 'Transactions',
     categories: 'Categories',
@@ -233,5 +245,6 @@ export const en = {
     themeSystem: 'System',
     themeLight: 'Light',
     themeDark: 'Dark',
+    legal: 'Legal',
   },
 } as const;

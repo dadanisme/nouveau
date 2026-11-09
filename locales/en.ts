@@ -127,6 +127,8 @@ const en = {
     workspaceSection: 'Workspace',
     manageSection: 'Manage',
     preferencesSection: 'Preferences',
+    // The legal pages (#81): Terms of Use and Privacy Policy, opened in the in-app browser.
+    aboutSection: 'About',
     // Replays the first-run value pages (#78).
     viewIntroduction: 'View Introduction',
     // A guest's row at the top (#100): opens Sign In.
@@ -494,8 +496,6 @@ const en = {
     restore: 'Restore Purchases',
     restoring: 'Restoring…',
     notNow: 'Not Now',
-    terms: 'Terms of Use',
-    privacy: 'Privacy Policy',
     disclosure:
       'Nouveau Premium renews automatically at %{price} until you cancel. Cancel anytime in your %{store} settings, at least 24 hours before the current period ends.',
     disclosureTrial:
@@ -531,6 +531,15 @@ const en = {
       expires: 'Expires %{date}',
     },
     rowValue: { free: 'Free', trial: 'Trial', active: 'Active' },
+  },
+  // The legal pages (#81), opened in the in-app browser.
+  legal: {
+    terms: 'Terms of Use',
+    privacy: 'Privacy Policy',
+    // Under Sign Up's actions (email, Apple and Google), above the two links.
+    signUpAgreement: 'By signing up, you agree to the Terms of Use and Privacy Policy.',
+    // Under Login's actions: Apple and Google create an account on first use there too.
+    signInAgreement: 'By continuing, you agree to the Terms of Use and Privacy Policy.',
   },
   proofs: {
     title: 'Receipt Proofs',

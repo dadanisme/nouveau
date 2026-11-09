@@ -1,7 +1,7 @@
 import { useRef } from 'react';
 
 import { AppleSignInButton } from '@/components/apple-sign-in-button';
-import { AuthForm, AuthFormSection, AuthSwitchRow } from '@/components/auth-form';
+import { AuthForm, AuthFormSection, AuthLegalFooter, AuthSwitchRow } from '@/components/auth-form';
 import { FormPrimaryButtonRow } from '@/components/form-primary-button-row';
 import { GoogleSignInButton } from '@/components/google-sign-in-button';
 import { FormTextFieldRow } from '@/components/native-form';
@@ -71,6 +71,15 @@ export default function SignUpScreen() {
           onPress={screen.signUpWithGoogle}
         />
       </AuthFormSection>
+
+      {/* The legal pages (#81): Signing up with any of the actions above agrees to them. */}
+      <AuthLegalFooter
+        text={t(k.legal.signUpAgreement)}
+        termsLabel={t(k.legal.terms)}
+        privacyLabel={t(k.legal.privacy)}
+        onOpenTerms={screen.openTerms}
+        onOpenPrivacy={screen.openPrivacy}
+      />
     </AuthForm>
   );
 }
