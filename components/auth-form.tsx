@@ -86,9 +86,23 @@ export type AuthFormSectionProps = {
   children: React.ReactNode;
 };
 
-/** A group of rows: inset grouped `Section` on iOS, a spaced column on Android. */
+/**
+ * A group of rows: inset grouped `Section` on iOS, a spaced column on Android. The header ("or
+ * continue with") is centered over the centered buttons; as a header view it keeps the system
+ * header font, color and capitalization.
+ */
 export function AuthFormSection({ title, children }: AuthFormSectionProps) {
-  return <Section title={title}>{children}</Section>;
+  const header = title ? (
+    <Text
+      modifiers={[
+        frame({ maxWidth: Infinity, alignment: 'center' }),
+        multilineTextAlignment('center'),
+      ]}
+    >
+      {title}
+    </Text>
+  ) : undefined;
+  return <Section header={header}>{children}</Section>;
 }
 
 export type AuthSwitchRowProps = {

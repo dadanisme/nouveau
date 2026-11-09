@@ -91,10 +91,11 @@ export function AuthFormSection({ title, children }: AuthFormSectionProps) {
   return (
     <Column verticalArrangement={{ spacedBy: ROW_GAP }} modifiers={[fillMaxWidth()]}>
       {title ? (
+        // Centered over the full-width buttons, as on iOS.
         <Text
           color={colors.onSurfaceVariant}
-          style={{ typography: 'labelLarge' }}
-          modifiers={[padding(SIDE, 0, SIDE, 0)]}
+          style={{ typography: 'labelLarge', textAlign: 'center' }}
+          modifiers={[fillMaxWidth(), padding(SIDE, 0, SIDE, 0)]}
         >
           {title}
         </Text>
