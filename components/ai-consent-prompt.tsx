@@ -14,7 +14,7 @@ import {
   padding,
   shapes,
 } from '@expo/ui/swift-ui/modifiers';
-import { PlatformColor, StyleSheet } from 'react-native';
+import { PlatformColor, StyleSheet, View } from 'react-native';
 
 import { FormPrimaryButtonRow } from '@/components/form-primary-button-row';
 import type { FormSymbol } from '@/components/native-form-types';
@@ -47,6 +47,14 @@ export type AiConsentPromptProps = {
    * (the prompt pushed inside the Add Transaction sheet): the text scrolls over pinned buttons.
    */
   fitContent?: boolean;
+  /**
+   * With `fitContent`, the height of the sheet header the prompt sits under (iOS 26+, where the
+   * sheet's content extends under its bar). The fitted host is moved below the header by this
+   * much and ignores the bar's safe area, so its frame holds all of its content (SwiftUI would
+   * otherwise draw it a header lower than the host's frame, leaving Not Now outside the frame and
+   * untappable) and the sheet, which fits the content's frame, includes the header.
+   */
+  fitTopInset?: number;
 };
 
 /**
@@ -137,18 +145,22 @@ export function AiConsentPrompt(props: AiConsentPromptProps) {
   }
 
   if (props.fitContent) {
+    const topInset = props.fitTopInset ?? 0;
     return (
-      <Host
-        key="fit"
-        matchContents={{ vertical: true }}
-        style={styles.background}
-        seedColor={ACCENT_COLOR}
-      >
-        <VStack spacing={24} modifiers={[padding({ horizontal: SIDE, top: 8, bottom: 8 })]}>
-          {intro}
-          {actions}
-        </VStack>
-      </Host>
+      <View style={{ paddingTop: topInset }}>
+        <Host
+          key="fit"
+          matchContents={{ vertical: true }}
+          ignoreSafeArea={topInset > 0 ? 'container' : undefined}
+          style={styles.background}
+          seedColor={ACCENT_COLOR}
+        >
+          <VStack spacing={24} modifiers={[padding({ horizontal: SIDE, top: 8, bottom: 8 })]}>
+            {intro}
+            {actions}
+          </VStack>
+        </Host>
+      </View>
     );
   }
 
