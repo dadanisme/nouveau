@@ -71,6 +71,19 @@ export type FormLinkRowProps = {
   onPress: () => void;
 };
 
+/**
+ * An on/off setting (e.g. AI Processing): a SwiftUI `Toggle` (iOS), a `ListItem` with a trailing
+ * M3 `Switch` that the whole row toggles (Android). Controlled: the switch shows `value`, so a
+ * change the screen doesn't take (one that first asks) stays off.
+ */
+export type FormToggleRowProps = {
+  title: string;
+  icon?: FormIcon;
+  value: boolean;
+  onValueChange: (value: boolean) => void;
+  disabled?: boolean;
+};
+
 export type FormPickerOption<T extends string> = { value: T; label: string };
 
 export type FormPickerRowProps<T extends string> = {

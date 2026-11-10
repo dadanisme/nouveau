@@ -259,7 +259,8 @@ export function parsePremiumFeature(value: string | string[] | undefined): Premi
 
 /**
  * A moneymail 403 for a Premium feature (`code: "premium_required"`): the paywall opens instead
- * of an error alert. Matches the `ApiError` (`lib/api.ts`) by shape, so this stays pure.
+ * of an error alert. Matches the `ApiError` (`lib/api.ts`) by shape, so this stays pure. The
+ * server checks Premium first, then AI consent: `isAiConsentRequiredError` (`utils/ai-consent.ts`).
  */
 export function isPremiumRequiredError(error: unknown): boolean {
   if (typeof error !== 'object' || error === null) return false;

@@ -260,6 +260,77 @@ export type Database = {
         };
         Relationships: [];
       };
+      premium_entitlements: {
+        Row: {
+          billing_issue_detected_at: string | null;
+          created_at: string;
+          entitlement_id: string;
+          environment: string | null;
+          expires_at: string | null;
+          grace_period_expires_at: string | null;
+          last_event_at: string;
+          last_event_id: string;
+          last_event_type: string;
+          period_type: string | null;
+          product_id: string | null;
+          purchased_at: string | null;
+          source: string;
+          store: string | null;
+          unsubscribe_detected_at: string | null;
+          updated_at: string;
+          user_id: string;
+          will_renew: boolean;
+        };
+        Insert: {
+          billing_issue_detected_at?: string | null;
+          created_at?: string;
+          entitlement_id?: string;
+          environment?: string | null;
+          expires_at?: string | null;
+          grace_period_expires_at?: string | null;
+          last_event_at: string;
+          last_event_id: string;
+          last_event_type: string;
+          period_type?: string | null;
+          product_id?: string | null;
+          purchased_at?: string | null;
+          source: string;
+          store?: string | null;
+          unsubscribe_detected_at?: string | null;
+          updated_at?: string;
+          user_id: string;
+          will_renew?: boolean;
+        };
+        Update: {
+          billing_issue_detected_at?: string | null;
+          created_at?: string;
+          entitlement_id?: string;
+          environment?: string | null;
+          expires_at?: string | null;
+          grace_period_expires_at?: string | null;
+          last_event_at?: string;
+          last_event_id?: string;
+          last_event_type?: string;
+          period_type?: string | null;
+          product_id?: string | null;
+          purchased_at?: string | null;
+          source?: string;
+          store?: string | null;
+          unsubscribe_detected_at?: string | null;
+          updated_at?: string;
+          user_id?: string;
+          will_renew?: boolean;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'premium_entitlements_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: true;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       receipt_proofs: {
         Row: {
           created_at: string | null;
@@ -394,6 +465,8 @@ export type Database = {
       users: {
         Row: {
           active_workspace_id: string | null;
+          ai_consent: string | null;
+          ai_consent_updated_at: string | null;
           created_at: string | null;
           currency: string;
           display_name: string;
@@ -407,6 +480,8 @@ export type Database = {
         };
         Insert: {
           active_workspace_id?: string | null;
+          ai_consent?: string | null;
+          ai_consent_updated_at?: string | null;
           created_at?: string | null;
           currency?: string;
           display_name: string;
@@ -420,6 +495,8 @@ export type Database = {
         };
         Update: {
           active_workspace_id?: string | null;
+          ai_consent?: string | null;
+          ai_consent_updated_at?: string | null;
           created_at?: string | null;
           currency?: string;
           display_name?: string;
@@ -648,6 +725,10 @@ export type Database = {
       };
       is_admin: { Args: never; Returns: boolean };
       is_workspace_member: { Args: { workspace: string }; Returns: boolean };
+      upsert_premium_entitlement: {
+        Args: { p_entitlement: Json };
+        Returns: boolean;
+      };
     };
     Enums: {
       [_ in never]: never;

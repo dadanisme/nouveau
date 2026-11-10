@@ -17,6 +17,7 @@ import {
   SegmentedButton,
   SingleChoiceSegmentedButtonRow,
   Surface,
+  Switch,
   Text,
   TextField,
   useMaterialColors,
@@ -39,6 +40,7 @@ import {
   semantics,
   Shapes,
   size,
+  toggleable,
   type ModifierConfig,
 } from '@expo/ui/jetpack-compose/modifiers';
 import {
@@ -73,6 +75,7 @@ import type {
   FormSegmentedSectionProps,
   FormTextFieldContentType,
   FormTextFieldRowProps,
+  FormToggleRowProps,
   FormValueRowProps,
   NativeFormProps,
 } from '@/components/native-form-types';
@@ -267,6 +270,28 @@ export function FormLinkRow({ title, icon, onPress }: FormLinkRowProps) {
       <ListItem.TrailingContent>
         {/* Decorative: the title names the row. */}
         <Icon source={require('@/assets/icons/open_in_new.xml')} tint={colors.onSurfaceVariant} />
+      </ListItem.TrailingContent>
+    </ListItem>
+  );
+}
+
+/**
+ * An on/off setting: a list item with a trailing M3 `Switch`. The whole row toggles (one TalkBack
+ * stop with the switch role), so the switch itself takes no taps.
+ */
+export function FormToggleRow({ title, icon, value, onValueChange, disabled }: FormToggleRowProps) {
+  return (
+    <ListItem
+      modifiers={[
+        toggleable(value, () => onValueChange(!value), { role: 'switch', enabled: !disabled }),
+      ]}
+    >
+      <RowIcon icon={icon} />
+      <ListItem.HeadlineContent>
+        <Text>{title}</Text>
+      </ListItem.HeadlineContent>
+      <ListItem.TrailingContent>
+        <Switch value={value} enabled={!disabled} />
       </ListItem.TrailingContent>
     </ListItem>
   );

@@ -52,6 +52,12 @@ export const androidOverrides: { en: Overrides<Translations>; id: Overrides<Tran
     },
     guestUpload: { title: 'Added from this device' },
     legal: { terms: 'Terms of use', privacy: 'Privacy policy' },
+    aiConsent: {
+      title: 'Allow AI processing?',
+      notNow: 'Not now',
+      toggle: 'AI processing',
+      saveFailed: "Couldn't save your choice",
+    },
     profile: { signInSection: 'Sign-in method', saveFailed: "Couldn't save name" },
     deleteAccount: {
       title: 'Delete account',
@@ -180,6 +186,11 @@ export const androidOverrides: { en: Overrides<Translations>; id: Overrides<Tran
     },
     guestUpload: { title: 'Ditambahkan dari perangkat ini' },
     legal: { terms: 'Ketentuan penggunaan', privacy: 'Kebijakan privasi' },
+    aiConsent: {
+      title: 'Izinkan pemrosesan AI?',
+      notNow: 'Nanti saja',
+      saveFailed: 'Gagal menyimpan pilihan Anda',
+    },
     profile: { saveFailed: 'Gagal menyimpan nama' },
     deleteAccount: {
       title: 'Hapus akun',

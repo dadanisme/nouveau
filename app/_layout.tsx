@@ -15,6 +15,7 @@ import { sheetOptions } from '@/constants/sheet-options';
 import { LanguageProvider, useLanguage } from '@/contexts/language';
 import { PeriodProvider } from '@/contexts/period';
 import { WorkspaceProvider } from '@/contexts/workspace';
+import { useIsAccessibilityTextSize } from '@/hooks/use-accessibility-text-size';
 import { type AuthRoutes, useAuthRoutes } from '@/hooks/use-auth-routes';
 import { useGuestUpload, useGuestUploadNotice } from '@/hooks/use-guest-upload';
 import { useOnboardingPaywall } from '@/hooks/use-onboarding-paywall';
@@ -87,6 +88,7 @@ function RootNavigator() {
 function RootStack({ routes }: { routes: AuthRoutes }) {
   const { t } = useLanguage();
   const colorScheme = useColorScheme();
+  const isLargeText = useIsAccessibilityTextSize();
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DARK_THEME : LIGHT_THEME}>
@@ -195,6 +197,25 @@ function RootStack({ routes }: { routes: AuthRoutes }) {
           <Stack.Screen
             name="(sheets)/paywall"
             options={{ ...sheetOptions([1], { header: true }), title: '' }}
+          />
+          {/* The one-time AI consent (#122), before auto-categorize or a receipt scan first sends
+              anything to OpenRouter, and from Settings' AI Processing toggle. Signed-in accounts
+              only (guests and free accounts have no AI). It fits its content, so the whole
+              disclosure and the Privacy Policy are on screen before Allow can be tapped; at
+              accessibility text sizes it can't fit, so it's full height and the prompt scrolls.
+              The detents are chosen here, before the sheet is presented: Android doesn't apply a
+              detent change to a sheet that's already up. */}
+          <Stack.Screen
+            name="(sheets)/ai-consent"
+            options={{
+              ...sheetOptions(isLargeText ? [1] : 'fitToContents', { header: true }),
+              title: '',
+              // iOS: the prompt's grouped background also behind the bar and the home indicator
+              // padding that a fitted sheet adds under the content.
+              ...(Platform.OS === 'ios' && {
+                contentStyle: { backgroundColor: PlatformColor('systemGroupedBackground') },
+              }),
+            }}
           />
         </Stack.Protected>
         {/* Signed out (and a new account's currency step): the first-run flow. Once signed in or
