@@ -3,34 +3,25 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSession } from '@/hooks/use-auth';
 import { useDataSource } from '@/hooks/use-data-source';
 import { supabase } from '@/lib/supabase';
+import { toWorkspaceMemberRows } from '@/utils/workspace-member';
 
-export type WorkspaceMemberRow = {
-  workspace_id: string;
-  user_id: string;
-  role: string;
-  joined_at: string;
-  users: {
-    id: string;
-    display_name: string | null;
-    email: string | null;
-    profile_image: string | null;
-  } | null;
-};
-
-/** A workspace's members. Account only: a guest's workspace has no members table. */
+/**
+ * A workspace's members, with their names. Account only: a guest's workspace has no members table.
+ * Read through the `workspace_member_profiles` view: `public.users` lets a person read only their
+ * own row, so embedding `users(...)` under `workspace_members` returned null for everyone else.
+ */
 export function useWorkspaceMembers(workspaceId: string | null | undefined) {
   const source = useDataSource();
   return useQuery({
     queryKey: ['workspace-members', workspaceId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('workspace_members')
-        .select('*, users(id, display_name, email, profile_image)')
+        .from('workspace_member_profiles')
+        .select('*')
         .eq('workspace_id', workspaceId!)
-        .order('joined_at', { ascending: true })
-        .returns<WorkspaceMemberRow[]>();
+        .order('joined_at', { ascending: true });
       if (error) throw error;
-      return data ?? [];
+      return toWorkspaceMemberRows(data ?? []);
     },
     enabled: source?.kind === 'remote' && !!workspaceId,
   });

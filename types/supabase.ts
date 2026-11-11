@@ -680,7 +680,18 @@ export type Database = {
       };
     };
     Views: {
-      [_ in never]: never;
+      workspace_member_profiles: {
+        Row: {
+          display_name: string | null;
+          email: string | null;
+          joined_at: string | null;
+          profile_image: string | null;
+          role: string | null;
+          user_id: string | null;
+          workspace_id: string | null;
+        };
+        Relationships: [];
+      };
     };
     Functions: {
       accept_workspace_invite: { Args: { token: string }; Returns: string };
