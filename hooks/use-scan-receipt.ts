@@ -1,4 +1,4 @@
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { ShareIntentFile } from 'expo-share-intent';
 
 import { API_BASE_URL, authenticatedFetch } from '@/lib/api';
@@ -20,6 +20,8 @@ interface ScanReceiptResponse {
 }
 
 export function useScanReceipt() {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: async ({ files, text }: ScanReceiptInput) => {
       const scannable = files
@@ -40,6 +42,16 @@ export function useScanReceipt() {
           ...(text ? { text } : {}),
         }),
       });
+    },
+    // The server saves the transaction (and its proof), so refresh the same
+    // queries `useAddTransaction` does, plus the proofs lists.
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['transactions-year'] });
+      queryClient.invalidateQueries({ queryKey: ['balance'] });
+      queryClient.invalidateQueries({ queryKey: ['monthly-totals'] });
+      queryClient.invalidateQueries({ queryKey: ['recent-transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['proofs'] });
     },
   });
 }
