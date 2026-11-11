@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  addDays,
   currentYearMonth,
   formatDate,
   formatMonthLabel,
@@ -9,6 +10,7 @@ import {
   isSameMonth,
   monthRange,
   normalizeRange,
+  rangeEndExclusive,
   parseDateInput,
   parseDateKey,
   shiftMonth,
@@ -51,6 +53,25 @@ describe('monthRange', () => {
   it('handles February in leap and common years', () => {
     expect(monthRange({ year: 2024, month: 1 }).to).toBe('2024-02-29');
     expect(monthRange({ year: 2026, month: 1 }).to).toBe('2026-02-28');
+  });
+});
+
+describe('addDays', () => {
+  it('rolls over month and year ends on the calendar string', () => {
+    expect(addDays('2026-10-31', 1)).toBe('2026-11-01');
+    expect(addDays('2026-12-31', 1)).toBe('2027-01-01');
+    expect(addDays('2024-02-28', 1)).toBe('2024-02-29');
+    expect(addDays('2026-02-28', 1)).toBe('2026-03-01');
+    expect(addDays('2026-03-01', -1)).toBe('2026-02-28');
+  });
+});
+
+describe('rangeEndExclusive', () => {
+  it('keeps the whole last day inside a month or custom range', () => {
+    const range = monthRange({ year: 2026, month: 9 });
+    expect(rangeEndExclusive(range)).toBe('2026-11-01');
+    expect('2026-10-31T10:05:00+00:00' < rangeEndExclusive(range)).toBe(true);
+    expect(rangeEndExclusive({ from: '2026-05-03', to: '2026-05-03' })).toBe('2026-05-04');
   });
 });
 

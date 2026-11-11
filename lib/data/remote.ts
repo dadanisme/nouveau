@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import { getMonthBounds } from '@/utils/month-bounds';
 
 import type {
   DataSource,
@@ -11,9 +12,7 @@ export const remoteDataSource: DataSource = {
   kind: 'remote',
 
   async getTransactions(workspaceId, year, month, type) {
-    const startDate = `${year}-${String(month + 1).padStart(2, '0')}-01`;
-    const lastDay = new Date(year, month + 1, 0).getDate();
-    const endDate = `${year}-${String(month + 1).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+    const { start, nextStart } = getMonthBounds(year, month);
 
     let query = supabase
       .from('transactions')
@@ -21,8 +20,8 @@ export const remoteDataSource: DataSource = {
         '*, category:categories!category_id(id, name, type, color, icon), receipt_proofs(count)',
       )
       .eq('workspace_id', workspaceId)
-      .gte('date', startDate)
-      .lte('date', endDate)
+      .gte('date', start)
+      .lt('date', nextStart)
       .order('date', { ascending: false });
 
     if (type) {

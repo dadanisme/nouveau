@@ -81,7 +81,22 @@ export function getDaysInMonth(year: number, month: number): number {
   return new Date(year, month + 1, 0).getDate();
 }
 
-/** First and last day of a month, the same bounds mobile queries with. */
+/** The `YYYY-MM-DD` key `days` after `dateKey`, counted on the calendar string (no device timezone). */
+export function addDays(dateKey: string, days: number): string {
+  const [year, month, day] = toDateKey(dateKey).split('-').map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day + days));
+  return `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())}`;
+}
+
+/**
+ * Exclusive upper bound for a range query: the day after `range.to`. `transactions.date` is a
+ * timestamptz, so `<= to` would stop at midnight UTC and drop the last day.
+ */
+export function rangeEndExclusive(range: DateRange): string {
+  return addDays(range.to, 1);
+}
+
+/** First and last day of a month, inclusive; queries send `rangeEndExclusive(range)` as the bound. */
 export function monthRange({ year, month }: YearMonth): DateRange {
   const prefix = `${year}-${pad(month + 1)}`;
   return { from: `${prefix}-01`, to: `${prefix}-${pad(getDaysInMonth(year, month))}` };
