@@ -389,6 +389,33 @@ export type Database = {
           },
         ];
       };
+      storage_deletion_queue: {
+        Row: {
+          attempts: number;
+          created_at: string;
+          id: string;
+          last_attempt_at: string | null;
+          last_error: string | null;
+          r2_key: string;
+        };
+        Insert: {
+          attempts?: number;
+          created_at?: string;
+          id?: string;
+          last_attempt_at?: string | null;
+          last_error?: string | null;
+          r2_key: string;
+        };
+        Update: {
+          attempts?: number;
+          created_at?: string;
+          id?: string;
+          last_attempt_at?: string | null;
+          last_error?: string | null;
+          r2_key?: string;
+        };
+        Relationships: [];
+      };
       transactions: {
         Row: {
           amount: number;
@@ -690,11 +717,38 @@ export type Database = {
           user_id: string | null;
           workspace_id: string | null;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: 'workspace_members_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'workspace_members_workspace_id_fkey';
+            columns: ['workspace_id'];
+            isOneToOne: false;
+            referencedRelation: 'workspaces';
+            referencedColumns: ['id'];
+          },
+        ];
       };
     };
     Functions: {
       accept_workspace_invite: { Args: { token: string }; Returns: string };
+      claim_storage_deletions: {
+        Args: {
+          p_limit?: number;
+          p_max_attempts?: number;
+          p_retry_after?: string;
+        };
+        Returns: {
+          attempts: number;
+          id: string;
+          r2_key: string;
+        }[];
+      };
       create_workspace: {
         Args: { home_currency?: string; name: string };
         Returns: string;
