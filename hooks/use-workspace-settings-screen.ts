@@ -26,6 +26,7 @@ import { k } from '@/locales/keys';
 import { formatShortDate } from '@/utils/date';
 import { getErrorCode, getErrorMessage } from '@/utils/error';
 import { getHomeCurrencyOptions } from '@/utils/workspace';
+import { getMemberDisplayName } from '@/utils/workspace-member';
 
 /** Postgres foreign key violation: the workspace still has rows (categories, transactions). */
 const FOREIGN_KEY_VIOLATION = '23503';
@@ -143,7 +144,7 @@ export function useWorkspaceSettingsScreen() {
   }
 
   const memberRows = members.map((member) => {
-    const displayName = member.users?.display_name || member.users?.email || t(k.settings.unknown);
+    const displayName = getMemberDisplayName(member, t(k.settings.unknown));
     const isSelf = member.user_id === userId;
     const isMemberOwner = member.role === 'owner';
     const canRemove = isOwner && !isSelf && !isMemberOwner;
