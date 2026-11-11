@@ -98,5 +98,8 @@ spelling (see the first line of `vo_lines.txt`). The published preview is the cu
   "Unknown").
 - Localisation observation, not fixed here: compact amounts use a dot decimal in Indonesian ("Rp18.4Jt"), where Indonesian would use a
   comma ("Rp18,4 jt"); and with the system region en-US the date picker row reads "Nov 11, 2026" inside the Indonesian UI.
-- Technical note: the preview's video stream is full-range (`yuvj420p`, `color_range=pc`) although the render asked for
-  `yuv420p`; check that App Store Connect accepts and plays it when uploading (it was not tested against App Store Connect).
+- Technical note: the Remotion render came out full-range (`yuvj420p`, `color_range=pc`, BT.601) although it asked for `yuv420p`.
+  The delivered `app-preview.mp4` was re-encoded to limited-range BT.709 `yuv420p` through an RGB intermediate
+  (`-vf "format=rgb24,scale=out_color_matrix=bt709:out_range=tv,format=yuv420p"` with the bt709 and `tv` tags, H.264 High at 11 Mbps,
+  audio copied); the result differs from the original by about 2 levels per channel (PSNR 42 dB). It has not been tested
+  against App Store Connect, so check that it plays there when uploading.
