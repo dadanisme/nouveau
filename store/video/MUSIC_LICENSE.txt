@@ -1,0 +1,11 @@
+Music bed for Nouveau App Store preview (Indonesian), 261111-app-preview-id
+
+Title:     Acoustic Happy Light Journey Promotional
+Artist:    331music
+Source:    https://pixabay.com/music/pop-331-acoustic-happy-light-journey-promotional-559624/
+File:      audio/music/331music-acoustic-happy-light-journey-559624.mp3 (stereo, 44.1 kHz, 128.2 s, ~94 BPM)
+Licence:   Free for use under the Pixabay Content License
+Terms:     https://pixabay.com/service/license-summary/
+Downloaded: 2026-11-11
+Use:       background bed under the whole cut, excerpt from 0:00 (see mix.json: srcIn 0, fade-in 0.5 s, fade-out 2.0 s)
+Note:      Content ID / AI-generated badges were not re-checked by this session; confirm on the source page before submitting.

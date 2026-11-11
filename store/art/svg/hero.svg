@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="900" viewBox="0 0 1000 900" role="img" aria-label="Two people sharing one phone showing a shared list">
+  <defs>
+    <clipPath id="bar"><rect x="392" y="240" width="216" height="22" rx="11"/></clipPath>
+  </defs>
+  <!-- soft tint and ground -->
+  <circle cx="500" cy="440" r="400" fill="#FDEBDF"/>
+  <ellipse cx="500" cy="822" rx="430" ry="24" fill="#E5E5EA"/>
+
+  <!-- figure A: slightly taller, left -->
+  <g id="figure-a">
+    <rect x="188" y="586" width="52" height="226" rx="26" fill="#3A3A3C"/>
+    <rect x="250" y="586" width="52" height="226" rx="26" fill="#3A3A3C"/>
+    <rect x="176" y="792" width="70" height="26" rx="13" fill="#1C1C1E"/>
+    <rect x="244" y="792" width="70" height="26" rx="13" fill="#1C1C1E"/>
+    <path d="M160 400 Q160 330 230 330 H260 Q330 330 330 400 V588 Q330 604 314 604 H176 Q160 604 160 588 Z" fill="#636366"/>
+    <circle cx="245" cy="258" r="54" fill="#AEAEB2"/>
+    <path d="M314 372 Q354 408 362 472" fill="none" stroke="#636366" stroke-width="36" stroke-linecap="round"/>
+  </g>
+
+  <!-- figure B: slightly shorter, right -->
+  <g id="figure-b">
+    <rect x="700" y="606" width="50" height="206" rx="25" fill="#636366"/>
+    <rect x="760" y="606" width="50" height="206" rx="25" fill="#636366"/>
+    <rect x="690" y="792" width="68" height="26" rx="13" fill="#3A3A3C"/>
+    <rect x="752" y="792" width="68" height="26" rx="13" fill="#3A3A3C"/>
+    <path d="M676 438 Q676 376 736 376 H774 Q834 376 834 438 V604 Q834 618 820 618 H690 Q676 618 676 604 Z" fill="#AEAEB2"/>
+    <circle cx="755" cy="306" r="50" fill="#D1D1D6"/>
+    <path d="M690 416 Q650 446 638 496" fill="none" stroke="#AEAEB2" stroke-width="34" stroke-linecap="round"/>
+  </g>
+
+  <!-- the one shared phone (accent) -->
+  <g id="phone">
+    <rect x="360" y="140" width="280" height="560" rx="50" fill="#E24A00"/>
+    <rect x="376" y="156" width="248" height="528" rx="36" fill="#FFFFFF"/>
+    <!-- header: title bar and two avatars -->
+    <rect x="392" y="196" width="100" height="14" rx="7" fill="#1C1C1E"/>
+    <circle cx="576" cy="203" r="14" fill="#8E8E93" stroke="#FFFFFF" stroke-width="3"/>
+    <circle cx="598" cy="203" r="14" fill="#C7C7CC" stroke="#FFFFFF" stroke-width="3"/>
+    <!-- category bar -->
+    <g clip-path="url(#bar)">
+      <rect x="392" y="240" width="216" height="22" fill="#E5E5EA"/>
+      <rect x="392" y="240" width="92" height="22" fill="#E24A00"/>
+      <rect x="487" y="240" width="56" height="22" fill="#636366"/>
+      <rect x="546" y="240" width="38" height="22" fill="#AEAEB2"/>
+    </g>
+    <!-- legend -->
+    <circle cx="397" cy="285" r="5" fill="#E24A00"/><rect x="408" y="281" width="30" height="8" rx="4" fill="#C7C7CC"/>
+    <circle cx="456" cy="285" r="5" fill="#636366"/><rect x="467" y="281" width="30" height="8" rx="4" fill="#C7C7CC"/>
+    <circle cx="515" cy="285" r="5" fill="#AEAEB2"/><rect x="526" y="281" width="30" height="8" rx="4" fill="#C7C7CC"/>
+    <!-- rows -->
+    <g>
+      <rect x="392" y="312" width="216" height="68" rx="18" fill="#F2F2F7"/>
+      <circle cx="426" cy="346" r="20" fill="#E24A00"/><circle cx="426" cy="346" r="7" fill="#FFFFFF"/>
+      <rect x="458" y="332" width="88" height="12" rx="6" fill="#3A3A3C"/><rect x="458" y="352" width="56" height="9" rx="4.5" fill="#AEAEB2"/>
+      <rect x="556" y="339" width="40" height="12" rx="6" fill="#636366"/>
+    </g>
+    <g>
+      <rect x="392" y="392" width="216" height="68" rx="18" fill="#F2F2F7"/>
+      <circle cx="426" cy="426" r="20" fill="#D1D1D6"/><circle cx="426" cy="426" r="7" fill="#FFFFFF"/>
+      <rect x="458" y="412" width="70" height="12" rx="6" fill="#3A3A3C"/><rect x="458" y="432" width="48" height="9" rx="4.5" fill="#AEAEB2"/>
+      <rect x="564" y="419" width="32" height="12" rx="6" fill="#636366"/>
+    </g>
+    <g>
+      <rect x="392" y="472" width="216" height="68" rx="18" fill="#F2F2F7"/>
+      <circle cx="426" cy="506" r="20" fill="#D1D1D6"/><circle cx="426" cy="506" r="7" fill="#FFFFFF"/>
+      <rect x="458" y="492" width="96" height="12" rx="6" fill="#3A3A3C"/><rect x="458" y="512" width="62" height="9" rx="4.5" fill="#AEAEB2"/>
+      <rect x="552" y="499" width="44" height="12" rx="6" fill="#636366"/>
+    </g>
+    <g>
+      <rect x="392" y="552" width="216" height="68" rx="18" fill="#F2F2F7"/>
+      <circle cx="426" cy="586" r="20" fill="#D1D1D6"/><circle cx="426" cy="586" r="7" fill="#FFFFFF"/>
+      <rect x="458" y="572" width="64" height="12" rx="6" fill="#3A3A3C"/><rect x="458" y="592" width="44" height="9" rx="4.5" fill="#AEAEB2"/>
+      <rect x="560" y="579" width="36" height="12" rx="6" fill="#636366"/>
+    </g>
+    <rect x="470" y="666" width="60" height="6" rx="3" fill="#D1D1D6"/>
+  </g>
+
+  <!-- hands on the phone edges -->
+  <circle cx="366" cy="476" r="21" fill="#AEAEB2"/>
+  <circle cx="634" cy="500" r="20" fill="#D1D1D6"/>
+
+  <!-- coins (accent) -->
+  <g id="coins" fill="#E24A00">
+    <circle cx="440" cy="94" r="28"/><circle cx="512" cy="62" r="30"/><circle cx="578" cy="98" r="28"/>
+  </g>
+  <g fill="none" stroke="#FFFFFF" stroke-opacity="0.6" stroke-width="5">
+    <circle cx="440" cy="94" r="16"/><circle cx="512" cy="62" r="17"/><circle cx="578" cy="98" r="16"/>
+  </g>
+</svg>

@@ -1,0 +1,25 @@
+{
+  "timeline": "review/AppPreviewPortrait.timeline.json",
+  "tracks": [
+    {
+      "kind": "room",
+      "file": "audio/room/roomtone.wav",
+      "start": 0,
+      "srcIn": 0,
+      "srcOut": 28.03,
+      "lufs": -42,
+      "duck": false,
+      "fadeIn": 0.5,
+      "fadeOut": 2.0
+    },
+    {
+      "kind": "music",
+      "file": "audio/music/331music-acoustic-happy-light-journey-559624.mp3",
+      "start": 0,
+      "srcIn": 0,
+      "fadeIn": 0.5,
+      "fadeOut": 2.0,
+      "underVo": -9
+    }
+  ]
+}

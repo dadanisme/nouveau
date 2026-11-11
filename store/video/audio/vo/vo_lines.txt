@@ -1,0 +1,7 @@
+# TTS-only respelling (Soniox Sari/id reads "Nouveau" as "nufo"): beat_1 and beat_4 were synthesised from "Nuvou" in place of "Nouveau" (take-picked, whisper hears "nuvo"). Captions use the text below.
+beat_1|Nouveau: catat keuangan keluarga, bersama pasangan, tanpa rahasia.
+beat_2|Undang pasangan atau keluarga, dan semua melihat transaksi yang sama.
+beat_3|Catat pengeluaran dalam hitungan detik, kategori terisi sendiri.
+beat_4|Foto struk, Nouveau yang mencatat.
+beat_5|Lihat ke mana uang kamu pergi, bulan demi bulan.
+beat_6|Dibuat oleh kami, pasangan suami istri yang terbuka soal keuangan.

@@ -1,0 +1,10 @@
+# ASR aliases, one per line:  <word(s) as written in vo_lines.txt>=<what whisper hears>|<another>
+# Read by verify-vo.sh, align-captions.sh and check.sh. Add each mishearing verify-vo reports for a PRODUCT NAME, e.g.
+#   Ogmo=agmo|agno|ogma|okmo|ogmore|augmo|agma
+# Never alias ordinary words: re-synthesise the line (other voice/speed) or respell it instead.
+Nouveau=nou veau|nu voh|nuvo|nuvoh|nouvo|nouvoh|nuvo|new vo|nuvou|nuveau|nouvou|noovo|nuvu|nu vo|new voh|nouvoe|nuvoe|nouveau|nuvow|nufo|nufoh|nufu|nufow
+# Whisper spells these Indonesian words differently from the script (VO audio unchanged)
+ke mana=kemana
+foto struk=fotostruc|foto struc
+# Whisper hears beat_4's respelled 'Nuvou' as 'nu4' (digit): spelling only, VO audio unchanged
+Nouveau=nu4
