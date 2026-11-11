@@ -4,3 +4,5 @@ dist
 android
 ios
 *.lock
+store/art
+store/video

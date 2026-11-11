@@ -1,0 +1,14 @@
+node_modules/
+out/
+review/
+.DS_Store
+# generated or binary inputs, never committed
+public/
+rec/
+audio/music/
+audio/mix/
+audio/room/
+audio/vo/*.wav
+audio/vo/raw/
+audio/vo/whisper/
+out/
