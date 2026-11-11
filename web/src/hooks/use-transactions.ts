@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 
 import { supabase } from '@/lib/supabase';
 import type { DateRange, TransactionWithCategory } from '@/types/transaction';
+import { rangeEndExclusive } from '@/utils/date';
 
 /** Prefix shared by every transactions list query; mutations invalidate and patch by it. */
 export const TRANSACTIONS_QUERY_KEY = 'transactions';
@@ -28,7 +29,7 @@ export function useTransactions(workspaceId: string | null | undefined, range: D
           .select('*, category:categories!category_id(id, name, type, color, icon)')
           .eq('workspace_id', workspaceId!)
           .gte('date', range.from)
-          .lte('date', range.to)
+          .lt('date', rangeEndExclusive(range))
           .order('date', { ascending: false })
           .order('created_at', { ascending: false })
           .order('id')
