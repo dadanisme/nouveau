@@ -14,12 +14,17 @@
       "appleTeamId": "C4SQMCY5WT",
       "usesAppleSignIn": true,
       "infoPlist": {
+        "CFBundleLocalizations": ["id", "en"],
         "ITSAppUsesNonExemptEncryption": false,
         "UIViewControllerBasedStatusBarAppearance": true,
         "NSPhotoLibraryUsageDescription": "Allow Nouveau to save receipt photos to your library.",
         "NSPhotoLibraryAddUsageDescription": "Allow Nouveau to save receipt photos to your library."
       },
       "icon": "./assets/images/AppIcon.icon"
+    },
+    "locales": {
+      "id": "./locales/native/id.json",
+      "en": "./locales/native/en.json"
     },
     "android": {
       "adaptiveIcon": {
@@ -37,14 +42,18 @@
         {
           "ios": {
             "backgroundColor": "#F2F2F7",
-            "dark": { "backgroundColor": "#000000" }
+            "dark": {
+              "backgroundColor": "#000000"
+            }
           },
           "android": {
             "image": "./assets/images/splash-icon.png",
             "imageWidth": 200,
             "resizeMode": "contain",
             "backgroundColor": "#FFFFFF",
-            "dark": { "backgroundColor": "#000000" }
+            "dark": {
+              "backgroundColor": "#000000"
+            }
           }
         }
       ],
@@ -91,8 +100,14 @@
           "ios": {
             "deploymentTarget": "17.0",
             "extraPods": [
-              { "name": "GoogleUtilities", "modular_headers": true },
-              { "name": "RecaptchaInterop", "modular_headers": true }
+              {
+                "name": "GoogleUtilities",
+                "modular_headers": true
+              },
+              {
+                "name": "RecaptchaInterop",
+                "modular_headers": true
+              }
             ]
           }
         }
@@ -108,7 +123,8 @@
         {
           "deploymentTarget": "17.0"
         }
-      ]
+      ],
+      "./plugins/with-ios-known-regions"
     ],
     "experiments": {
       "typedRoutes": true,

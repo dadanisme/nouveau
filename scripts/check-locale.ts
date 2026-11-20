@@ -1,16 +1,22 @@
 /**
- * Checks the default/fallback locale rules (`utils/locale.ts`):
+ * Checks the default/fallback locale rules (`utils/locale.ts`) and native iOS localization config:
  * - Indonesian (`id`, plus legacy Android `in`) resolves to `id`;
  * - English (`en`, case-insensitive) stays `en`;
  * - any other or missing device language falls back to `id`;
  * - `resolveDateLocale` maps `en` -> `en-US`, `id` -> `id-ID`, and unknown -> `id-ID`;
  * - `i18n-js` with `defaultLocale = DEFAULT_LOCALE` falls back to Indonesian;
- * - `locales/id.ts` has every key `locales/en.ts` has, so Indonesian fallback never drops a key.
+ * - `locales/id.ts` has every key `locales/en.ts` has, so Indonesian fallback never drops a key;
+ * - `app.json` declares `CFBundleLocalizations` (`id`, `en`), `expo.locales` JSON files with
+ *   localized iOS permission strings, and the `with-ios-known-regions` config plugin.
  *
  * Run: bun scripts/check-locale.ts (exits 1 on any failure).
  */
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { I18n } from 'i18n-js';
 
+import appJson from '../app.json';
 import en from '../locales/en';
 import id from '../locales/id';
 import {
@@ -97,6 +103,64 @@ const extraInId = [...idKeys].filter((key) => !enKeys.has(key));
 
 check('id locale has all en keys', missingInId.length === 0, missingInId.join(', '));
 check('id locale has no extra keys', extraInId.length === 0, extraInId.join(', '));
+
+// Native iOS localization config in app.json and locales/native/*.json.
+const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const infoPlist = appJson.expo.ios.infoPlist as Record<string, unknown>;
+const bundleLocalizations = infoPlist.CFBundleLocalizations;
+check(
+  'app.json CFBundleLocalizations includes id and en',
+  Array.isArray(bundleLocalizations) &&
+    bundleLocalizations.includes('id') &&
+    bundleLocalizations.includes('en'),
+  JSON.stringify(bundleLocalizations),
+);
+
+const nativeLocales = (appJson.expo as Record<string, unknown>).locales as
+  | Record<string, string>
+  | undefined;
+const requiredIosPermissionKeys = [
+  'NSPhotoLibraryUsageDescription',
+  'NSPhotoLibraryAddUsageDescription',
+] as const;
+
+for (const lang of ['id', 'en'] as const) {
+  const relPath = nativeLocales?.[lang];
+  check(`app.json expo.locales.${lang} is set`, typeof relPath === 'string' && relPath.length > 0);
+  if (typeof relPath === 'string') {
+    const absPath = path.resolve(rootDir, relPath);
+    check(`locale file exists for ${lang}`, fs.existsSync(absPath), absPath);
+    if (fs.existsSync(absPath)) {
+      const parsed = JSON.parse(fs.readFileSync(absPath, 'utf8')) as {
+        ios?: Record<string, unknown>;
+        [key: string]: unknown;
+      };
+      // Keep iOS permission keys scoped under `ios` so Android Locales.js does not emit them.
+      const topLevelKeys = Object.keys(parsed).filter((k) => k !== 'ios' && k !== 'android');
+      check(
+        `locales/native/${lang}.json scopes iOS keys under ios`,
+        topLevelKeys.length === 0,
+        topLevelKeys.join(', '),
+      );
+      for (const permKey of requiredIosPermissionKeys) {
+        const val = parsed.ios?.[permKey];
+        check(
+          `locales/native/${lang}.json ios.${permKey} is non-empty`,
+          typeof val === 'string' && val.trim().length > 0,
+        );
+        if (lang === 'en') {
+          eq(`locales/native/en.json ios.${permKey} matches app.json`, val, infoPlist[permKey]);
+        }
+      }
+    }
+  }
+}
+
+const plugins = appJson.expo.plugins as unknown[];
+check(
+  'app.json registers ./plugins/with-ios-known-regions',
+  plugins.includes('./plugins/with-ios-known-regions'),
+);
 
 console.log(`${passes} passed, ${failures} failed`);
 if (failures > 0) process.exit(1);

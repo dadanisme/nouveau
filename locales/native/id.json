@@ -1,0 +1,6 @@
+{
+  "ios": {
+    "NSPhotoLibraryUsageDescription": "Izinkan Nouveau menyimpan foto struk ke galeri foto Anda.",
+    "NSPhotoLibraryAddUsageDescription": "Izinkan Nouveau menyimpan foto struk ke galeri foto Anda."
+  }
+}
