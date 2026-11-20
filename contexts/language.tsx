@@ -1,9 +1,10 @@
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 
 import i18n from '@/lib/i18n';
+import type { AppLocale } from '@/utils/locale';
 import type { Scope, TranslateOptions } from 'i18n-js';
 
-export type Locale = 'en' | 'id';
+export type Locale = AppLocale;
 
 interface LanguageContextValue {
   locale: Locale;
