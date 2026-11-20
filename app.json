@@ -124,7 +124,8 @@
           "deploymentTarget": "17.0"
         }
       ],
-      "./plugins/with-ios-known-regions"
+      "./plugins/with-ios-known-regions",
+      "./plugins/with-ios-strip-dev-launcher"
     ],
     "experiments": {
       "typedRoutes": true,
