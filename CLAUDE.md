@@ -33,8 +33,7 @@ No test framework is configured. The web app in `web/` has its own scripts (`cd 
 ## Branching
 
 - Epic #40 records every decision. Read the relevant sub-issue before starting.
-- UI work goes in per-issue PRs into the `native-ui` integration branch. `native-ui` merges to `main` once, in #39, so no release mixes old and new UI.
-- The SDK upgrade (#24) merges to `main` on its own and is then brought into `native-ui`.
+- Changes go in per-issue PRs into `main`.
 
 ## Platform and stack
 
